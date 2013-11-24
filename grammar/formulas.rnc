@@ -9,12 +9,22 @@ property = element property {
   element id {
     xsd:ID
   },
+  element description {
+    text
+  },
   element tags {
     element is-structural { xsd:boolean },
     element is-reachability  { xsd:boolean },
     element is-ctl { xsd:boolean },
     element is-ltl { xsd:boolean }
   },
+  element expected-result {
+    element value {
+      xsd:integer | xsd:boolean
+    }, element explanation {
+      text
+    }
+  }?,
   formula
 }
 
@@ -62,13 +72,13 @@ boolean-formula =
     }
   | element deadlock { empty }
   | element is-live {
-      transition,
+      transition+,
       element level {
         "l0" | "l1" | "l2" | "l3" | "l4"
       }
     }
   | element is-fireable {
-      transition
+      transition+
     }
   | element true { empty }
   | element false { empty }
@@ -181,7 +191,7 @@ transition = element transition {
 
 multiset-expression =
     element tokens {
-      place
+      place+
     }
   | element multiset-union {
       multiset-expression,
