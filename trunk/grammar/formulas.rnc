@@ -1,0 +1,207 @@
+default namespace = "http://mcc.lip6.fr/"
+start = property-set
+
+property-set = element property-set {
+  property*
+}
+
+property = element property {
+  element id {
+    xsd:ID
+  },
+  element tags {
+    element is-structural { xsd:boolean },
+    element is-reachability  { xsd:boolean },
+    element is-ctl { xsd:boolean },
+    element is-ltl { xsd:boolean }
+  },
+  formula
+}
+
+formula =
+    boolean-formula
+  | integer-formula
+
+boolean-formula =
+    element invariant {
+      boolean-formula
+    }
+  | element impossibility {
+      boolean-formula
+    }
+  | element possibility {
+      boolean-formula
+    }
+  | element all-paths {
+      boolean-formula
+    }
+  | element exists-path {
+      boolean-formula
+    }
+  | element next {
+      boolean-formula,
+      element if-no-successor { xsd:boolean },
+      element steps { xsd:positiveInteger }
+    }
+  | element globally {
+      boolean-formula
+    }
+  | element finally {
+      boolean-formula
+    }
+  | element until {
+      element before {
+        boolean-formula
+      },
+      element reach {
+        boolean-formula
+      },
+      element strength {
+        "weak" | "strong"
+      }
+    }
+  | element deadlock { empty }
+  | element is-live {
+      transition,
+      element level {
+        "l0" | "l1" | "l2" | "l3" | "l4"
+      }
+    }
+  | element is-fireable {
+      transition
+    }
+  | element true { empty }
+  | element false { empty }
+  | element negation {
+      boolean-formula
+    }
+  | element conjunction {
+      boolean-formula+
+    }
+  | element disjunction {
+      boolean-formula+
+    }
+  | element exclusive-disjunction {
+      boolean-formula+
+    }
+  | element implication {
+      boolean-formula,
+      boolean-formula
+    }
+  | element equivalence {
+      boolean-formula,
+      boolean-formula
+    }
+  | element integer-eq {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-ne {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-lt {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-le {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-gt {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-ge {
+      integer-expression,
+      integer-expression
+    }
+  | element multiset-eq {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-ne {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-lt {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-le {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-gt {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-ge {
+      multiset-expression,
+      multiset-expression
+    }
+
+integer-expression =
+    element integer-constant {
+      xsd:integer
+    }
+  | element integer-sum {
+      integer-expression,
+      integer-expression
+    }
+  | element integer-product {
+      integer-expression,
+      integer-expression
+    }
+
+  | element integer-difference {
+      integer-expression,
+      integer-expression
+    }
+
+  | element integer-division {
+      integer-expression,
+      integer-expression
+    }
+
+  | element place-bound {
+      place+
+    }
+  | element multiset-cardinality {
+      multiset-expression
+  }
+
+place = element place {
+  xsd:ID
+}
+
+transition = element transition {
+  xsd:ID
+}
+
+multiset-expression =
+    element tokens {
+      place
+    }
+  | element multiset-union {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-intersection {
+      multiset-expression,
+      multiset-expression
+    }
+  | element multiset-difference {
+      multiset-expression,
+      multiset-expression
+    }
+  | element set-of {
+      multiset-expression
+    }
+
+variable = element variable {
+  text
+}
+
+integer-formula =
+    integer-expression
