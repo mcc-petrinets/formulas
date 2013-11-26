@@ -1,0 +1,10 @@
+{
+    "require": {
+        "doctrine/orm": "2.3.4",
+        "doctrine/dbal": "2.3.4",
+        "symfony/console": "2.3.*@dev"
+    },
+    "autoload": {
+        "psr-0": {"MCC\\": "src/"}
+    }
+}
