@@ -6,7 +6,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\Log\LoggerInterface;
 
 class Domain
 {
@@ -39,7 +38,20 @@ class Places extends Command
   protected function execute(InputInterface $input, OutputInterface $output)
   {
     $cmodelfile = $input->getArgument('colored-model');
+    $cmodelname = basename(dirname(realpath($cmodelfile)));
     $umodelfile = $input->getArgument('unfolded-model');
+    $umodelname = basename(dirname(realpath($umodelfile)));
+    echo $cmodelname . " " . $umodelname . "\n";
+    $namematches = array();
+    if (preg_match('/^(.*)-COL-(.*)$/', $cmodelname, $namematches))
+    {
+      echo $namematches[1] . " " . $namematches[2] . "\n";
+    }
+    $namematches = array();
+    if (preg_match('/^(.*)-PT-(.*)$/', $umodelname, $namematches))
+    {
+      echo $namematches[1] . " " . $namematches[2] . "\n";
+    }
     $domains = array();
     // TODO check that files exist.
     $cmodel = simplexml_load_file($cmodelfile, NULL, LIBXML_COMPACT);
@@ -84,12 +96,10 @@ class Places extends Command
       $uplace->name = $name;
       $uplaces[$id] = $uplace;
     }
-    print_r($domains);
-    print_r($cplaces);
-    print_r($uplaces);
     // For each colored place, build regex that recognize its unfoldings:
     foreach ($cplaces as $place)
     {
+      $matching = array();
       $regex = '^' . $place->name;
       $p = '(';
       $first = true;
@@ -106,16 +116,24 @@ class Places extends Command
       }
       $p .= ')';
       $regex = $regex . $p . '$';
-      echo $regex . "\n";
       foreach ($uplaces as $uplace)
       {
-        if (ereg($regex, $uplace->name))
+        error_reporting(E_ERROR);
+        if (preg_match('/' . $regex . '/', $uplace->name))
         {
           $place->unfolded[$uplace->id] = $uplace;
         }
+        else if (ereg($regex, $uplace->name))
+        {
+          $place->unfolded[$uplace->id] = $uplace;
+        }
+        error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
       }
     }
-    print_r($cplaces);
+    foreach ($cplaces as $place)
+    {
+      echo $place->name . ' = ' . count($place->unfolded) . "\n";
+    }
   }
 
 }
