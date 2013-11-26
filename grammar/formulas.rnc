@@ -60,12 +60,8 @@ boolean-formula =
       boolean-formula
     }
   | element until {
-      element before {
-        boolean-formula
-      },
-      element reach {
-        boolean-formula
-      },
+      boolean-formula,
+      boolean-formula,
       element strength {
         "weak" | "strong"
       }
@@ -80,18 +76,21 @@ boolean-formula =
   | element is-fireable {
       transition+
     }
-  | element true { empty }
+  | element true  { empty }
   | element false { empty }
   | element negation {
       boolean-formula
     }
   | element conjunction {
+      boolean-formula,
       boolean-formula+
     }
   | element disjunction {
+      boolean-formula,
       boolean-formula+
     }
   | element exclusive-disjunction {
+      boolean-formula,
       boolean-formula+
     }
   | element implication {
@@ -100,7 +99,7 @@ boolean-formula =
     }
   | element equivalence {
       boolean-formula,
-      boolean-formula
+      boolean-formula+
     }
   | element integer-eq {
       integer-expression,
@@ -126,29 +125,29 @@ boolean-formula =
       integer-expression,
       integer-expression
     }
-  | element multiset-eq {
-      multiset-expression,
-      multiset-expression
+  | element tokens-eq {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-ne {
-      multiset-expression,
-      multiset-expression
+  | element tokens-ne {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-lt {
-      multiset-expression,
-      multiset-expression
+  | element tokens-lt {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-le {
-      multiset-expression,
-      multiset-expression
+  | element tokens-le {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-gt {
-      multiset-expression,
-      multiset-expression
+  | element tokens-gt {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-ge {
-      multiset-expression,
-      multiset-expression
+  | element tokens-ge {
+      tokens-expression,
+      tokens-expression
     }
 
 integer-expression =
@@ -157,11 +156,11 @@ integer-expression =
     }
   | element integer-sum {
       integer-expression,
-      integer-expression
+      integer-expression+
     }
   | element integer-product {
       integer-expression,
-      integer-expression
+      integer-expression+
     }
 
   | element integer-difference {
@@ -177,36 +176,36 @@ integer-expression =
   | element place-bound {
       place+
     }
-  | element multiset-cardinality {
-      multiset-expression
+  | element cardinality {
+      tokens-expression
   }
 
 place = element place {
-  xsd:ID
+  xsd:IDREF
 }
 
 transition = element transition {
-  xsd:ID
+  xsd:IDREF
 }
 
-multiset-expression =
+tokens-expression =
     element tokens {
       place+
     }
-  | element multiset-union {
-      multiset-expression,
-      multiset-expression
+  | element tokens-union {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-intersection {
-      multiset-expression,
-      multiset-expression
+  | element tokens-intersection {
+      tokens-expression,
+      tokens-expression
     }
-  | element multiset-difference {
-      multiset-expression,
-      multiset-expression
+  | element tokens-difference {
+      tokens-expression,
+      tokens-expression
     }
   | element set-of {
-      multiset-expression
+      tokens-expression
     }
 
 variable = element variable {
