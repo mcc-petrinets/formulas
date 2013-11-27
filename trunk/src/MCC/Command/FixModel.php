@@ -25,6 +25,7 @@ class FixModel extends Command
     $model = simplexml_load_file($modelfile, NULL, LIBXML_COMPACT);
     $instancename = basename(dirname(realpath($modelfile)));
     $id = (string) $model->net->attributes()['id'];
+    // Fix model id and name:
     if ($instancename != $id)
     {
       $namematches = array();
