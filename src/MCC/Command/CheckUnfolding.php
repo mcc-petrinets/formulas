@@ -57,19 +57,7 @@ class CheckUnfolding extends Command
         if ($where != $max)
         {
           $size *= count($v);
-          $p .= '_.*)|((';
-          foreach ($v as $vid => $vname)
-          {
-            if ($first)
-            {
-              $first = false;
-            } else
-            {
-              $p .= '|';
-            }
-            $p .= $vname;
-          }
-          $p .= ')';
+          $p .= '_.*)|([^_]+';
         }
         $where++;
       }
@@ -78,6 +66,8 @@ class CheckUnfolding extends Command
         $p .= ')';
       }
       $regex = "^{$place->name}{$p}$";
+      // If you have trouble understanding what happens,
+      // look at the regex!
       $maximum_reached[$id] = false;
       error_reporting(E_ERROR);
       foreach ($ep->uplaces as $uplace)
@@ -111,3 +101,4 @@ class CheckUnfolding extends Command
   }
 
 }
+
