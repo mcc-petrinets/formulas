@@ -8,23 +8,24 @@ property-set = element property-set {
 property = element property {
   element id {
     xsd:ID
-  },
+  } &
   element description {
     text
-  },
+  } &
   element tags {
-    element is-structural { xsd:boolean },
-    element is-reachability  { xsd:boolean },
-    element is-ctl { xsd:boolean },
+    element is-structural { xsd:boolean } &
+    element is-reachability  { xsd:boolean } &
+    element is-ctl { xsd:boolean } &
     element is-ltl { xsd:boolean }
-  },
+  } &
   element expected-result {
     element value {
       xsd:integer | xsd:boolean
-    }, element explanation {
+    } &
+    element explanation {
       text
     }
-  }?,
+  }? &
   formula
 }
 
@@ -49,8 +50,8 @@ boolean-formula =
       boolean-formula
     }
   | element next {
-      boolean-formula,
-      element if-no-successor { xsd:boolean },
+      boolean-formula &
+      element if-no-successor { xsd:boolean } &
       element steps { xsd:positiveInteger }
     }
   | element globally {
@@ -60,21 +61,25 @@ boolean-formula =
       boolean-formula
     }
   | element until {
-      boolean-formula,
-      boolean-formula,
+      element before {
+        boolean-formula
+      } &
+      element reach {
+        boolean-formula
+      } &
       element strength {
         "weak" | "strong"
       }
     }
   | element deadlock { empty }
   | element is-live {
-      transition+,
+      transition &
       element level {
         "l0" | "l1" | "l2" | "l3" | "l4"
       }
     }
   | element is-fireable {
-      transition+
+      transition
     }
   | element true  { empty }
   | element false { empty }
