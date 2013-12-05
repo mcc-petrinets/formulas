@@ -11,6 +11,7 @@ use \MCC\Command\Show;
 use \MCC\Command\Statistics;
 use \MCC\Command\CheckUnfolding;
 use \MCC\Command\FixModel;
+use \MCC\Command\GenerateAtomicPropositions;
 
 require_once "vendor/autoload.php";
 
@@ -33,4 +34,5 @@ $application->add(new Show);
 $application->add(new Statistics);
 $application->add(new CheckUnfolding());
 $application->add(new FixModel());
+$application->add(new GenerateAtomicPropositions());
 $application->run();
