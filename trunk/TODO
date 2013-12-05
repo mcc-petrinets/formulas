@@ -1,0 +1,8 @@
+- Petri Net (sn or pt) -> atomic propositions
+- atomic propositions, combinators -> formulas
+
+- formula -> xml
+- formula -> text
+- xml -> formula
+- text -> formula
+
