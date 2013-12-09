@@ -209,9 +209,6 @@ tokens-expression =
       tokens-expression,
       tokens-expression
     }
-  | element set-of {
-      tokens-expression
-    }
 
 variable = element variable {
   text
