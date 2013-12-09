@@ -11,8 +11,9 @@ class CheckUnfolding extends Base
 
   protected function configure()
   {
-    $this->setName('check-unfolding')
-         ->setDescription('TODO');
+    $this
+      ->setName('check-unfolding')
+      ->setDescription('TODO');
     parent::configure();
   }
 
@@ -39,7 +40,7 @@ class CheckUnfolding extends Base
     }
     if ($c != count($this->ep->uplaces))
     {
-      echo "     Inconsistency detected!\n";
+      echo "  Inconsistency detected: unfolded model may use a bigger parameter!\n";
     }
   }
 
@@ -57,7 +58,7 @@ class CheckUnfolding extends Base
       foreach ($place->domain->values as $k => $v)
       {
         $first = true;
-        $last = end(array_values($v));
+        $last = end($v);
         $p .= '_((' . $last;
         if ($where != $max)
         {
@@ -101,7 +102,7 @@ class CheckUnfolding extends Base
     $m = count($this->ep->cplaces);
     if ($n < $m/2)
     {
-      echo "     Maximum parameter is reached for only {$n}/{$m} places.\n";
+      echo "  Inconsistency detected: maximum parameter is reached for only {$n}/{$m} places.\n";
     }
   }
 
@@ -113,7 +114,7 @@ class CheckUnfolding extends Base
       if (count($transition->unfolded) == 0)
       {
         $name = $transition->name;
-        echo "Transition {$name} has no unfolding.\n";
+        echo "  Inconsistency detected: transition {$name} has no unfolding.\n";
       }
     }
   }
