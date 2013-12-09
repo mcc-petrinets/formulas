@@ -1,48 +1,53 @@
 <?php
 namespace MCC\Command;
 
-use \Symfony\Component\Console\Command\Command;
 use \Symfony\Component\Console\Input\InputInterface;
-use \Symfony\Component\Console\Input\InputOption;
-use \Symfony\Component\Console\Input\InputArgument;
 use \Symfony\Component\Console\Output\OutputInterface;
-use \MCC\Formula\EquivalentPlaces;
+use \MCC\Command\Base;
+use \MCC\Formula\EquivalentElements;
 
-class CheckUnfolding extends Command
+class CheckUnfolding extends Base
 {
 
   protected function configure()
   {
+    $this->setName('check-unfolding')
+         ->setDescription('TODO');
     parent::configure();
-    $this
-      ->setName('check-unfolding')
-      ->setDescription('Checks that all places in unfolded model are unfoldings of places in colored model')
-      ->addArgument('colored-model', InputArgument::REQUIRED, 'Colored model file (in PNML)')
-      ->addArgument('unfolded-model', InputArgument::REQUIRED, 'Unfolded model file (in PNML)');
   }
 
-  protected function execute(InputInterface $input, OutputInterface $output)
-  {
-    $cmodelfile = $input->getArgument('colored-model');
-    $umodelfile = $input->getArgument('unfolded-model');
-    $cmodel = simplexml_load_file($cmodelfile, NULL, LIBXML_COMPACT);
-    $umodel = simplexml_load_file($umodelfile, NULL, LIBXML_COMPACT);
-    $ep = new EquivalentPlaces($cmodel, $umodel);
+  private $ep;
 
+  protected function perform()
+  {
+    $this->ep = new EquivalentElements($this->sn_model, $this->pt_model);
+    if ($this->sn_model && $this->pt_model)
+    {
+      $this->check_places();
+      $this->check_parameters();
+      $this->check_transitions();
+    }
+  }
+
+  private function check_places()
+  {
     // Check that all unfolded places belong to a colored one:
     $c = 0;
-    foreach ($ep->cplaces as $place)
+    foreach ($this->ep->cplaces as $place)
     {
       $c += count($place->unfolded);
     }
-    if ($c != count($ep->uplaces))
+    if ($c != count($this->ep->uplaces))
     {
       echo "     Inconsistency detected!\n";
     }
+  }
 
+  private function check_parameters()
+  {
     // Check that the maximum parameter is reached at least once:
     $maximum_reached = array();
-    foreach ($ep->cplaces as $place)
+    foreach ($this->ep->cplaces as $place)
     {
       $id = $place->id;
       $size = 1;
@@ -70,9 +75,9 @@ class CheckUnfolding extends Command
       // look at the regex!
       $maximum_reached[$id] = false;
       error_reporting(E_ERROR);
-      foreach ($ep->uplaces as $uplace)
+      foreach ($this->ep->uplaces as $uplace)
       {
-        if ((size < 1000) && preg_match('/' . $regex . '/', $uplace->name))
+        if ((size < 1000) && preg_match('/' . $regex . '/u', $uplace->name))
         {
           $maximum_reached[$id] = true;
           break;
@@ -93,10 +98,23 @@ class CheckUnfolding extends Command
         $n++;
       }
     }
-    $m = count($ep->cplaces);
+    $m = count($this->ep->cplaces);
     if ($n < $m/2)
     {
       echo "     Maximum parameter is reached for only {$n}/{$m} places.\n";
+    }
+  }
+
+  private function check_transitions()
+  {
+    // Check that every transtion has at least one unfolding:
+    foreach ($this->ep->ctransitions as $transition)
+    {
+      if (count($transition->unfolded) == 0)
+      {
+        $name = $transition->name;
+        echo "Transition {$name} has no unfolding.\n";
+      }
     }
   }
 

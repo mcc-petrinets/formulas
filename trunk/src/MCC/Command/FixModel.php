@@ -1,35 +1,42 @@
 <?php
 namespace MCC\Command;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Output\OutputInterface;
+use \Symfony\Component\Console\Input\InputInterface;
+use \Symfony\Component\Console\Output\OutputInterface;
+use \MCC\Command\Base;
 
-class FixModel extends Command
+class FixModel extends Base
 {
 
   protected function configure()
   {
+    $this->setName('fix-model')
+         ->setDescription('TODO');
     parent::configure();
-    $this
-      ->setName('fix-model')
-      ->setDescription('Fix model')
-      ->addArgument('model', InputArgument::REQUIRED, 'Model file (in PNML)');
   }
 
-  protected function execute(InputInterface $input, OutputInterface $output)
+  protected function perform()
   {
-    $modelfile = $input->getArgument('model');
-    $model = simplexml_load_file($modelfile, NULL, LIBXML_COMPACT);
-    $instancename = basename(dirname(realpath($modelfile)));
+    if ($this->sn_model)
+    {
+      $this->fix($this->sn_file, $this->sn_model);
+    }
+    if ($this->pt_model)
+    {
+      $this->fix($this->pt_file, $this->pt_model);
+    }
+  }
+
+  private function fix($file, $model)
+  {
+    $model = simplexml_load_file($file, NULL, LIBXML_COMPACT);
+    $instancename = basename(dirname(realpath($file)));
     $id = (string) $model->net->attributes()['id'];
     // Fix model id and name:
     if ($instancename != $id)
     {
       $namematches = array();
-      if (preg_match('/^(.*)-(COL|PT)-(.*)$/', $instancename, $namematches))
+      if (preg_match('/^(.*)-(COL|PT)-(.*)$/u', $instancename, $namematches))
       {
         $name = $namematches[1];
         $parameter = $namematches[3];
@@ -98,7 +105,7 @@ class FixModel extends Command
         $transition->name->addChild('text', "{$transition->attributes()['id']}");
       }
     }
-    $model->asXml($modelfile);
+    # $model->asXml($file);
   }
 
 }
