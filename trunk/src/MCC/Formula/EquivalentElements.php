@@ -118,16 +118,24 @@ class EquivalentElements
           $size *= count($v);
           $first = true;
           $p .= '_(';
-          foreach ($v as $vid => $vname)
+          // Warning: here we do an prroximation to save a lot of time:
+          if ((count($v) > 100) && (is_numeric(reset($v))))
           {
-            if ($first)
+            $p .= '[0-9]+';
+          }
+          else
+          {
+            foreach ($v as $vid => $vname)
             {
-              $first = false;
-            } else
-            {
-              $p .= '|';
+              if ($first)
+              {
+                $first = false;
+              } else
+              {
+                $p .= '|';
+              }
+                $p .= $vname;
             }
-            $p .= $vname;
           }
           $p .= ')';
         }
@@ -135,7 +143,7 @@ class EquivalentElements
         error_reporting(E_ERROR);
         foreach ($this->uplaces as $uplace)
         {
-          if ((size < 1000) && preg_match('/' . $regex . '/u', $uplace->name))
+          if ((size < 100) && preg_match('/' . $regex . '/u', $uplace->name))
           {
             $place->unfolded[$uplace->id] = $uplace;
           }

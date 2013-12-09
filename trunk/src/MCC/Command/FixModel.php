@@ -3,6 +3,7 @@ namespace MCC\Command;
 
 use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Output\OutputInterface;
+use \Symfony\Component\Console\Input\InputOption;
 use \MCC\Command\Base;
 
 class FixModel extends Base
@@ -10,9 +11,22 @@ class FixModel extends Base
 
   protected function configure()
   {
-    $this->setName('fix-model')
-         ->setDescription('TODO');
+    $this
+      ->setName('fix-model')
+      ->setDescription('TODO')
+      ->addOption('dry-run', null, InputOption::VALUE_NONE, 'If set, the model is not really fixed.');
     parent::configure();
+  }
+
+  private $dryrun = false;
+
+  protected function execute(InputInterface $input, OutputInterface $output)
+  {
+    if ($input->getOption('dry-run'))
+    {
+      $this->dryrun = true;
+    }
+    parent::execute($input, $output);
   }
 
   protected function perform()
@@ -50,25 +64,25 @@ class FixModel extends Base
           $type = 'COL';
           break;
         }
-        echo "Fixing id from {$id} to {$name}-{$type}-{$parameter}\n";
+        echo "  Fixing id from {$id} to {$name}-{$type}-{$parameter}\n";
         $model->net->attributes()['id'] = "{$name}-{$type}-{$parameter}";
       }
       else
       {
-        echo "{$instancename} does not respect the pattern NAME-(COL|PT)-PARAMETER.\n";
+        echo "  {$instancename} does not respect the pattern NAME-(COL|PT)-PARAMETER.\n";
         exit(1);
       }
     }
     $name = $model->net->name;
     if ($name == NULL)
     {
-      echo "Fixing name to {$model->net->attributes()['id']}\n";
+      echo "  Fixing name to {$model->net->attributes()['id']}\n";
       $model->net->addChild('name');
       $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
     }
     else if ((string) $name->text != $model->net->attributes()['id'])
     {
-      echo "Fixing name from {$name->text} to {$model->net->attributes()['id']}\n";
+      echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}\n";
       $name->text = "{$model->net->attributes()['id']}";
     }
     // Now, fix place ids and names;
@@ -78,12 +92,12 @@ class FixModel extends Base
       $name = (string) $place->name->text;
       if ($id == NULL)
       {
-        echo "Missing place id\n";
+        echo "  Missing place id\n";
         exit(1);
       }
       if ($name == NULL)
       {
-        echo "Fixing missing place name for {$place->attributes()['id']}\n";
+        echo "  Fixing missing place name for {$place->attributes()['id']}\n";
         $place->addChild('name');
         $place->name->addChild('text', "{$place->attributes()['id']}");
       }
@@ -95,17 +109,20 @@ class FixModel extends Base
       $name = (string) $transition->name->text;
       if ($id == NULL)
       {
-        echo "Missing transition id\n";
+        echo "  Missing transition id\n";
         exit(1);
       }
       if ($name == NULL)
       {
-        echo "Fixing missing transition name for {$transition->attributes()['id']}\n";
+        echo "  Fixing missing transition name for {$transition->attributes()['id']}\n";
         $transition->addChild('name');
         $transition->name->addChild('text', "{$transition->attributes()['id']}");
       }
     }
-    # $model->asXml($file);
+    if (!$this->dryrun)
+    {
+      $model->asXml($file);
+    }
   }
 
 }
