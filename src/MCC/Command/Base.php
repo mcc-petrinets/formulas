@@ -47,7 +47,7 @@ abstract class Base extends Command
     return $model;
   }
 
-  protected function execute(InputInterface $input, OutputInterface $output)
+  protected final function execute(InputInterface $input, OutputInterface $output)
   {
     $this->root = $input->getArgument('root');
     if (!file_exists($this->root) or !is_dir($this->root))
@@ -86,8 +86,13 @@ abstract class Base extends Command
       $this->sn_model = $this->load_model($this->sn_file);
       $this->pt_file = "{$this->root}/{$instance->model}-PT-{$instance->parameter}/model.pnml";
       $this->pt_model = $this->load_model($this->pt_file);
+      $this->pre_perform($input, $output);
       $this->perform();
     }
+  }
+
+  protected function pre_perform(InputInterface $input, OutputInterface $output)
+  {
   }
 
   abstract protected function perform();

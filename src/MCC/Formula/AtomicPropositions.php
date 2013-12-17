@@ -1,12 +1,6 @@
 <?php
 namespace MCC\Formula;
 
-class Formula {
-
-  public $sn;
-  public $pt;
-
-}
 
 class AtomicPropositions {
 
@@ -35,15 +29,71 @@ class AtomicPropositions {
     return $result;
   }
 
-  public function is_live()
+  public function is_live(array $transitions, $level)
   {
-    $result = array();
+    $result = new Formula();
+    $xml = "<is-live><level>{$level}</level><is-live/>";
+    $ref_model = $this->cmodel ? $this->cmodel : $this->umodel;
+    $ref_result = new \SimpleXMLElement($xml);
+    foreach ($transitions as $transition)
+    {
+      $ref_result->addChild('transition', $transition->id);
+    }
+    if ($this->cmodel && $this->umodel)
+    {
+      $u_result = new \SimpleXMLElement($xml);
+      foreach ($transitions as $ctransition)
+      {
+        foreach ($ctransition->unfolded as $utransition)
+        {
+          $u_result->addChild('transition', $utransition->id);
+        }
+      }
+      $result->sn = $ref_result;
+      $result->pt = $u_result;
+    }
+    else if ($this->cmodel)
+    {
+      $result->sn = $ref_result;
+    }
+    else if ($this->umodel)
+    {
+      $result->pt = $ref_result;
+    }
     return $result;
   }
 
-  public function is_fireable()
+  public function is_fireable(array $transitions)
   {
-    $result = array();
+    $result = new Formula();
+    $xml = '<is-fireable><is-fireable/>';
+    $ref_model = $this->cmodel ? $this->cmodel : $this->umodel;
+    $ref_result = new \SimpleXMLElement($xml);
+    foreach ($transitions as $transition)
+    {
+      $ref_result->addChild('transition', $transition->id);
+    }
+    if ($this->cmodel && $this->umodel)
+    {
+      $u_result = new \SimpleXMLElement($xml);
+      foreach ($transitions as $ctransition)
+      {
+        foreach ($ctransition->unfolded as $utransition)
+        {
+          $u_result->addChild('transition', $utransition->id);
+        }
+      }
+      $result->sn = $ref_result;
+      $result->pt = $u_result;
+    }
+    else if ($this->cmodel)
+    {
+      $result->sn = $ref_result;
+    }
+    else if ($this->umodel)
+    {
+      $result->pt = $ref_result;
+    }
     return $result;
   }
 
@@ -114,19 +164,4 @@ class AtomicPropositions {
     }
     return $result;
   }
-
-  // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
-  private function xml_adopt($root, $new)
-  {
-    $node = $root->addChild($new->getName(), (string) $new);
-    foreach($new->attributes() as $attr => $value)
-    {
-      $node->addAttribute($attr, $value);
-    }
-    foreach($new->children() as $ch)
-    {
-      xml_adopt($node, $ch);
-    }
-  }
-
 }
