@@ -20,13 +20,9 @@ class FixModel extends Base
 
   private $dryrun = false;
 
-  protected function execute(InputInterface $input, OutputInterface $output)
+  protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
-    if ($input->getOption('dry-run'))
-    {
-      $this->dryrun = true;
-    }
-    parent::execute($input, $output);
+    $this->dryrun = $this->dryrun || $input->getOption('dry-run');
   }
 
   protected function perform()
