@@ -130,30 +130,6 @@ boolean-formula =
       integer-expression,
       integer-expression
     }
-  | element tokens-eq {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-ne {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-lt {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-le {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-gt {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-ge {
-      tokens-expression,
-      tokens-expression
-    }
 
 integer-expression =
     element integer-constant {
@@ -182,37 +158,19 @@ integer-expression =
       place+
     }
   | element cardinality {
-      tokens-expression
+      place+
   }
 
-place = element place {
-  xsd:IDREF
-}
-
-transition = element transition {
-  xsd:IDREF
-}
-
-tokens-expression =
-    element tokens {
-      place+
-    }
-  | element tokens-union {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-intersection {
-      tokens-expression,
-      tokens-expression
-    }
-  | element tokens-difference {
-      tokens-expression,
-      tokens-expression
+place =
+    element place {
+      xsd:IDREF
     }
 
-variable = element variable {
-  text
-}
+transition =
+    element transition {
+      xsd:IDREF
+    }
 
 integer-formula =
     integer-expression
+
