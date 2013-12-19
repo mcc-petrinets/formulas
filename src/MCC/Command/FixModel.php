@@ -72,13 +72,13 @@ class FixModel extends Base
     $name = $model->net->name;
     if ($name == NULL)
     {
-      echo "  Fixing name to {$model->net->attributes()['id']}\n";
+      echo "  Fixing name to {$model->net->attributes()['id']}.\n";
       $model->net->addChild('name');
       $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
     }
     else if ((string) $name->text != $model->net->attributes()['id'])
     {
-      echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}\n";
+      echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n";
       $name->text = "{$model->net->attributes()['id']}";
     }
     // Now, fix place ids and names;
@@ -86,10 +86,21 @@ class FixModel extends Base
     {
       $id = (string) $place->attributes()['id'];
       $name = (string) $place->name->text;
+      if (($id == NULL) && ($name == NULL))
+      {
+        echo "  Missing both place id and name.\n";
+        exit(1);
+      }
       if ($id == NULL)
       {
-        echo "  Missing place id\n";
-        exit(1);
+        echo "  Fixing missing place id for {$place->attributes()['name']}.\n";
+        $place->addAttribute('id', $this->identifier_of($name));
+      }
+      else if (levenshtein($id, $name) > 10)
+      {
+        $new = $this->identifier_of($name);
+        echo "  Fixing ugly place id for {$place->attributes()['id']} to ${new}.\n";
+        $place->attributes()['id'] = $new;
       }
       if ($name == NULL)
       {
@@ -103,14 +114,25 @@ class FixModel extends Base
     {
       $id = (string) $transition->attributes()['id'];
       $name = (string) $transition->name->text;
+      if (($id == NULL) && ($name == NULL))
+      {
+        echo "  Missing both transition id and name.\n";
+        exit(1);
+      }
       if ($id == NULL)
       {
-        echo "  Missing transition id\n";
-        exit(1);
+        echo "  Fixing missing transition id for {$transition->attributes()['name']}\n";
+        $transition->addAttribute('id', $this->identifier_of($name));
+      }
+      else if (levenshtein($id, $name) > 10)
+      {
+        $new = $this->identifier_of($name);
+        echo "  Fixing ugly transition id for {$transition->attributes()['id']} to ${new}.\n";
+        $transition->attributes()['id'] = $new;
       }
       if ($name == NULL)
       {
-        echo "  Fixing missing transition name for {$transition->attributes()['id']}\n";
+        echo "  Fixing missing transition name for {$transition->attributes()['id']}.\n";
         $transition->addChild('name');
         $transition->name->addChild('text', "{$transition->attributes()['id']}");
       }
@@ -119,6 +141,11 @@ class FixModel extends Base
     {
       $model->asXml($file);
     }
+  }
+
+  private function identifier_of($name)
+  {
+    return preg_replace('/[^[:alnum:]]/', '_', $name);
   }
 
 }
