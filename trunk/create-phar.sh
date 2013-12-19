@@ -1,27 +1,24 @@
 #! /bin/sh
 
-export PATH=$PATH:.
+# Increase maximum opened files (required by box.phar):
+ulimit -Sn 2048
+
+export PATH="${PATH}:${PWD}"
 
 # Download composer if it does not exist:
-composer=$(which composer.phar)
-if [ -z ${composer} ]
-then
-  curl -sS https://getcomposer.org/installer | php
-fi
+command -v composer.phar || {
+  curl -S https://getcomposer.org/installer | php -d detect_unicode=0
+}
 
 # Download box if it does not exist:
-box=$(which box.phar)
-if [ -z ${box} ]
-then
-  curl -s http://box-project.org/installer.php | php
-fi
+command -v box.phar || {
+  curl -S http://box-project.org/installer.php | php -d detect_unicode=0
+}
 
-# Increase maximum opened files, because box requires it:
-ulimit -Sn 4096
+box="$(command -v box.phar)"
 
-# Build phar:
-rm -f mcc
-composer.phar install                         || exit 1
-php -dphar.readonly=0 $(which box.phar) build || exit 1
-mv mcc.phar mcc                               || exit 1
+# Build mcc phar:
+composer.phar install || exit 1
+php -dphar.readonly=0 ${box:=box.phar} build || exit 1
+mv mcc.phar mcc || exit 1
 echo "mcc has been created."
