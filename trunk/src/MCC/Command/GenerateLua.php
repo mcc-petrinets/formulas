@@ -112,7 +112,7 @@ class GenerateLua extends Base
           fwrite($fp, "    r[\"${target}\"] = r[\"${target}\"] + ${value}\n");
         }
       }
-      fwrite($fp, "    result[#result + 1] = r\n");
+      fwrite($fp, "    result[\"${id}\"] = r\n");
       fwrite($fp, "  end\n");
     }
     fwrite($fp, "  return result\n");
