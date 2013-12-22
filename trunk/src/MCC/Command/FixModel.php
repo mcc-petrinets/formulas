@@ -104,7 +104,7 @@ class FixModel extends Base
         $place->addChild('name');
         $place->name->addChild('text', "{$place->attributes()['id']}");
       }
-      if (levenshtein($id, $name) > 10)
+      if (levenshtein($id, $name) >= min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
         echo "  Fixing ugly place id for {$place->attributes()['id']} to ${new}.\n";
@@ -133,7 +133,7 @@ class FixModel extends Base
         $transition->addChild('name');
         $transition->name->addChild('text', "{$transition->attributes()['id']}");
       }
-      if (levenshtein($id, $name) > 10)
+      if (levenshtein($id, $name) > min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
         echo "  Fixing ugly transition id for {$transition->attributes()['id']} to ${new}.\n";
@@ -144,13 +144,23 @@ class FixModel extends Base
     // Update arcs:
     if (count($replacements) != 0)
     {
-      echo "  Fixing arcs.\n";
       foreach ($model->net->page->arc as $arc)
       {
+        $id = (string) $arc->attributes()['id'];
         $source = (string) $arc->attributes()['source'];
+        if (array_key_exists($source, $replacements))
+        {
+          $r = $replacements[$source];
+          echo "  Fixing arc ${id} source from ${source} to ${r}.\n";
+          $arc->attributes()['source'] = $r;
+        }
         $target = (string) $arc->attributes()['target'];
-        $arc->attributes()['source'] = $replacements[$source];
-        $arc->attributes()['target'] = $replacements[$target];
+        if (array_key_exists($target, $replacements))
+        {
+          $r = $replacements[$target];
+          echo "  Fixing arc ${id} target from ${target} to ${r}.\n";
+          $arc->attributes()['target'] = $r;
+        }
       }
     }
     if (!$this->dryrun)
