@@ -12,6 +12,7 @@ use \MCC\Command\Statistics;
 use \MCC\Command\CheckUnfolding;
 use \MCC\Command\FixModel;
 use \MCC\Command\GenerateAtomicPropositions;
+use \MCC\Command\GenerateLua;
 
 require_once "vendor/autoload.php";
 
@@ -35,4 +36,5 @@ $application->add(new Statistics);
 $application->add(new CheckUnfolding());
 $application->add(new FixModel());
 $application->add(new GenerateAtomicPropositions());
+$application->add(new GenerateLua());
 $application->run();
