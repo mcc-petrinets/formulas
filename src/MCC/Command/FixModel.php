@@ -81,6 +81,8 @@ class FixModel extends Base
       echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n";
       $name->text = "{$model->net->attributes()['id']}";
     }
+    //
+    $replacements = array();
     // Now, fix place ids and names;
     foreach ($model->net->page->place as $place)
     {
@@ -96,17 +98,18 @@ class FixModel extends Base
         echo "  Fixing missing place id for {$place->attributes()['name']}.\n";
         $place->addAttribute('id', $this->identifier_of($name));
       }
-      else if (levenshtein($id, $name) > 10)
-      {
-        $new = $this->identifier_of($name);
-        echo "  Fixing ugly place id for {$place->attributes()['id']} to ${new}.\n";
-        $place->attributes()['id'] = $new;
-      }
       if ($name == NULL)
       {
         echo "  Fixing missing place name for {$place->attributes()['id']}\n";
         $place->addChild('name');
         $place->name->addChild('text', "{$place->attributes()['id']}");
+      }
+      if (levenshtein($id, $name) > 10)
+      {
+        $new = $this->identifier_of($name);
+        echo "  Fixing ugly place id for {$place->attributes()['id']} to ${new}.\n";
+        $replacements[$id] = $new;
+        $place->attributes()['id'] = $new;
       }
     }
     // The same for transitions:
@@ -124,17 +127,30 @@ class FixModel extends Base
         echo "  Fixing missing transition id for {$transition->attributes()['name']}\n";
         $transition->addAttribute('id', $this->identifier_of($name));
       }
-      else if (levenshtein($id, $name) > 10)
-      {
-        $new = $this->identifier_of($name);
-        echo "  Fixing ugly transition id for {$transition->attributes()['id']} to ${new}.\n";
-        $transition->attributes()['id'] = $new;
-      }
       if ($name == NULL)
       {
         echo "  Fixing missing transition name for {$transition->attributes()['id']}.\n";
         $transition->addChild('name');
         $transition->name->addChild('text', "{$transition->attributes()['id']}");
+      }
+      if (levenshtein($id, $name) > 10)
+      {
+        $new = $this->identifier_of($name);
+        echo "  Fixing ugly transition id for {$transition->attributes()['id']} to ${new}.\n";
+        $replacements[$id] = $new;
+        $transition->attributes()['id'] = $new;
+      }
+    }
+    // Update arcs:
+    if (count($replacements) != 0)
+    {
+      echo "  Fixing arcs.\n";
+      foreach ($model->net->page->arc as $arc)
+      {
+        $source = (string) $arc->attributes()['source'];
+        $target = (string) $arc->attributes()['target'];
+        $arc->attributes()['source'] = $replacements[$source];
+        $arc->attributes()['target'] = $replacements[$target];
       }
     }
     if (!$this->dryrun)
