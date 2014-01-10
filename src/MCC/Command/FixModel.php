@@ -95,19 +95,21 @@ class FixModel extends Base
       }
       if ($id == NULL)
       {
-        echo "  Fixing missing place id for {$place->attributes()['name']}.\n";
-        $place->addAttribute('id', $this->identifier_of($name));
+        echo "  Fixing missing place id for ${name}.\n";
+        $id = $this->identifier_of($name);
+        $place->addAttribute('id', $id);
       }
       if ($name == NULL)
       {
-        echo "  Fixing missing place name for {$place->attributes()['id']}\n";
+        echo "  Fixing missing place name for ${id}\n";
         $place->addChild('name');
-        $place->name->addChild('text', "{$place->attributes()['id']}");
+        $name = $place->attributes()['id'];
+        $place->name->addChild('text', $name);
       }
       if (levenshtein($id, $name) >= min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
-        echo "  Fixing ugly place id for {$place->attributes()['id']} to ${new}.\n";
+        echo "  Fixing ugly place id for ${id} to ${new}.\n";
         $replacements[$id] = $new;
         $place->attributes()['id'] = $new;
       }
@@ -124,19 +126,21 @@ class FixModel extends Base
       }
       if ($id == NULL)
       {
-        echo "  Fixing missing transition id for {$transition->attributes()['name']}\n";
-        $transition->addAttribute('id', $this->identifier_of($name));
+        echo "  Fixing missing transition id for ${name}\n";
+        $id = $this->identifier_of($name);
+        $transition->addAttribute('id', $id);
       }
       if ($name == NULL)
       {
-        echo "  Fixing missing transition name for {$transition->attributes()['id']}.\n";
+        echo "  Fixing missing transition name for ${id}.\n";
         $transition->addChild('name');
-        $transition->name->addChild('text', "{$transition->attributes()['id']}");
+        $name = $transition->attributes()['id'];
+        $transition->name->addChild('text', $name);
       }
       if (levenshtein($id, $name) > min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
-        echo "  Fixing ugly transition id for {$transition->attributes()['id']} to ${new}.\n";
+        echo "  Fixing ugly transition id for ${id}} to ${new}.\n";
         $replacements[$id] = $new;
         $transition->attributes()['id'] = $new;
       }
