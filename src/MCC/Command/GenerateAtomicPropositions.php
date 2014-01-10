@@ -10,14 +10,28 @@ use \MCC\Formula\EquivalentElements;
 
 class Formula {
 
+  public $description = "Automatically generated.\n";
+  public $is_structural = false;
+  public $is_ctl = false;
+  public $is_ltl = false;
+  public $is_reachability = false;
   public $sn;
   public $pt;
 
 }
 
-const INTEGER_FORMULA = 'integer';
-const BOOLEAN_FORMULA = 'boolean';
-const BOUND_OPERATOR  = 'bound';
+const INTEGER_FORMULA       = 'integer';
+const BOOLEAN_FORMULA       = 'boolean';
+
+const BOUND_OPERATOR        = 'bound';
+const CARDINALITY_OPERATOR  = 'cardinality';
+const DEADLOCK_OPERATOR     = 'deadlock';
+const FIREABILITY_OPERATOR  = 'fireability';
+const LIVENESS_OPERATOR     = 'liveness';
+const BOOLEAN_OPERATOR      = 'boolean';
+const CTL_OPERATOR          = 'ctl';
+const LTL_OPERATOR          = 'ltl';
+const REACHABILITY_OPERATOR = 'breachability';
 
 class GenerateAtomicPropositions extends Base
 {
@@ -57,6 +71,22 @@ class GenerateAtomicPropositions extends Base
   private $places;
   private $transitions;
 
+  private $xml = <<<EOT
+  <property>
+    <id></id>
+    <description>Automatically generated formula.</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+  </property>
+EOT;
+
+  private $types     = array();
+  private $operators = array();
+
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
     $this->use_bound        = $input->getOption('bound'        );
@@ -78,36 +108,29 @@ class GenerateAtomicPropositions extends Base
     $this->transitions = $this->sn_model
       ? $this->reference_model->ctransitions
       : $this->reference_model->utransitions;
+    $this->types[INTEGER_FORMULA] = $this->use_integer;
+    $this->types[BOOLEAN_FORMULA] = $this->use_boolean
+      || $this->use_ctl
+      || $this->use_ltl
+      || $this->use_reachability;
+    $this->operators[BOUND_OPERATOR       ] = $this->use_bound;
+    $this->operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
+    $this->operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
+    $this->operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
+    $this->operators[LIVENESS_OPERATOR    ] = $this->use_liveness;
+    $this->operators[BOOLEAN_OPERATOR     ] = $this->use_boolean;
+    $this->operators[CTL_OPERATOR         ] = $this->use_ctl;
+    $this->operators[LTL_OPERATOR         ] = $this->use_ltl;
+    $this->operators[REACHABILITY_OPERATOR] = $this->use_reachability;
   }
 
   protected function perform()
   {
-    $formula_types = array();
-    if ($this->use_integer)
-    {
-      $formula_types[INTEGER_FORMULA] = true;
-    }
-    if ($this->use_boolean || $this->use_ctl || $this->use_ltl || $this->use_reachability)
-    {
-      $formula_types[BOOLEAN_FORMULA] = true;
-    }
     $result = array();
-    $xml = <<<EOT
-  <property>
-    <id></id>
-    <description>Automatically generated formula.</description>
-    <tags>
-      <is-structural>false</is-structural>
-      <is-reachability>false</is-reachability>
-      <is-ctl>false</is-ctl>
-      <is-ltl>false</is-ltl>
-    </tags>
-  </property>
-EOT;
     for ($i = 0; $i < $this->quantity; $i++)
     {
       // Choose between integer and boolean formula:
-      $type = array_rand($formula_types);
+      $type = array_rand(array_filter($this->types));
       switch ($type)
       {
       case INTEGER_FORMULA:
@@ -123,16 +146,16 @@ EOT;
       if ($formula->sn)
       {
         echo "sn:\n";
-        $f = $this->load_xml($xml);
-        $f->id = $this->sn_model->net->attributes()['id'] . " property #" . $this->id;
+        $f = $this->load_xml($this->xml);
+        $f->id = $this->sn_model->net->attributes()['id'] . "-property-" . $this->id;
         $this->xml_adopt($f, $formula->sn);
         echo $f->asXml() . "\n";
       }
       if ($formula->pt)
       {
         echo "pt:\n";
-        $f = $this->load_xml($xml);
-        $f->id = $this->pt_model->net->attributes()['id'] . " property #" . $this->id;
+        $f = $this->load_xml($this->xml);
+        $f->id = $this->pt_model->net->attributes()['id'] . "-property-" . $this->id;
         $this->xml_adopt($f, $formula->pt);
         echo $f->asXml() . "\n";
       }
@@ -144,6 +167,9 @@ EOT;
   private function generate_integer_formula()
   {
     $result = array();
+    if (! $this->types[INTEGER_FORMULA]) {
+      return $result;
+    }
     $selected = array_rand($this->places, 1);
     if (! is_array($selected))
     {
@@ -152,17 +178,27 @@ EOT;
     }
     foreach ($selected as $s)
     {
-      if ($this->use_bound)
-      {
-        $r = $this->generate_bound($this->places[$s]);
-        $result[] = $r;
-      }
+      $r = $this->generate_bound($this->places[$s]);
+      if ($r !== NULL) $result[] = $r;
     }
+    return $result;
+  }
+
+  private function generate_boolean_formula()
+  {
+    $result = array();
+    if (! $this->types[BOOLEAN_FORMULA]) {
+      return $result;
+    }
+    $operator = array_rand($operators);
     return $result;
   }
 
   private function generate_bound($place)
   {
+    if (! $this->operators[BOUND_OPERATOR]) {
+      return NULL;
+    }
     $xml = '<place-bound></place-bound>';
     $ref = $this->load_xml($xml);
     $ref->addChild('place', $place->id);
