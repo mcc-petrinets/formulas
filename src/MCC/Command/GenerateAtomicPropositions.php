@@ -33,6 +33,9 @@ const CTL_OPERATOR          = 'ctl';
 const LTL_OPERATOR          = 'ltl';
 const REACHABILITY_OPERATOR = 'breachability';
 
+const BOOLEAN_CONSTANT      = 'constant';
+const INTEGER_CONSTANT      = 'constant';
+
 class GenerateAtomicPropositions extends Base
 {
 
@@ -84,8 +87,9 @@ class GenerateAtomicPropositions extends Base
   </property>
 EOT;
 
-  private $types     = array();
-  private $operators = array();
+  private $types             = array();
+  private $boolean_operators = array();
+  private $integer_operators = array();
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
@@ -113,15 +117,17 @@ EOT;
       || $this->use_ctl
       || $this->use_ltl
       || $this->use_reachability;
-    $this->operators[BOUND_OPERATOR       ] = $this->use_bound;
-    $this->operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
-    $this->operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
-    $this->operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
-    $this->operators[LIVENESS_OPERATOR    ] = $this->use_liveness;
-    $this->operators[BOOLEAN_OPERATOR     ] = $this->use_boolean;
-    $this->operators[CTL_OPERATOR         ] = $this->use_ctl;
-    $this->operators[LTL_OPERATOR         ] = $this->use_ltl;
-    $this->operators[REACHABILITY_OPERATOR] = $this->use_reachability;
+    $this->integer_operators[INTEGER_CONSTANT     ] = true;
+    $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
+    $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
+    $this->boolean_operators[BOOLEAN_CONSTANT     ] = true;
+    $this->boolean_operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
+    $this->boolean_operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
+    $this->boolean_operators[LIVENESS_OPERATOR    ] = $this->use_liveness;
+    $this->boolean_operators[BOOLEAN_OPERATOR     ] = $this->use_boolean;
+    $this->boolean_operators[CTL_OPERATOR         ] = $this->use_ctl;
+    $this->boolean_operators[LTL_OPERATOR         ] = $this->use_ltl;
+    $this->boolean_operators[REACHABILITY_OPERATOR] = $this->use_reachability;
   }
 
   protected function perform()
@@ -134,7 +140,10 @@ EOT;
       switch ($type)
       {
       case INTEGER_FORMULA:
+        $oldvalue = $this->integer_operators[INTEGER_CONSTANT];
+        $this->integer_operators[INTEGER_CONSTANT] = false;
         $result = array_merge($result, $this->generate_integer_formula());
+        $this->integer_operators[INTEGER_CONSTANT] = $oldvalue;
         break;
       case BOOLEAN_FORMULA:
         $result = array_merge($result, $this->generate_boolean_formula());
@@ -167,19 +176,20 @@ EOT;
   private function generate_integer_formula()
   {
     $result = array();
-    if (! $this->types[INTEGER_FORMULA]) {
-      return $result;
-    }
-    $selected = array_rand($this->places, 1);
-    if (! is_array($selected))
+    $operator = array_rand(array_filter($this->integer_operators));
+    switch ($operator)
     {
-      $x = $selected;
-      $selected = array($selected);
-    }
-    foreach ($selected as $s)
-    {
-      $r = $this->generate_bound($this->places[$s]);
+    case INTEGER_CONSTANT:
+      $r[] = rand(0,42);
+      break;
+    case BOUND_OPERATOR:
+      $r = $this->generate_bound();
       if ($r !== NULL) $result[] = $r;
+      break;
+    case CARDINALITY_OPERATOR:
+        $r = $this->generate_cardinality();
+      if ($r !== NULL) $result[] = $r;
+      break;
     }
     return $result;
   }
@@ -187,28 +197,80 @@ EOT;
   private function generate_boolean_formula()
   {
     $result = array();
-    if (! $this->types[BOOLEAN_FORMULA]) {
-      return $result;
+    $operator = array_rand(array_filter($this->boolean_operators));
+    switch ($operator)
+    {
+    case BOOLEAN_CONSTANT:
+      break;
+    case DEADLOCK_OPERATOR:
+      break;
+    case FIREABILITY_OPERATOR:
+      break;
+    case LIVENESS_OPERATOR:
+      break;
+    case BOOLEAN_OPERATOR:
+      break;
+    case CTL_OPERATOR:
+      break;
+    case LTL_OPERATOR:
+      break;
+    case REACHABILITY_OPERATOR:
+      break;
     }
-    $operator = array_rand($operators);
     return $result;
   }
 
-  private function generate_bound($place)
+  private function generate_bound()
   {
-    if (! $this->operators[BOUND_OPERATOR]) {
+    if (! $this->integer_operators[BOUND_OPERATOR]) {
       return NULL;
+    }
+    $selected = array_rand($this->places, 1);
+    if (! is_array($selected))
+    {
+      $selected = array($selected);
     }
     $xml = '<place-bound></place-bound>';
     $ref = $this->load_xml($xml);
-    $ref->addChild('place', $place->id);
-    $unfolded = null;
-    if (count($place->unfolded) != 0)
-    {
-      $unfolded = $this->load_xml($xml);
-      foreach ($place->unfolded as $uplace)
+    foreach ($selected as $s) {
+      $place = $this->places[$s];
+      $ref->addChild('place', $place->id);
+      $unfolded = null;
+      if (count($place->unfolded) != 0)
       {
-        $unfolded->addChild('place', $uplace->id);
+        $unfolded = $this->load_xml($xml);
+        foreach ($place->unfolded as $uplace)
+        {
+          $unfolded->addChild('place', $uplace->id);
+        }
+      }
+    }
+    return $this->formula($ref, $unfolded);
+  }
+
+  private function generate_cardinality()
+  {
+    if (! $this->integer_operators[CARDINALITY_OPERATOR]) {
+      return NULL;
+    }
+    $selected = array_rand($this->places, 1);
+    if (! is_array($selected))
+    {
+      $selected = array($selected);
+    }
+    $xml = '<tokens></tokens>';
+    $ref = $this->load_xml($xml);
+    foreach ($selected as $s) {
+      $place = $this->places[$s];
+      $ref->addChild('place', $place->id);
+      $unfolded = null;
+      if (count($place->unfolded) != 0)
+      {
+        $unfolded = $this->load_xml($xml);
+        foreach ($place->unfolded as $uplace)
+        {
+          $unfolded->addChild('place', $uplace->id);
+        }
       }
     }
     return $this->formula($ref, $unfolded);
