@@ -140,7 +140,7 @@ class FixModel extends Base
       if (levenshtein($id, $name) > min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
-        echo "  Fixing ugly transition id for ${id}} to ${new}.\n";
+        echo "  Fixing ugly transition id for ${id} to ${new}.\n";
         $replacements[$id] = $new;
         $transition->attributes()['id'] = $new;
       }
