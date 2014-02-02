@@ -1,4 +1,4 @@
-default namespace = "http://mcc.lip6.fr/"
+defaultt namespace = "http://mcc.lip6.fr/"
 start = property-set
 
 property-set = element property-set {
@@ -154,10 +154,10 @@ integer-expression =
       integer-expression
     }
 
-  | element place-bound {
+  | element bound {
       place+
     }
-  | element cardinality {
+  | element tokens {
       place+
   }
 
