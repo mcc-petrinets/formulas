@@ -14,6 +14,7 @@ use \MCC\Command\FixModel;
 use \MCC\Command\GenerateAtomicPropositions;
 use \MCC\Command\GenerateC;
 use \MCC\Command\GenerateLua;
+use \MCC\Command\ToCami;
 
 require_once "vendor/autoload.php";
 
@@ -39,4 +40,5 @@ $application->add(new FixModel());
 $application->add(new GenerateAtomicPropositions());
 $application->add(new GenerateC());
 $application->add(new GenerateLua());
+$application->add(new ToCami());
 $application->run();
