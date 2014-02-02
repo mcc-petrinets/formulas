@@ -47,7 +47,7 @@ class GenerateC extends Base
     foreach ($model->net->page->place as $place)
     {
       $id = (string) $place->attributes()['id'];
-      fwrite($fp, "  char ${id};\n");
+      fwrite($fp, "  MARKING_TYPE ${id};\n");
     }
     fwrite($fp, "};\n");
     fwrite($fp, "\n");
