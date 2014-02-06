@@ -43,18 +43,18 @@ class GenerateAtomicPropositions extends Base
   {
     parent::configure();
     $this->setName('generate')
-      ->setDescription('TODO')
-      ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator.')
-      ->addOption('cardinality' , null, InputOption::VALUE_NONE, 'Include cardinality operator.')
-      ->addOption('deadlock'    , null, InputOption::VALUE_NONE, 'Include dealock operator.')
-      ->addOption('fireability' , null, InputOption::VALUE_NONE, 'Include fireability operator.')
-      ->addOption('liveness'    , null, InputOption::VALUE_NONE, 'Include liveness operator.')
-      ->addOption('boolean'     , null, InputOption::VALUE_NONE, 'Include boolean operators between subformulas.')
-      ->addOption('ctl'         , null, InputOption::VALUE_NONE, 'Include CTL operators.')
-      ->addOption('ltl'         , null, InputOption::VALUE_NONE, 'Include LTL operators.')
-      ->addOption('reachability', null, InputOption::VALUE_NONE, 'Include reachability operators.')
-      ->addOption('integer'     , null, InputOption::VALUE_NONE, 'Include integer formulas.')
-      ->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Quantity of properties to generate (at most).', 1)
+      ->setDescription('Generates atomic propositions')
+      ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator')
+      ->addOption('cardinality' , null, InputOption::VALUE_NONE, 'Include cardinality operator')
+      ->addOption('deadlock'    , null, InputOption::VALUE_NONE, 'Include dealock operator')
+      ->addOption('fireability' , null, InputOption::VALUE_NONE, 'Include fireability operator')
+      ->addOption('liveness'    , null, InputOption::VALUE_NONE, 'Include liveness operator')
+      ->addOption('boolean'     , null, InputOption::VALUE_NONE, 'Include boolean operators between subformulas')
+      ->addOption('ctl'         , null, InputOption::VALUE_NONE, 'Include CTL operators')
+      ->addOption('ltl'         , null, InputOption::VALUE_NONE, 'Include LTL operators')
+      ->addOption('reachability', null, InputOption::VALUE_NONE, 'Include reachability operators')
+      ->addOption('integer'     , null, InputOption::VALUE_NONE, 'Include integer formulas')
+      ->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Quantity of properties to generate (at most)', 1)
       ;
   }
 

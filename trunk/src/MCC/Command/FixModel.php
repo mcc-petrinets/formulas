@@ -13,8 +13,8 @@ class FixModel extends Base
   {
     $this
       ->setName('fix-model')
-      ->setDescription('TODO')
-      ->addOption('dry-run', null, InputOption::VALUE_NONE, 'If set, the model is not really fixed.');
+      ->setDescription('Fixes ids and names in models')
+      ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only show messages, do not really perform changes');
     parent::configure();
   }
 

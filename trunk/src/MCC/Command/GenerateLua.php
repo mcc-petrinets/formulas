@@ -16,7 +16,7 @@ class GenerateLua extends Base
   {
     $this
       ->setName('generate-lua')
-      ->setDescription('TODO')
+      ->setDescription('Generates a simulator in Lua')
       ->addOption('server-side', null, InputOption::VALUE_NONE, 'Generate server-side code.');
     parent::configure();
   }
