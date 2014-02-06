@@ -32,7 +32,7 @@ abstract class Base extends Command
   {
     parent::configure();
     $this
-      ->addArgument('root', InputArgument::REQUIRED, 'Root of MCC INPUTS.')
+      ->addArgument('root', InputArgument::REQUIRED, 'Root of MCC models')
       ->addArgument('model', InputArgument::OPTIONAL, 'Model name')
       ->addArgument('parameter', InputArgument::OPTIONAL, 'Model parameter');
   }

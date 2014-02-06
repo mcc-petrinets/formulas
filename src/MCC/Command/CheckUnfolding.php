@@ -13,7 +13,7 @@ class CheckUnfolding extends Base
   {
     $this
       ->setName('check-unfolding')
-      ->setDescription('TODO');
+      ->setDescription('Checks if P/T unfoldings correspond to the original Colored nets');
     parent::configure();
   }
 

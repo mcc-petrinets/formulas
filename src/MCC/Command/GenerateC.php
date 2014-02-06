@@ -14,7 +14,7 @@ class GenerateC extends Base
   {
     $this
       ->setName('generate-c')
-      ->setDescription('TODO');
+      ->setDescription('Generates a simulator in C');
     parent::configure();
   }
 

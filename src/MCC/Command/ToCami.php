@@ -12,7 +12,7 @@ class ToCami extends Base
   {
     $this
       ->setName('to-cami')
-      ->setDescription('TODO');
+      ->setDescription('Converts P/T models to CAMI');
     parent::configure();
   }
 
