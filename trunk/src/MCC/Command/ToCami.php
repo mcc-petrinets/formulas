@@ -1,6 +1,7 @@
 <?php
 namespace MCC\Command;
 
+use \Symfony\Component\Console\Input\InputOption;
 use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Output\OutputInterface;
 use \MCC\Command\Base;
@@ -12,8 +13,16 @@ class ToCami extends Base
   {
     $this
       ->setName('to-cami')
-      ->setDescription('Converts P/T models to CAMI');
+      ->setDescription('Converts P/T models to CAMI')
+      ->addOption('wrap', null, InputOption::VALUE_NONE, 'Wrap CAMI in DB() ... FB()');
     parent::configure();
+  }
+
+  private $wrap;
+
+  protected function pre_perform(InputInterface $input, OutputInterface $output)
+  {
+    $this->wrap = $input->getOption('wrap');
   }
 
   protected function perform()
@@ -25,6 +34,10 @@ class ToCami extends Base
     $cami_id = 1;
     $equivalence = array();
     $file = fopen(preg_replace('/.pnml$/', '.cami', $this->pt_file), 'w');
+    if ($this->wrap)
+    {
+      fwrite($file, "DB()\n");
+    }
     fwrite($file, "CN(3:net,${cami_id})\n");
     $cami_id++;
     foreach ($model->net->page->place as $place)
@@ -69,6 +82,10 @@ class ToCami extends Base
       fwrite($file, "CT(9:valuation,${cami_id},${val_length}:${valuation})\n");
 //      $equivalence[$id] = $cami_id;
       $cami_id++;
+    }
+    if ($this->wrap)
+    {
+      fwrite($file, "FB()\n");
     }
     fclose($file);
   }
