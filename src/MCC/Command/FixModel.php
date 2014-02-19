@@ -79,7 +79,9 @@ class FixModel extends Base
     else if ((string) $name->text != $model->net->attributes()['id'])
     {
       echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n";
-      $name->text = "{$model->net->attributes()['id']}";
+      unset($model->net->name[0]);
+      $model->net->addChild('name');
+      $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
     }
     //
     $replacements = array();
