@@ -33,6 +33,7 @@ const BOOLEAN_OPERATOR      = 'boolean';
 const CTL_OPERATOR          = 'ctl';
 const LTL_OPERATOR          = 'ltl';
 const REACHABILITY_OPERATOR = 'breachability';
+const INTEGER_COMPARISON    = 'comparison';
 
 const BOOLEAN_CONSTANT      = 'constant';
 const INTEGER_CONSTANT      = 'constant';
@@ -45,22 +46,41 @@ class GenerateAtomicPropositions extends Base
     parent::configure();
     $this->setName('generate')
       ->setDescription('Generates atomic propositions')
-      ->addOption('output', null, InputOption::VALUE_REQUIRED, 'File name for formulas output', 'formulas')
-      ->addOption('type', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Type of results (boolean | integer)', array('boolean', 'integer'))
-      ->addOption('prefix', null, InputOption::VALUE_REQUIRED, 'Prefix for formula identifiers', 'formula')
-      ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator')
-      ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator')
-      ->addOption('cardinality' , null, InputOption::VALUE_NONE, 'Include cardinality operator')
-      ->addOption('deadlock'    , null, InputOption::VALUE_NONE, 'Include dealock operator')
-      ->addOption('fireability' , null, InputOption::VALUE_NONE, 'Include fireability operator')
-      ->addOption('liveness'    , null, InputOption::VALUE_NONE, 'Include liveness operator')
-      ->addOption('boolean'     , null, InputOption::VALUE_NONE, 'Include boolean operators between subformulas')
-      ->addOption('ctl'         , null, InputOption::VALUE_NONE, 'Include CTL operators')
-      ->addOption('ltl'         , null, InputOption::VALUE_NONE, 'Include LTL operators')
-      ->addOption('reachability', null, InputOption::VALUE_NONE, 'Include reachability operators')
-      ->addOption('integer'     , null, InputOption::VALUE_NONE, 'Include integer operators between subformulas')
-      ->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Quantity of properties to generate (at most)', 1)
-      ->addOption('depth', null, InputOption::VALUE_REQUIRED, 'Depth of properties to generate (at most)', 1)
+      ->addOption('output', null,
+        InputOption::VALUE_REQUIRED,
+        'File name for formulas output', 'formulas')
+      ->addOption('type', null,
+        InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+        'Type of results (boolean | integer)', array('boolean', 'integer'))
+      ->addOption('prefix', null,
+        InputOption::VALUE_REQUIRED,
+        'Prefix for formula identifiers', 'formula')
+      ->addOption('quantity', null,
+        InputOption::VALUE_REQUIRED,
+        'Quantity of properties to generate (at most)', 5)
+      ->addOption('depth', null,
+        InputOption::VALUE_REQUIRED,
+        'Depth of properties to generate (at most)', 3)
+      ->addOption('bound'       , null,
+        InputOption::VALUE_NONE, 'Include bound operator')
+      ->addOption('cardinality' , null,
+        InputOption::VALUE_NONE, 'Include cardinality operator')
+      ->addOption('deadlock'    , null,
+        InputOption::VALUE_NONE, 'Include dealock operator')
+      ->addOption('fireability' , null,
+        InputOption::VALUE_NONE, 'Include fireability operator')
+      ->addOption('liveness'    , null,
+        InputOption::VALUE_NONE, 'Include liveness operator')
+      ->addOption('boolean'     , null,
+        InputOption::VALUE_NONE, 'Include boolean operators between subformulas')
+      ->addOption('integer'     , null,
+        InputOption::VALUE_NONE, 'Include integer operators between subformulas')
+      ->addOption('ctl'         , null,
+        InputOption::VALUE_NONE, 'Include CTL operators')
+      ->addOption('ltl'         , null,
+        InputOption::VALUE_NONE, 'Include LTL operators')
+      ->addOption('reachability', null,
+        InputOption::VALUE_NONE, 'Include reachability operators')
       ;
   }
 
@@ -146,6 +166,7 @@ EOT;
     $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
     $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
     $this->integer_operators[INTEGER_OPERATOR     ] = $this->use_integer;
+    $this->boolean_operators[INTEGER_COMPARISON   ] = $this->use_integer;
     $this->boolean_operators[BOOLEAN_CONSTANT     ] = true;
     $this->boolean_operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
     $this->boolean_operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
@@ -162,6 +183,8 @@ EOT;
 
   protected function perform()
   {
+    if (file_exists($this->output))
+      unlink($this->output);
     $result = array();
     for ($i = 0; $i < $this->quantity; $i++)
     {
@@ -193,22 +216,15 @@ EOT;
 
   private function generate_integer_formula()
   {
-    $result = NULL;
-    $operators = NULL;
+    $result = null;
     $this->current_depth++;
+    $back = $this->copy($this->integer_operators);
     if ($this->current_depth >= $this->depth)
     {
-      $operators = array(
-        INTEGER_CONSTANT     => $this->integer_operators[INTEGER_CONSTANT],
-        BOUND_OPERATOR       => $this->integer_operators[BOUND_OPERATOR],
-        CARDINALITY_OPERATOR => $this->integer_operators[CARDINALITY_OPERATOR]
-      );
+      $this->integer_operators[INTEGER_OPERATOR] = false;
     }
-    else
-    {
-      $operators = $this->integer_operators;
-    }
-    $operator = array_rand(array_filter($operators));
+    $operator = array_rand(array_filter($this->integer_operators));
+    $this->integer_operators = $back;
     switch ($operator)
     {
     case INTEGER_CONSTANT:
@@ -228,25 +244,27 @@ EOT;
     return $result;
   }
 
-  private function generate_boolean_formula()
+  private function generate_boolean_formula($with = array(), $without = array())
   {
-    $result = NULL;
-    $operators = NULL;
+    $result = null;
     $this->current_depth++;
+    $back = $this->copy($this->boolean_operators);
     if ($this->current_depth >= $this->depth)
     {
-      $operators = array(
-        BOOLEAN_CONSTANT     => $this->boolean_operators[BOOLEAN_CONSTANT],
-        DEADLOCK_OPERATOR    => $this->boolean_operators[DEADLOCK_OPERATOR],
-        FIREABILITY_OPERATOR => $this->boolean_operators[FIREABILITY_OPERATOR],
-        LIVENESS_OPERATOR    => $this->boolean_operators[LIVENESS_OPERATOR]
-      );
+      $this->boolean_operators[CTL_OPERATOR] = false;
+      $this->boolean_operators[LTL_OPERATOR] = false;
+      $this->boolean_operators[REACHABILITY_OPERATOR] = false;
     }
-    else
+    foreach ($with as $v)
     {
-      $operators = $this->boolean_operators;
+      $this->boolean_operators[$v] = true;
     }
-    $operator = array_rand(array_filter($operators));
+    foreach ($without as $v)
+    {
+      $this->boolean_operators[$v] = false;
+    }
+    $operator = array_rand(array_filter($this->boolean_operators));
+    $this->boolean_operators = $back;
     switch ($operator)
     {
     case BOOLEAN_CONSTANT:
@@ -256,17 +274,25 @@ EOT;
       $result = $this->generate_deadlock();
       break;
     case FIREABILITY_OPERATOR:
+      $result = $this->generate_fireability();
+      break;
+    case INTEGER_COMPARISON:
+      $result = $this->generate_comparison();
       break;
     case LIVENESS_OPERATOR:
+      $result = $this->generate_liveness();
       break;
     case BOOLEAN_OPERATOR:
       $result = $this->generate_boolean_operator();
       break;
     case CTL_OPERATOR:
+      $result = $this->generate_ctl();
       break;
     case LTL_OPERATOR:
+      $result = $this->generate_ltl();
       break;
     case REACHABILITY_OPERATOR:
+      $result = $this->generate_reachability();
       break;
     }
     $this->current_depth--;
@@ -330,7 +356,10 @@ EOT;
 
   private function generate_boolean_constant()
   {
-    $constants = array("<true/>", "<false/>");
+    $constants = array(
+      "<true/>",
+      "<false/>"
+    );
     $r = array_rand($constants, 1);
     $xml = $constants[$r];
     $result = $this->load_xml($xml);
@@ -340,14 +369,19 @@ EOT;
   private function generate_boolean_operator()
   {
     $constants = array(
+      "<negation></negation>",
       "<conjunction></conjunction>",
       "<disjunction></disjunction>",
       "<exclusive-disjunction></exclusive-disjunction>",
       "<implication></implication>",
-      "<equivalence></equivalence>");
+      "<equivalence></equivalence>"
+    );
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
-    for ($i = 0; $i != 2; $i++) {
+    $max = 2;
+    if ($r == 0)
+      $max = 1;
+    for ($i = 0; $i != $max; $i++) {
       $sub = $this->generate_boolean_formula();
       $this->xml_adopt($result, $sub);
     }
@@ -358,6 +392,119 @@ EOT;
   {
     $xml = "<deadlock/>";
     $result = $this->load_xml($xml);
+    return $result;
+  }
+
+  private function generate_reachability()
+  {
+    $constants = array(
+      "<invariant></invariant>",
+      "<possibility></possibility>",
+      "<impossibility></impossibility>"
+    );
+    $r = array_rand($constants, 1);
+    $result = $this->load_xml($constants[$r]);
+    $back = $this->copy($this->boolean_operators);
+    $old_reach = $this->boolean_operators[REACHABILITY_OPERATOR];
+    $this->boolean_operators[CTL_OPERATOR         ] = false;
+    $this->boolean_operators[LTL_OPERATOR         ] = false;
+    $this->boolean_operators[REACHABILITY_OPERATOR] = false;
+    $sub = $this->generate_boolean_formula();
+    $this->boolean_operators = $back;
+    $this->xml_adopt($result, $sub);
+    return $result;
+  }
+
+  private function generate_ctl()
+  {
+    $constants = array(
+      "<all-paths/>",
+      "<exists-path/>"
+    );
+    $r = array_rand($constants, 1);
+    $result = $this->load_xml($constants[$r]);
+    $sub = $this->generate_boolean_formula(array(LTL_OPERATOR), array(CTL_OPERATOR));
+    $this->xml_adopt($result, $sub);
+    return $result;
+  }
+
+  private function generate_ltl()
+  {
+    $constants = array(
+      "<next><if-no-successor>false</if-no-successor><steps>1</steps></next>",
+      "<globally/>",
+      "<finally/>",
+      "<until><before/><reach/><strength>strong</strength></until>"
+    );
+    $r = array_rand($constants, 1);
+    $result = $this->load_xml($constants[$r]);
+    switch ($r)
+    {
+    case 0:
+    case 1:
+    case 2:
+      $sub = $this->generate_boolean_formula();
+      $this->xml_adopt($result, $sub);
+      break;
+    case 0:
+      $before = $this->generate_boolean_formula();
+      $reach  = $this->generate_boolean_formula();
+      $this->xml_adopt($result->before, $before);
+      $this->xml_adopt($result->reach , $reach );
+
+      break;
+    }
+    return $result;
+  }
+
+  private function generate_comparison()
+  {
+    $constants = array(
+      "<integer-eq/>",
+      "<integer-ne/>",
+      "<integer-lt/>",
+      "<integer-le/>",
+      "<integer-gt/>",
+      "<integer-ge/>"
+    );
+    $r = array_rand($constants, 1);
+    $result = $this->load_xml($constants[$r]);
+    for ($i = 0; $i != 2; $i++) {
+      $sub = $this->generate_integer_formula();
+      $this->xml_adopt($result, $sub);
+    }
+    return $result;
+  }
+
+  private function generate_fireability()
+  {
+    $selected = array_rand($this->transitions, 1);
+    if (! is_array($selected))
+    {
+      $selected = array($selected);
+    }
+    $xml = '<is-fireable></is-fireable>';
+    $result = $this->load_xml($xml);
+    foreach ($selected as $s) {
+      $transition = $this->transitions[$s];
+      $result->addChild('transition', $transition->id);
+    }
+    return $result;
+  }
+
+  private function generate_liveness()
+  {
+    $selected = array_rand($this->transitions, 1);
+    if (! is_array($selected))
+    {
+      $selected = array($selected);
+    }
+    $xml = '<is-live><level>l4</level></is-live>';
+    $result = $this->load_xml($xml);
+    foreach ($selected as $s) {
+      $transition = $this->transitions[$s];
+      $result->addChild('transition', $transition->id);
+    }
     return $result;
   }
 
@@ -378,6 +525,16 @@ EOT;
     {
       $this->xml_adopt($node, $ch);
     }
+  }
+
+  private function copy($a)
+  {
+    $result = array();
+    foreach($a as $k => $v)
+    {
+      $result[$k] = $v;
+    }
+    return $result;
   }
 
 }
