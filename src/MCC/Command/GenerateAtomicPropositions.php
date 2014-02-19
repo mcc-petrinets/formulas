@@ -200,18 +200,17 @@ EOT;
         break;
       }
     }
-    $o = fopen($this->output, 'w');
+    $xml = $this->load_xml("<property-set/>");
     foreach ($result as $formula)
     {
       $f = $this->load_xml($this->xml);
       $f->id = $this->model->net->attributes()['id'] .
                "-{$this->prefix}-" . $this->id;
       $this->xml_adopt($f, $formula);
-      fwrite($o, $f->asXml());
+      $this->xml_adopt($xml, $f);
       $this->id++;
     }
-    fclose($o);
-    return $result;
+    file_put_contents($this->output, $xml->asXml());
   }
 
   private function generate_integer_formula()
