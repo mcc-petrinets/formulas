@@ -34,10 +34,7 @@ formula =
   | integer-formula
 
 boolean-formula =
-    element boolean-constant {
-      xsd:integer
-    }
-  | element invariant {
+    element invariant {
       boolean-formula
     }
   | element impossibility {
