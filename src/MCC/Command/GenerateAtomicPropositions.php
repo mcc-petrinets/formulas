@@ -45,6 +45,10 @@ class GenerateAtomicPropositions extends Base
     parent::configure();
     $this->setName('generate')
       ->setDescription('Generates atomic propositions')
+      ->addOption('output', null, InputOption::VALUE_REQUIRED, 'File name for formulas output', 'formulas')
+      ->addOption('type', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Type of results (boolean | integer)', array('boolean', 'integer'))
+      ->addOption('prefix', null, InputOption::VALUE_REQUIRED, 'Prefix for formula identifiers', 'formula')
+      ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator')
       ->addOption('bound'       , null, InputOption::VALUE_NONE, 'Include bound operator')
       ->addOption('cardinality' , null, InputOption::VALUE_NONE, 'Include cardinality operator')
       ->addOption('deadlock'    , null, InputOption::VALUE_NONE, 'Include dealock operator')
@@ -54,7 +58,7 @@ class GenerateAtomicPropositions extends Base
       ->addOption('ctl'         , null, InputOption::VALUE_NONE, 'Include CTL operators')
       ->addOption('ltl'         , null, InputOption::VALUE_NONE, 'Include LTL operators')
       ->addOption('reachability', null, InputOption::VALUE_NONE, 'Include reachability operators')
-      ->addOption('integer'     , null, InputOption::VALUE_NONE, 'Include integer formulas')
+      ->addOption('integer'     , null, InputOption::VALUE_NONE, 'Include integer operators between subformulas')
       ->addOption('quantity', null, InputOption::VALUE_REQUIRED, 'Quantity of properties to generate (at most)', 1)
       ->addOption('depth', null, InputOption::VALUE_REQUIRED, 'Depth of properties to generate (at most)', 1)
       ;
@@ -70,13 +74,16 @@ class GenerateAtomicPropositions extends Base
   private $use_ltl          = false;
   private $use_reachability = false;
   private $use_integer      = false;
+  private $prefix;
   private $quantity;
   private $depth;
   private $id;
   private $reference_model;
+  private $model;
   private $places;
   private $transitions;
   private $current_depth = 0;
+  private $output;
 
   private $xml = <<<EOT
   <property>
@@ -97,6 +104,24 @@ EOT;
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
+    $path = NULL;
+    if ($this->sn_model)
+      $path = dirname($this->sn_file);
+    else
+      $path = dirname($this->pt_file);
+    $this->output = "${path}/{$input->getOption('output')}.xml";
+    $this->types[INTEGER_FORMULA] = false;
+    $this->types[BOOLEAN_FORMULA] = false;
+    foreach ($input->getOption('type') as $type)
+    {
+      if ($type == 'integer')
+        $this->types[INTEGER_FORMULA] = true;
+      else if ($type == 'boolean')
+        $this->types[BOOLEAN_FORMULA] = true;
+      else
+        echo "Type ${type} is not recognized (should be 'integer' or 'boolean').\n";
+    }
+    $this->prefix           = $input->getOption('prefix'       );
     $this->use_bound        = $input->getOption('bound'        );
     $this->use_cardinality  = $input->getOption('cardinality'  );
     $this->use_dealock      = $input->getOption('deadlock'     );
@@ -117,11 +142,6 @@ EOT;
     $this->transitions = $this->sn_model
       ? $this->reference_model->ctransitions
       : $this->reference_model->utransitions;
-    $this->types[INTEGER_FORMULA] = $this->use_integer;
-    $this->types[BOOLEAN_FORMULA] = $this->use_boolean
-      || $this->use_ctl
-      || $this->use_ltl
-      || $this->use_reachability;
     $this->integer_operators[INTEGER_CONSTANT     ] = true;
     $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
     $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
@@ -134,6 +154,10 @@ EOT;
     $this->boolean_operators[CTL_OPERATOR         ] = $this->use_ctl;
     $this->boolean_operators[LTL_OPERATOR         ] = $this->use_ltl;
     $this->boolean_operators[REACHABILITY_OPERATOR] = $this->use_reachability;
+    if ($this->sn_model)
+      $this->model = $this->sn_model;
+    else
+      $this->model = $this->pt_model;
   }
 
   protected function perform()
@@ -153,14 +177,17 @@ EOT;
         break;
       }
     }
+    $o = fopen($this->output, 'w');
     foreach ($result as $formula)
     {
       $f = $this->load_xml($this->xml);
-      $f->id = $this->sn_model->net->attributes()['id'] . "-property-" . $this->id;
+      $f->id = $this->model->net->attributes()['id'] .
+               "-{$this->prefix}-" . $this->id;
       $this->xml_adopt($f, $formula);
-      echo $f->asXml() . "\n";
+      fwrite($o, $f->asXml());
       $this->id++;
     }
+    fclose($o);
     return $result;
   }
 
@@ -169,7 +196,7 @@ EOT;
     $result = NULL;
     $operators = NULL;
     $this->current_depth++;
-    if ($this->current_depth > $this->depth)
+    if ($this->current_depth >= $this->depth)
     {
       $operators = array(
         INTEGER_CONSTANT     => $this->integer_operators[INTEGER_CONSTANT],
@@ -206,7 +233,7 @@ EOT;
     $result = NULL;
     $operators = NULL;
     $this->current_depth++;
-    if ($this->current_depth > $this->depth)
+    if ($this->current_depth >= $this->depth)
     {
       $operators = array(
         BOOLEAN_CONSTANT     => $this->boolean_operators[BOOLEAN_CONSTANT],
@@ -217,7 +244,7 @@ EOT;
     }
     else
     {
-      $operator = $this->boolean_operators;
+      $operators = $this->boolean_operators;
     }
     $operator = array_rand(array_filter($operators));
     switch ($operator)
@@ -226,6 +253,7 @@ EOT;
       $result = $this->generate_boolean_constant();
       break;
     case DEADLOCK_OPERATOR:
+      $result = $this->generate_deadlock();
       break;
     case FIREABILITY_OPERATOR:
       break;
@@ -304,7 +332,7 @@ EOT;
   {
     $constants = array("<true/>", "<false/>");
     $r = array_rand($constants, 1);
-    $xml = "<boolean-constant>{$constants[$r]}</boolean-constant>";
+    $xml = $constants[$r];
     $result = $this->load_xml($xml);
     return $result;
   }
@@ -323,6 +351,13 @@ EOT;
       $sub = $this->generate_boolean_formula();
       $this->xml_adopt($result, $sub);
     }
+    return $result;
+  }
+
+  private function generate_deadlock()
+  {
+    $xml = "<deadlock/>";
+    $result = $this->load_xml($xml);
     return $result;
   }
 
