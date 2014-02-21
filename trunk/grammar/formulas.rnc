@@ -1,4 +1,4 @@
-defaultt namespace = "http://mcc.lip6.fr/"
+default namespace = "http://mcc.lip6.fr/"
 start = property-set
 
 property-set = element property-set {
@@ -26,7 +26,9 @@ property = element property {
       text
     }
   }? &
-  formula
+  element formula {
+    formula
+  }
 }
 
 formula =
@@ -73,13 +75,13 @@ boolean-formula =
     }
   | element deadlock { empty }
   | element is-live {
-      transition &
+      transition+ &
       element level {
         "l0" | "l1" | "l2" | "l3" | "l4"
       }
     }
   | element is-fireable {
-      transition
+      transition+
     }
   | element true  { empty }
   | element false { empty }
@@ -154,10 +156,10 @@ integer-expression =
       integer-expression
     }
 
-  | element bound {
+  | element place-bound {
       place+
     }
-  | element tokens {
+  | element tokens-count {
       place+
   }
 
