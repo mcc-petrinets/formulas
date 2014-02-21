@@ -1,6 +1,7 @@
 <?php
 namespace MCC\Command;
 
+use \Symfony\Component\Console\Input\ArrayInput;
 use \Symfony\Component\Console\Input\InputOption;
 use \Symfony\Component\Console\Input\InputArgument;
 use \Symfony\Component\Console\Input\InputInterface;
@@ -38,14 +39,17 @@ const INTEGER_COMPARISON    = 'comparison';
 const BOOLEAN_CONSTANT      = 'constant';
 const INTEGER_CONSTANT      = 'constant';
 
-class GenerateAtomicPropositions extends Base
+class GenerateFormulas extends Base
 {
 
   protected function configure()
   {
     parent::configure();
-    $this->setName('generate')
-      ->setDescription('Generates atomic propositions')
+    $this->setName('formula:generate')
+      ->setDescription('Generate formulas')
+      ->addOption('chain', null,
+        InputOption::VALUE_NONE,
+        'Chain with unfolding and conversion to text')
       ->addOption('output', null,
         InputOption::VALUE_REQUIRED,
         'File name for formulas output', 'formulas')
@@ -103,7 +107,9 @@ class GenerateAtomicPropositions extends Base
   private $places;
   private $transitions;
   private $current_depth = 0;
+  private $output_name;
   private $output;
+  private $chain;
 
   private $xml = <<<EOT
   <property>
@@ -115,6 +121,7 @@ class GenerateAtomicPropositions extends Base
       <is-ctl>false</is-ctl>
       <is-ltl>false</is-ltl>
     </tags>
+    <formula></formula>
   </property>
 EOT;
 
@@ -129,7 +136,8 @@ EOT;
       $path = dirname($this->sn_file);
     else
       $path = dirname($this->pt_file);
-    $this->output = "${path}/{$input->getOption('output')}.xml";
+    $this->output_name = $input->getOption('output');
+    $this->output = "${path}/{$this->output_name}.xml";
     $this->types[INTEGER_FORMULA] = false;
     $this->types[BOOLEAN_FORMULA] = false;
     foreach ($input->getOption('type') as $type)
@@ -141,6 +149,7 @@ EOT;
       else
         echo "Type ${type} is not recognized (should be 'integer' or 'boolean').\n";
     }
+    $this->chain            = $input->getOption('chain'        );
     $this->prefix           = $input->getOption('prefix'       );
     $this->use_bound        = $input->getOption('bound'        );
     $this->use_cardinality  = $input->getOption('cardinality'  );
@@ -185,6 +194,8 @@ EOT;
   {
     if (file_exists($this->output))
       unlink($this->output);
+    $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
+    $this->progress->start($this->console_output, $this->quantity);
     $result = array();
     for ($i = 0; $i < $this->quantity; $i++)
     {
@@ -199,25 +210,48 @@ EOT;
         $result[] = $this->generate_boolean_formula();
         break;
       }
+      $this->progress->advance();
     }
     $xml = $this->load_xml("<property-set/>");
     foreach ($result as $formula)
     {
       $f = $this->load_xml($this->xml);
       $f->id = $this->model->net->attributes()['id'] .
-               "-{$this->prefix}-" . $this->id;
-      $this->xml_adopt($f, $formula);
+        "-{$this->prefix}-" . $this->id;
+      $this->xml_adopt($f->formula, $formula);
       $this->xml_adopt($xml, $f);
       $this->id++;
     }
-    file_put_contents($this->output, $xml->asXml());
+    $this->progress->finish();
+    file_put_contents($this->output, $this->save_xml($xml));
+
+    if ($this->chain)
+    {
+      foreach (array('formula:unfold', 'formula:to-text') as $c)
+      {
+        $command = $this->getApplication()->find($c);
+        $arguments = array(
+            'command'   => $c,
+            'root'      => $this->root,
+            'model'     => $this->model_name,
+            'parameter' => $this->parameter,
+            '--output'  => $this->output_name,
+        );
+        $input = new ArrayInput($arguments);
+        $returnCode = $command->run($input, $this->console_output);
+      }
+    }
   }
 
-  private function generate_integer_formula()
+  private function generate_integer_formula($allow_constant = false)
   {
     $result = null;
     $this->current_depth++;
     $back = $this->copy($this->integer_operators);
+    if (! $allow_constant)
+    {
+      $this->integer_operators[INTEGER_CONSTANT] = false;
+    }
     if ($this->current_depth >= $this->depth)
     {
       $this->integer_operators[INTEGER_OPERATOR] = false;
@@ -243,24 +277,20 @@ EOT;
     return $result;
   }
 
-  private function generate_boolean_formula($with = array(), $without = array())
+  private function generate_boolean_formula($allow_constant = false)
   {
     $result = null;
     $this->current_depth++;
     $back = $this->copy($this->boolean_operators);
+    if (! $allow_constant)
+    {
+      $this->boolean_operators[BOOLEAN_CONSTANT] = false;
+    }
     if ($this->current_depth >= $this->depth)
     {
       $this->boolean_operators[CTL_OPERATOR] = false;
       $this->boolean_operators[LTL_OPERATOR] = false;
       $this->boolean_operators[REACHABILITY_OPERATOR] = false;
-    }
-    foreach ($with as $v)
-    {
-      $this->boolean_operators[$v] = true;
-    }
-    foreach ($without as $v)
-    {
-      $this->boolean_operators[$v] = false;
     }
     $operator = array_rand(array_filter($this->boolean_operators));
     $this->boolean_operators = $back;
@@ -298,7 +328,7 @@ EOT;
     return $result;
   }
 
-  private function generate_integer_constant($min = 0, $max = 42)
+  private function generate_integer_constant($min = 0, $max = 5)
   {
     $r = rand($min, $max);
     $xml = "<integer-constant>${r}</integer-constant>";
@@ -309,15 +339,15 @@ EOT;
   private function generate_integer_operator()
   {
     $constants = array(
-      "<sum></sum>",
-      "<difference></difference>"
+      "<integer-sum/>",
+      "<integer-difference/>"
     );
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
-    for ($i = 0; $i != 2; $i++) {
-      $sub = $this->generate_integer_formula();
-      $this->xml_adopt($result, $sub);
-    }
+    $sub1 = $this->generate_integer_formula();
+    $sub2 = $this->generate_integer_formula(true);
+    $this->xml_adopt($result, $sub1);
+    $this->xml_adopt($result, $sub2);
     return $result;
   }
 
@@ -422,7 +452,7 @@ EOT;
     );
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
-    $sub = $this->generate_boolean_formula(array(LTL_OPERATOR), array(CTL_OPERATOR));
+    $sub = $this->generate_ltl();
     $this->xml_adopt($result, $sub);
     return $result;
   }
@@ -445,12 +475,11 @@ EOT;
       $sub = $this->generate_boolean_formula();
       $this->xml_adopt($result, $sub);
       break;
-    case 0:
+    case 3:
       $before = $this->generate_boolean_formula();
       $reach  = $this->generate_boolean_formula();
       $this->xml_adopt($result->before, $before);
       $this->xml_adopt($result->reach , $reach );
-
       break;
     }
     return $result;
@@ -505,11 +534,6 @@ EOT;
       $result->addChild('transition', $transition->id);
     }
     return $result;
-  }
-
-  private function load_xml($xml)
-  {
-    return new \SimpleXmlElement($xml, LIBXML_COMPACT | LIBXML_NOBLANKS);
   }
 
   // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement

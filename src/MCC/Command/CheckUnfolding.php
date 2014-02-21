@@ -12,21 +12,39 @@ class CheckUnfolding extends Base
   protected function configure()
   {
     $this
-      ->setName('check-unfolding')
-      ->setDescription('Checks if P/T unfoldings correspond to the original Colored nets');
+      ->setName('model:check-unfolding')
+      ->setDescription('Check if P/T and SN are consistent');
     parent::configure();
   }
 
+  private $log_name = 'model-check.log';
+  private $log;
   private $ep;
 
   protected function perform()
   {
-    $this->ep = new EquivalentElements($this->sn_model, $this->pt_model);
     if ($this->sn_model && $this->pt_model)
     {
+      $dir = dirname($this->pt_file);
+      $this->log = fopen("{$dir}/{$this->log_name}", 'w');
+      $this->ep = new EquivalentElements($this->sn_model, $this->pt_model);
+      $quantity = count($this->ep->cplaces) +
+        count($this->ep->cplaces) +
+        count($this->ep->ctransitions);
+      $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+      $this->progress->start($this->console_output, $quantity);
       $this->check_places();
       $this->check_parameters();
       $this->check_transitions();
+      $this->progress->finish();
+      fclose($this->log);
+      $count = filesize("{$dir}/{$this->log_name}");
+      if ($count > 0)
+      {
+        $this->console_output->writeln(
+          "  <warning>{$count} problems have been detected.</warning>"
+        );
+      }
     }
   }
 
@@ -37,10 +55,11 @@ class CheckUnfolding extends Base
     foreach ($this->ep->cplaces as $place)
     {
       $c += count($place->unfolded);
+      $this->progress->advance();
     }
     if ($c != count($this->ep->uplaces))
     {
-      echo "  Inconsistency detected: unfolded model may use a bigger parameter!\n";
+      fwrite($this->log, "Inconsistency detected: unfolded model may use a bigger parameter!\n");
     }
   }
 
@@ -90,6 +109,7 @@ class CheckUnfolding extends Base
         }
       }
       error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+      $this->progress->advance();
     }
     $n = 0;
     foreach ($maximum_reached as $i => $b)
@@ -102,7 +122,7 @@ class CheckUnfolding extends Base
     $m = count($this->ep->cplaces);
     if ($n < $m/2)
     {
-      echo "  Inconsistency detected: maximum parameter is reached for only {$n}/{$m} places.\n";
+      fwrite($this->log, "Inconsistency detected: maximum parameter is reached for only {$n}/{$m} places.\n");
     }
   }
 
@@ -114,8 +134,9 @@ class CheckUnfolding extends Base
       if (count($transition->unfolded) == 0)
       {
         $name = $transition->name;
-        echo "  Inconsistency detected: transition {$name} has no unfolding.\n";
+        fwrite($this->log, "Inconsistency detected: transition {$name} has no unfolding.\n");
       }
+      $this->progress->advance();
     }
   }
 

@@ -15,8 +15,8 @@ class GenerateLua extends Base
   protected function configure()
   {
     $this
-      ->setName('generate-lua')
-      ->setDescription('Generates a simulator in Lua')
+      ->setName('model:to-lua')
+      ->setDescription('Generate a simulator in Lua')
       ->addOption('server-side', null, InputOption::VALUE_NONE, 'Generate server-side code.');
     parent::configure();
   }
@@ -33,6 +33,10 @@ class GenerateLua extends Base
       return;
     }
     $model = $this->pt_model;
+    $quantity = count($model->net->page->place) +
+      count($model->net->page->transition);
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
     $file  = NULL;
     if ($this->server_side) {
       $file = dirname(realpath($this->pt_file)) . '/model.lua';
@@ -50,6 +54,7 @@ class GenerateLua extends Base
       fwrite($fp, "dictionary[\"${id}\"] = ${i}\n");
       $dictionary[$id] = $i;
       $i += 1;
+      $this->advance();
     }
     // First, output initial state:
     fwrite($fp, "local initial_state = {}\n");
@@ -143,6 +148,7 @@ class GenerateLua extends Base
       }
       fwrite($fp, "    result['${id}'] = r\n");
       fwrite($fp, "  end\n");
+      $this->advance();
     }
     fwrite($fp, "  return result\n");
     fwrite($fp, "end\n");
@@ -175,5 +181,6 @@ EOT;
       fwrite($fp, $last);
     }
     fclose($fp);
+    $this->progress->finish();
   }
 }

@@ -12,13 +12,15 @@ class FixModel extends Base
   protected function configure()
   {
     $this
-      ->setName('fix-model')
-      ->setDescription('Fixes ids and names in models')
+      ->setName('model:fix')
+      ->setDescription('Fix ids and names')
       ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only show messages, do not really perform changes');
     parent::configure();
   }
 
   private $dryrun = false;
+  private $log_name = 'model-fix.log';
+  private $log;
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
@@ -27,13 +29,68 @@ class FixModel extends Base
 
   protected function perform()
   {
+    $quantity = 0;
     if ($this->sn_model)
     {
-      $this->fix($this->sn_file, $this->sn_model);
+      $quantity += 2 +
+        count($this->sn_model->net->page->place) +
+        count($this->sn_model->net->page->transition) +
+        count($this->sn_model->net->page->arc);
     }
     if ($this->pt_model)
     {
-      $this->fix($this->pt_file, $this->pt_model);
+      $quantity += 2 +
+        count($this->pt_model->net->page->place) +
+        count($this->pt_model->net->page->transition) +
+        count($this->pt_model->net->page->arc);
+    }
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
+    if ($this->sn_model)
+    {
+      $this->perform_for($this->sn_file, $this->sn_model);
+    }
+    if ($this->pt_model)
+    {
+      $this->perform_for($this->pt_file, $this->pt_model);
+    }
+    $this->progress->finish();
+    if ($this->sn_model)
+    {
+      $this->warn_for($this->sn_file, 'Colored');
+    }
+    if ($this->pt_model)
+    {
+      $this->warn_for($this->pt_file, 'P/T');
+    }
+  }
+
+  private function perform_for($file, $model)
+  {
+    $dir = dirname($file);
+    $this->log = fopen("{$dir}/{$this->log_name}", 'w');
+    $this->fix($file, $model);
+    fclose($this->log);
+  }
+
+  private function warn_for($file, $special)
+  {
+    $dir = dirname($file);
+    $count = filesize("{$dir}/{$this->log_name}");
+    if ($count > 1)
+    {
+      if ($this->dryrun)
+      {
+        $this->console_output->writeln(
+          "  <warning>{$special}: {$count} problems should be fixed.</warning>"
+        );
+      }
+      else
+      {
+        $this->console_output->writeln(
+          "  <warning>{$special}: {$count} problems have been fixed.</warning>"
+        );
+      }
     }
   }
 
@@ -60,29 +117,31 @@ class FixModel extends Base
           $type = 'COL';
           break;
         }
-        echo "  Fixing id from {$id} to {$name}-{$type}-{$parameter}\n";
+        fwrite($this->log, "Fixing id from {$id} to {$name}-{$type}-{$parameter}\n");
         $model->net->attributes()['id'] = "{$name}-{$type}-{$parameter}";
       }
       else
       {
-        echo "  {$instancename} does not respect the pattern NAME-(COL|PT)-PARAMETER.\n";
+        fwrite($this->log, "{$instancename} does not respect the pattern NAME-(COL|PT)-PARAMETER.\n");
         exit(1);
       }
     }
+    $this->progress->advance();
     $name = $model->net->name;
     if ($name == NULL)
     {
-      echo "  Fixing name to {$model->net->attributes()['id']}.\n";
+      fwrite($this->log, "Fixing name to {$model->net->attributes()['id']}.\n");
       $model->net->addChild('name');
       $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
     }
     else if ((string) $name->text != $model->net->attributes()['id'])
     {
-      echo "  Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n";
+      fwrite($this->log, "Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n");
       unset($model->net->name[0]);
       $model->net->addChild('name');
       $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
     }
+    $this->progress->advance();
     //
     $replacements = array();
     // Now, fix place ids and names;
@@ -92,18 +151,18 @@ class FixModel extends Base
       $name = (string) $place->name->text;
       if (($id == NULL) && ($name == NULL))
       {
-        echo "  Missing both place id and name.\n";
+        fwrite($this->log, "Missing both place id and name.\n");
         exit(1);
       }
       if ($id == NULL)
       {
-        echo "  Fixing missing place id for ${name}.\n";
+        fwrite($this->log, "Fixing missing place id for ${name}.\n");
         $id = $this->identifier_of($name);
         $place->addAttribute('id', $id);
       }
       if ($name == NULL)
       {
-        echo "  Fixing missing place name for ${id}\n";
+        fwrite($this->log, "Fixing missing place name for ${id}\n");
         $place->addChild('name');
         $name = $place->attributes()['id'];
         $place->name->addChild('text', $name);
@@ -111,10 +170,11 @@ class FixModel extends Base
       if (levenshtein($id, $name) >= min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
-        echo "  Fixing ugly place id for ${id} to ${new}.\n";
+        fwrite($this->log, "Fixing ugly place id for ${id} to ${new}.\n");
         $replacements[$id] = $new;
         $place->attributes()['id'] = $new;
       }
+      $this->progress->advance();
     }
     // The same for transitions:
     foreach ($model->net->page->transition as $transition)
@@ -123,18 +183,18 @@ class FixModel extends Base
       $name = (string) $transition->name->text;
       if (($id == NULL) && ($name == NULL))
       {
-        echo "  Missing both transition id and name.\n";
+        fwrite($this->log, "Missing both transition id and name.\n");
         exit(1);
       }
       if ($id == NULL)
       {
-        echo "  Fixing missing transition id for ${name}\n";
+        fwrite($this->log, "Fixing missing transition id for ${name}\n");
         $id = $this->identifier_of($name);
         $transition->addAttribute('id', $id);
       }
       if ($name == NULL)
       {
-        echo "  Fixing missing transition name for ${id}.\n";
+        fwrite($this->log, "Fixing missing transition name for ${id}.\n");
         $transition->addChild('name');
         $name = $transition->attributes()['id'];
         $transition->name->addChild('text', $name);
@@ -142,10 +202,11 @@ class FixModel extends Base
       if (levenshtein($id, $name) > min(strlen($id), strlen($name))/2)
       {
         $new = $this->identifier_of($name);
-        echo "  Fixing ugly transition id for ${id} to ${new}.\n";
+        fwrite($this->log, "Fixing ugly transition id for ${id} to ${new}.\n");
         $replacements[$id] = $new;
         $transition->attributes()['id'] = $new;
       }
+      $this->progress->advance();
     }
     // Update arcs:
     if (count($replacements) != 0)
@@ -157,16 +218,17 @@ class FixModel extends Base
         if (array_key_exists($source, $replacements))
         {
           $r = $replacements[$source];
-          echo "  Fixing arc ${id} source from ${source} to ${r}.\n";
+          fwrite($this->log, "Fixing arc ${id} source from ${source} to ${r}.\n");
           $arc->attributes()['source'] = $r;
         }
         $target = (string) $arc->attributes()['target'];
         if (array_key_exists($target, $replacements))
         {
           $r = $replacements[$target];
-          echo "  Fixing arc ${id} target from ${target} to ${r}.\n";
+          fwrite($this->log, "Fixing arc ${id} target from ${target} to ${r}.\n");
           $arc->attributes()['target'] = $r;
         }
+        $this->progress->advance();
       }
     }
     if (!$this->dryrun)
