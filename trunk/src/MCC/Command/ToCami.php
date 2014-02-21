@@ -12,8 +12,8 @@ class ToCami extends Base
   protected function configure()
   {
     $this
-      ->setName('to-cami')
-      ->setDescription('Converts P/T models to CAMI')
+      ->setName('model:to-cami')
+      ->setDescription('Convert PNML (P/T) to CAMI')
       ->addOption('wrap', null, InputOption::VALUE_NONE, 'Wrap CAMI in DB() ... FB()');
     parent::configure();
   }
@@ -31,6 +31,11 @@ class ToCami extends Base
       return;
     }
     $model = $this->pt_model;
+    $quantity = count($model->net->page->place) +
+      count($model->net->page->transition) +
+      count($model->net->page->arc);
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
     $cami_id = 1;
     $equivalence = array();
     $file = fopen(preg_replace('/.pnml$/', '.cami', $this->pt_file), 'w');
@@ -55,6 +60,7 @@ class ToCami extends Base
       fwrite($file, "CT(7:marking,${cami_id},${marking_length}:${marking})\n");
       $equivalence[$id] = $cami_id;
       $cami_id++;
+      $this->progress->advance();
     }
     foreach ($model->net->page->transition as $transition)
     {
@@ -65,6 +71,7 @@ class ToCami extends Base
       fwrite($file, "CT(4:name,${cami_id},${id_length}:${id})\n");
       $equivalence[$id] = $cami_id;
       $cami_id++;
+      $this->progress->advance();
     }
     foreach ($model->net->page->arc as $arc)
     {
@@ -82,12 +89,14 @@ class ToCami extends Base
       fwrite($file, "CT(9:valuation,${cami_id},${val_length}:${valuation})\n");
 //      $equivalence[$id] = $cami_id;
       $cami_id++;
+      $this->progress->advance();
     }
     if ($this->wrap)
     {
       fwrite($file, "FB()\n");
     }
     fclose($file);
+    $this->progress->finish();
   }
 
 

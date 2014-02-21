@@ -13,8 +13,8 @@ class GenerateC extends Base
   protected function configure()
   {
     $this
-      ->setName('generate-c')
-      ->setDescription('Generates a simulator in C');
+      ->setName('model:to-c')
+      ->setDescription('Generate a simulator in C');
     parent::configure();
   }
 
@@ -25,6 +25,10 @@ class GenerateC extends Base
       return;
     }
     $model = $this->pt_model;
+    $quantity = count($model->net->page->place) +
+      count($model->net->page->transition);
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
     $file  = dirname(realpath($this->pt_file)) . '/model.hh';
     $fp = fopen($file, 'w');
     // First, output initial state:
@@ -48,6 +52,7 @@ class GenerateC extends Base
     {
       $id = (string) $place->attributes()['id'];
       fwrite($fp, "  MARKING_TYPE ${id};\n");
+      $this->progress->advance();
     }
     fwrite($fp, "};\n");
     fwrite($fp, "\n");
@@ -139,9 +144,11 @@ class GenerateC extends Base
       }
       fwrite($fp, "    result.emplace(\"${id}\", n);\n");
       fwrite($fp, "  }\n");
+      $this->progress->advance();
     }
     fwrite($fp, "  return result;\n");
     fwrite($fp, "}\n");
     fclose($fp);
+    $this->progress->finish();
   }
 }

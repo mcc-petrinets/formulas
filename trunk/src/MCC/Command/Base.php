@@ -6,6 +6,8 @@ use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Input\InputOption;
 use \Symfony\Component\Console\Input\InputArgument;
 use \Symfony\Component\Console\Output\OutputInterface;
+use \Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use \Symfony\Component\Console\Helper\ProgressHelper;
 
 class Instance
 {
@@ -27,6 +29,11 @@ abstract class Base extends Command
   protected $pt_model;
   protected $sn_file;
   protected $pt_file;
+  protected $model_name;
+  protected $parameter;
+  protected $console_input;
+  protected $console_output;
+  protected $progress;
 
   protected function configure()
   {
@@ -49,7 +56,25 @@ abstract class Base extends Command
 
   protected final function execute(InputInterface $input, OutputInterface $output)
   {
+    $this->console_input  = $input;
+    $this->console_output = $output;
     $this->root = $input->getArgument('root');
+
+    $warning_style = new OutputFormatterStyle('yellow', 'red', array('bold'));
+    $output->getFormatter()->setStyle('warning', $warning_style);
+    $command_style = new OutputFormatterStyle('blue', 'black', array('bold'));
+    $output->getFormatter()->setStyle('command', $command_style);
+    $progress_style = new OutputFormatterStyle('cyan', 'black', array());
+    $output->getFormatter()->setStyle('progress', $progress_style);
+    $instance_style = new OutputFormatterStyle('green', 'black', array('bold'));
+    $output->getFormatter()->setStyle('instance', $instance_style);
+    $this->progress = $this->getHelperSet()->get('progress');
+    $this->progress->setFormat(ProgressHelper::FORMAT_VERBOSE);
+    $this->progress->setBarCharacter('<progress>-</progress>');
+    $this->progress->setEmptyBarCharacter(' ');
+    $this->progress->setProgressCharacter('>');
+    $this->progress->setBarWidth(25);
+
     if (!file_exists($this->root) or !is_dir($this->root))
     {
       echo "{$this->root} directory does not exist.\n";
@@ -78,10 +103,21 @@ abstract class Base extends Command
       }
     }
     $instances = array_unique($instances, SORT_REGULAR);
+    $model_length = 0;
+    $parameter_length = 0;
+    $description_length = 0;
+    foreach ($this->getApplication()->all() as $c)
+    {
+      $description_length =
+        max($description_length, strlen($c->getDescription()));
+    }
     // Iterate over instances to perform action:
     foreach ($instances as $instance)
     {
-      echo "Apply on {$instance->model} - {$instance->parameter}\n";
+      $this->model_name = $instance->model;
+      $this->parameter = $instance->parameter;
+      $description = str_pad($this->getDescription(), $description_length);
+      $output->writeln("<command>{$description}</command> on <instance>{$instance->model} - {$instance->parameter}</instance>");
       $this->sn_file = "{$this->root}/{$instance->model}-COL-{$instance->parameter}/model.pnml";
       $this->sn_model = $this->load_model($this->sn_file);
       $this->pt_file = "{$this->root}/{$instance->model}-PT-{$instance->parameter}/model.pnml";
@@ -93,6 +129,20 @@ abstract class Base extends Command
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
+  }
+
+  protected function load_xml($xml)
+  {
+    return new \SimpleXmlElement($xml, LIBXML_COMPACT | LIBXML_NOBLANKS);
+  }
+
+  protected function save_xml($xml)
+  {
+    $dom = new \DOMDocument('1.0');
+    $dom->preserveWhiteSpace = false;
+    $dom->formatOutput = true;
+    $dom->loadXML($xml->asXml());
+    return $dom->saveXML();
   }
 
   abstract protected function perform();
