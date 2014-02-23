@@ -227,7 +227,11 @@ EOT;
 
     if ($this->chain)
     {
-      foreach (array('formula:unfold', 'formula:to-text') as $c)
+      foreach (array(
+        'formula:tag',
+        'formula:unfold',
+        'formula:to-text'
+      ) as $c)
       {
         $command = $this->getApplication()->find($c);
         $arguments = array(
