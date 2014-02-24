@@ -77,7 +77,7 @@ class FormulasToText extends Base
     }
     $this->progress->finish();
     $result = implode("\n", $result);
-    file_put_contents($output, $result);
+    file_put_contents($output, $result . "\n");
   }
 
   private function translate_property($property, $places, $transitions)
@@ -86,13 +86,14 @@ class FormulasToText extends Base
     $id = (string) $property->id;
     $description = (string) $property->description;
     $tags = array();
-    foreach ($property->tags->children() as $tag)
-    {
-      if ((string) $tag == 'true')
-      {
-        $tags[] = (string) $tag->getName();
-      }
-    }
+    if ((string) $property->tags->is_structural)
+      $tags[] = 'structural';
+    if ((string) $property->tags->is_reachability)
+      $tags[] = 'reachability';
+    if ((string) $property->tags->is_ctl)
+      $tags[] = 'ctl';
+    if ((string) $property->tags->is_ltl)
+      $tags[] = 'ltl';
     $tags = implode(', ', $tags);
     $formula = $this->translate_formula(
       $property->formula->children()[0],
@@ -104,7 +105,9 @@ class FormulasToText extends Base
       $expected = (string) $property->{'expected-result'}->value;
       $explanation = (string) $property->{'expected-result'}->explanation;
       $result = <<<EOS
-Property {$id} "{$description}" [{$tags}]
+Property {$id}
+  "{$description}"
+  [{$tags}]
   expects {$expected} because "{$explanation}" is:
     {$formula}
   end.
@@ -112,7 +115,9 @@ EOS;
     }
     else {
       $result = <<<EOS
-Property {$id} "{$description}" [{$tags}] is:
+Property {$id}
+  "{$description}"
+  [{$tags}] is:
     {$formula}
   end.
 EOS;

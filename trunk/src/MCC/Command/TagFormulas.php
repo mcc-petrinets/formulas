@@ -142,7 +142,9 @@ class TagFormulas extends Base
     case 'tokens-count':
       return true;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "<error>Error: unknown node {$formula->getName()}</error>"
+      );
     }
   }
 
@@ -211,7 +213,9 @@ class TagFormulas extends Base
     case 'tokens-count':
       return true;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "<error>Error: unknown node {$formula->getName()}</error>"
+      );
     }
   }
 
@@ -222,7 +226,8 @@ class TagFormulas extends Base
     case 'invariant':
     case 'impossibility':
     case 'possibility':
-      return true;
+      $sub = $formula->children()[0];
+      return $this->is_ltl($sub, false);
     case 'all-paths':
     case 'exists-path':
       $sub = $formula->children()[0];
@@ -290,7 +295,9 @@ class TagFormulas extends Base
     case 'tokens-count':
       return true;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "<error>Error: unknown node {$formula->getName()}</error>"
+      );
     }
   }
 
@@ -301,10 +308,14 @@ class TagFormulas extends Base
     case 'invariant':
     case 'impossibility':
     case 'possibility':
-      return true;
+      $sub = $formula->children()[0];
+      return $first &&
+        $this->is_ltl($sub, false);
     case 'all-paths':
     case 'exists-path':
-      return $first;
+      $sub = $formula->children()[0];
+      return $first &&
+        $this->is_ltl($sub, false);
     case 'globally':
     case 'finally':
     case 'next':
@@ -313,13 +324,13 @@ class TagFormulas extends Base
         if ($child->getName() != 'if-no-successor' &&
             $child->getName() != 'steps')
         {
-          return $first && $this->is_ltl($child, false);
+          return $this->is_ltl($child, false);
         }
       }
     case 'until':
       $before = $formula->before->children()[0];
       $reach  = $formula->reach->children()[0];
-      return $first &&
+      return
         $this->is_ltl($before, false) &&
         $this->is_ltl($reach , false);
     case 'deadlock':
@@ -370,7 +381,9 @@ class TagFormulas extends Base
     case 'tokens-count':
       return true;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "<error>Error: unknown node {$formula->getName()}</error>"
+      );
     }
   }
 

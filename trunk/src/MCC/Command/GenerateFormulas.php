@@ -175,7 +175,7 @@ EOT;
     $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
     $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
     $this->integer_operators[INTEGER_OPERATOR     ] = $this->use_integer;
-    $this->boolean_operators[INTEGER_COMPARISON   ] = $this->use_integer;
+    $this->boolean_operators[INTEGER_COMPARISON   ] = false;
     $this->boolean_operators[BOOLEAN_CONSTANT     ] = true;
     $this->boolean_operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
     $this->boolean_operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
@@ -184,6 +184,12 @@ EOT;
     $this->boolean_operators[CTL_OPERATOR         ] = $this->use_ctl;
     $this->boolean_operators[LTL_OPERATOR         ] = $this->use_ltl;
     $this->boolean_operators[REACHABILITY_OPERATOR] = $this->use_reachability;
+    if ($this->types[BOOLEAN_FORMULA] && (
+      $this->integer_operators[BOUND_OPERATOR] ||
+      $this->integer_operators[CARDINALITY_OPERATOR] ||
+      $this->integer_operators[INTEGER_OPERATOR]
+    ))
+      $this->boolean_operators[INTEGER_COMPARISON] = true;
     if ($this->sn_model)
       $this->model = $this->sn_model;
     else
@@ -260,6 +266,10 @@ EOT;
     {
       $this->integer_operators[INTEGER_OPERATOR] = false;
     }
+    if (count(array_filter($this->integer_operators)) == 0)
+    {
+      $this->integer_operators[INTEGER_CONSTANT] = true;
+    }
     $operator = array_rand(array_filter($this->integer_operators));
     $this->integer_operators = $back;
     switch ($operator)
@@ -295,6 +305,10 @@ EOT;
       $this->boolean_operators[CTL_OPERATOR] = false;
       $this->boolean_operators[LTL_OPERATOR] = false;
       $this->boolean_operators[REACHABILITY_OPERATOR] = false;
+    }
+    if (count(array_filter($this->boolean_operators)) == 0)
+    {
+      $this->boolean_operators[BOOLEAN_CONSTANT] = true;
     }
     $operator = array_rand(array_filter($this->boolean_operators));
     $this->boolean_operators = $back;
@@ -502,7 +516,7 @@ EOT;
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
     for ($i = 0; $i != 2; $i++) {
-      $sub = $this->generate_integer_formula();
+      $sub = $this->generate_integer_formula(($i == 0));
       $this->xml_adopt($result, $sub);
     }
     return $result;
@@ -543,6 +557,13 @@ EOT;
   // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
   private function xml_adopt($root, $new)
   {
+    if ($new == null)
+    {
+      $this->console_output->writeln(
+        "<error>Error: not enough operators to generate formula.</error>"
+      );
+      exit(1);
+    }
     $node = $root->addChild($new->getName(), (string) $new);
     foreach($new->attributes() as $attr => $value)
     {
