@@ -47,7 +47,7 @@ class TagFormulas extends Base
   {
     if (! file_exists($file))
     {
-      $this->console_output->log->writeln(
+      $this->console_output->writeln(
           "  <warning>Formula file '{$file}' does not exist.</warning>"
         );
       return;
