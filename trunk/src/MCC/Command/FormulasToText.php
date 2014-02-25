@@ -65,6 +65,13 @@ class FormulasToText extends Base
   {
     if (file_exists($output))
       unlink($output);
+    if (! file_exists($intput))
+    {
+      $this->console_output->writeln(
+        "<error>Formula file {$input} not found.</error>"
+      );
+      return;
+    }
     $xml = $this->load_xml(file_get_contents($input));
     $quantity = count($xml->children());
     $this->progress->setRedrawFrequency(max(1, $quantity / 100));
