@@ -65,7 +65,7 @@ class FormulasToText extends Base
   {
     if (file_exists($output))
       unlink($output);
-    if (! file_exists($intput))
+    if (! file_exists($input))
     {
       $this->console_output->writeln(
         "<error>Formula file {$input} not found.</error>"
