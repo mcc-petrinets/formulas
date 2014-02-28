@@ -15,6 +15,9 @@ class TagFormulas extends Base
     $this
       ->setName('formula:tag')
       ->setDescription('Tag formulas')
+      ->addOption('no-warning', null,
+        InputOption::VALUE_NONE,
+        'Do not emit warning on missing files')
       ->addOption('output', null,
         InputOption::VALUE_REQUIRED,
         'File name for formulas output', 'formulas')
@@ -22,11 +25,13 @@ class TagFormulas extends Base
     parent::configure();
   }
 
+  private $warn = true;
   private $output;
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
     $this->output = "{$input->getOption('output')}.xml";
+    $this->warn = $input->getOption('no-warning');
   }
 
   protected function perform()
@@ -47,9 +52,12 @@ class TagFormulas extends Base
   {
     if (! file_exists($file))
     {
-      $this->console_output->writeln(
-          "  <warning>Formula file '{$file}' does not exist.</warning>"
-        );
+      if ($this->warn)
+      {
+        $this->console_output->writeln(
+            "  <warning>Formula file '{$file}' does not exist.</warning>"
+          );
+      }
       return;
     }
     $xml = $this->load_xml(file_get_contents($file));
@@ -104,8 +112,6 @@ class TagFormulas extends Base
     case 'false':
       return true;
     case 'negation':
-      $sub = $formula->children()[0];
-      return $this->is_structural($sub, $first);
     case 'conjunction':
     case 'disjunction':
     case 'exclusive-disjunction':
@@ -120,7 +126,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_structural($sub, $first);;
       }
       return $result;
@@ -131,8 +137,8 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
-          $this->is_structural($sub, false);;
+        $result = $result &&
+          $this->is_structural($sub, false);
       }
       return $result;
     case 'integer-constant':
@@ -191,7 +197,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_reachability($sub, $first);
       }
       return $result;
@@ -202,7 +208,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_reachability($sub, false);
       }
       return $result;
@@ -284,7 +290,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_ctl($sub, false);;
       }
       return $result;
@@ -359,7 +365,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_ltl($sub, $first);
       }
       return $result;
@@ -370,7 +376,7 @@ class TagFormulas extends Base
       $result = true;
       foreach ($formula->children() as $sub)
       {
-        $ressult = $result &&
+        $result = $result &&
           $this->is_ltl($sub, false);
       }
       return $result;
