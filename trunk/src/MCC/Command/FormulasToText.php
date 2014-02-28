@@ -132,30 +132,36 @@ EOS;
     return $result;
   }
 
-  private function translate_formula($formula, $places, $transitions)
+  private function translate_formula($formula, $places, $transitions, $in_nary = false)
   {
+    $result = null;
     switch ((string) $formula->getName())
     {
     case 'invariant':
       $sub = $formula->children()[0];
-      return 'I ' .
+      $result = 'I ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'impossibility':
       $sub = $formula->children()[0];
-      return 'N ' .
+      $result = 'N ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'possibility':
       $sub = $formula->children()[0];
-      return 'P ' .
+      $result = 'P ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'all-paths':
       $sub = $formula->children()[0];
-      return 'A ' .
+      $result = 'A ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'exists-path':
       $sub = $formula->children()[0];
-      return 'E ' .
+      $result = 'E ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'next':
       $succ_ = (string) $formula->{'if-no-successor'};
       $succ = $succ_ == 'true' ? '' : '~';
@@ -170,16 +176,19 @@ EOS;
           $sub = $child;
         }
       }
-      return "X{$steps}{$succ} " .
+      $result = "X{$steps}{$succ} " .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'globally':
       $sub = $formula->children()[0];
-      return 'G ' .
+      $result = 'G ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'finally':
       $sub = $formula->children()[0];
-      return 'F ' .
+      $result = 'F ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'until':
       $before = $formula->before->children()[0];
       $reach  = $formula->reach->children()[0];
@@ -192,13 +201,15 @@ EOS;
       {
         $operator = 'U';
       }
-      return "(" .
-        $this->translate_formula($before, $places, $transitions) .
+      $result = "(" .
+        $this->translate_formula($before, $places, $transitions, true) .
         " {$operator} " .
-        $this->translate_formula($reach, $places, $transitions) .
+        $this->translate_formula($reach, $places, $transitions, true) .
         ')';
+      break;
     case 'deadlock':
-      return 'deadlock';
+      $result = 'deadlock';
+      break;
     case 'is-live':
       $level = (string) $formula->level;
       $names = array();
@@ -215,7 +226,8 @@ EOS;
       {
         $name = '(' . implode(', ', $names) . ')';
       }
-      return "\"{$name}\"?{$level}";
+      $result = "\"{$name}\"?{$level}";
+      break;
     case 'is-fireable':
       $transition = (string) $formula->transition;
       foreach ($formula->transition as $transition)
@@ -231,123 +243,143 @@ EOS;
       {
         $name = '(' . implode(', ', $names) . ')';
       }
-      return "\"{$name}\"?";
+      $result = "\"{$name}\"?";
+      break;
     case 'true':
-      return 'true';
+      $result = 'true';
+      break;
     case 'false':
-      return 'false';
+      $result = 'false';
+      break;
     case 'negation':
       $sub = $formula->children()[0];
-      return '! ' .
+      $result = '! ' .
         $this->translate_formula($sub, $places, $transitions);
+      break;
     case 'conjunction':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' & ', $res) . ')';
+      $result = '(' . implode(' & ', $res) . ')';
+      break;
     case 'disjunction':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' | ', $res) . ')';
+      $result = '(' . implode(' | ', $res) . ')';
+      break;
     case 'exclusive-disjunction':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' xor ', $res) . ')';
+      $result = '(' . implode(' xor ', $res) . ')';
+      break;
     case 'implication':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' => ', $res) . ')';
+      $result = '(' . implode(' => ', $res) . ')';
+      break;
     case 'equivalence':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' <=> ', $res) . ')';
+      $result = '(' . implode(' <=> ', $res) . ')';
+      break;
     case 'integer-eq':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' = ', $res) . ')';
+      $result = '(' . implode(' = ', $res) . ')';
+      break;
     case 'integer-ne':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' != ', $res) . ')';
+      $result = '(' . implode(' != ', $res) . ')';
+      break;
     case 'integer-lt':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' < ', $res) . ')';
+      $result = '(' . implode(' < ', $res) . ')';
+      break;
     case 'integer-le':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' <= ', $res) . ')';
+      $result = '(' . implode(' <= ', $res) . ')';
+      break;
     case 'integer-gt':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' > ', $res) . ')';
+      $result = '(' . implode(' > ', $res) . ')';
+      break;
     case 'integer-ge':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' >= ', $res) . ')';
+      $result = '(' . implode(' >= ', $res) . ')';
+      break;
     case 'integer-constant':
       $value = (string) $formula;
-      return $value;
+      $result = $value;
+      break;
     case 'integer-sum':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' + ', $res) . ')';
+      $result = '(' . implode(' + ', $res) . ')';
+      break;
     case 'integer-product':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' * ', $res) .')';
+      $result = '(' . implode(' * ', $res) .')';
+      break;
     case 'integer-difference':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' - ', $res) . ')';
+      $result = '(' . implode(' - ', $res) . ')';
+      break;
     case 'integer-division':
       $res = array();
       foreach ($formula->children() as $sub)
       {
-        $res[] = $this->translate_formula($sub, $places, $transitions);
+        $res[] = $this->translate_formula($sub, $places, $transitions, true);
       }
-      return '(' . implode(' / ', $res) . ')';
+      $result = '(' . implode(' / ', $res) . ')';
+      break;
     case 'place-bound':
       $res = array();
       foreach ($formula->place as $place)
@@ -356,7 +388,8 @@ EOS;
         $name = $places[$id]->name;
         $res[] = '"' . $name . '"';
       }
-      return 'bound(' . implode(', ', $res) . ')';
+      $result = 'bound(' . implode(', ', $res) . ')';
+      break;
     case 'tokens-count':
       $res = array();
       foreach ($formula->place as $place)
@@ -365,10 +398,18 @@ EOS;
         $name = $places[$id]->name;
         $res[] = '"' . $name . '"';
       }
-      return '#tokens(' . implode(', ', $res) . ')';
+      $result = '#tokens(' . implode(', ', $res) . ')';
+      break;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "<warning>Error: unknown node {$formula->getName()}</warning>"
+      );
     }
+    if ($in_nary)
+    {
+      $result = "({$result})";
+    }
+    return $result;
   }
 
 }

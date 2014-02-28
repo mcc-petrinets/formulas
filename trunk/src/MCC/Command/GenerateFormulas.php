@@ -171,12 +171,12 @@ EOT;
     $this->transitions = $this->sn_model
       ? $this->reference_model->ctransitions
       : $this->reference_model->utransitions;
-    $this->integer_operators[INTEGER_CONSTANT     ] = true;
+    $this->integer_operators[INTEGER_CONSTANT     ] = false;
     $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
     $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
     $this->integer_operators[INTEGER_OPERATOR     ] = $this->use_integer;
     $this->boolean_operators[INTEGER_COMPARISON   ] = false;
-    $this->boolean_operators[BOOLEAN_CONSTANT     ] = true;
+    $this->boolean_operators[BOOLEAN_CONSTANT     ] = false;
     $this->boolean_operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
     $this->boolean_operators[FIREABILITY_OPERATOR ] = $this->use_fireability;
     $this->boolean_operators[LIVENESS_OPERATOR    ] = $this->use_liveness;
@@ -213,7 +213,7 @@ EOT;
         $result[] = $this->generate_integer_formula();
         break;
       case BOOLEAN_FORMULA:
-        $result[] = $this->generate_boolean_formula();
+        $result[] = $this->generate_boolean_formula(true);
         break;
       }
       $this->progress->advance();
@@ -246,7 +246,11 @@ EOT;
             'model'     => $this->model_name,
             'parameter' => $this->parameter,
             '--output'  => $this->output_name,
-        );
+          );
+        if ($c == 'formula:tag')
+        {
+          $arguments[] = '--no-warning';
+        }
         $input = new ArrayInput($arguments);
         $returnCode = $command->run($input, $this->console_output);
       }
@@ -291,20 +295,32 @@ EOT;
     return $result;
   }
 
-  private function generate_boolean_formula($allow_constant = false)
+  private function generate_boolean_formula($outer = false)
   {
     $result = null;
     $this->current_depth++;
     $back = $this->copy($this->boolean_operators);
-    if (! $allow_constant)
-    {
-      $this->boolean_operators[BOOLEAN_CONSTANT] = false;
-    }
     if ($this->current_depth >= $this->depth)
     {
-      $this->boolean_operators[CTL_OPERATOR] = false;
-      $this->boolean_operators[LTL_OPERATOR] = false;
-      $this->boolean_operators[REACHABILITY_OPERATOR] = false;
+      $this->boolean_operators[BOOLEAN_OPERATOR] = false;
+      if (! $outer)
+      {
+        $this->boolean_operators[CTL_OPERATOR] = false;
+        $this->boolean_operators[LTL_OPERATOR] = false;
+        $this->boolean_operators[REACHABILITY_OPERATOR] = false;
+      }
+    }
+    if ($outer && (
+      $this->boolean_operators[CTL_OPERATOR] ||
+      $this->boolean_operators[LTL_OPERATOR] ||
+      $this->boolean_operators[REACHABILITY_OPERATOR]
+    ))
+    {
+      $this->boolean_operators[BOOLEAN_CONSTANT] = false;
+      $this->boolean_operators[DEADLOCK_OPERATOR] = false;
+      $this->boolean_operators[FIREABILITY_OPERATOR] = false;
+      $this->boolean_operators[INTEGER_COMPARISON] = false;
+      $this->boolean_operators[LIVENESS_OPERATOR] = false;
     }
     if (count(array_filter($this->boolean_operators)) == 0)
     {
@@ -330,7 +346,7 @@ EOT;
       $result = $this->generate_liveness();
       break;
     case BOOLEAN_OPERATOR:
-      $result = $this->generate_boolean_operator();
+      $result = $this->generate_boolean_operator($outer);
       break;
     case CTL_OPERATOR:
       $result = $this->generate_ctl();
@@ -413,7 +429,7 @@ EOT;
     return $result;
   }
 
-  private function generate_boolean_operator()
+  private function generate_boolean_operator($outer = false)
   {
     $constants = array(
       "<negation></negation>",
@@ -429,7 +445,7 @@ EOT;
     if ($r == 0)
       $max = 1;
     for ($i = 0; $i != $max; $i++) {
-      $sub = $this->generate_boolean_formula();
+      $sub = $this->generate_boolean_formula($outer);
       $this->xml_adopt($result, $sub);
     }
     return $result;
