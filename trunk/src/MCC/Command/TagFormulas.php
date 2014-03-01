@@ -70,7 +70,7 @@ class TagFormulas extends Base
       $this->progress->advance();
     }
     $this->progress->finish();
-    file_put_contents($file, $xml->asXml());
+    file_put_contents($file, $this->save_xml($xml));
   }
 
   private function tag_property($property)
