@@ -73,16 +73,32 @@ class TagFormulas extends Base
     file_put_contents($file, $this->save_xml($xml));
   }
 
+  private function boolean_of ($x)
+  {
+    if ($x)
+      return "true";
+    else
+      return "false";
+  }
+
   private function tag_property($property)
   {
-    $property->tags->is_structural =
-      $this->is_structural($property->formula->children()[0], true);
-    $property->tags->is_reachability =
-      $this->is_reachability($property->formula->children()[0], true);
-    $property->tags->is_ctl =
-      $this->is_ctl($property->formula->children()[0], false);
-    $property->tags->is_ltl =
-      $this->is_ltl($property->formula->children()[0], true);
+    $property->tags->{'is-structural'} =
+      $this->boolean_of(
+        $this->is_structural($property->formula->children()[0], true)
+      );
+    $property->tags->{'is-reachability'} =
+      $this->boolean_of(
+        $this->is_reachability($property->formula->children()[0], true)
+      );
+    $property->tags->{'is-ctl'} =
+      $this->boolean_of(
+        $this->is_ctl($property->formula->children()[0], false)
+      );
+    $property->tags->{'is-ltl'} =
+      $this->boolean_of(
+        $this->is_ltl($property->formula->children()[0], true)
+      );
   }
 
   private function is_structural($formula, $first)
