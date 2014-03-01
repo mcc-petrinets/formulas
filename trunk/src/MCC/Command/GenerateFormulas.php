@@ -362,7 +362,7 @@ EOT;
     return $result;
   }
 
-  private function generate_integer_constant($min = 0, $max = 5)
+  private function generate_integer_constant($min = 0, $max = 2)
   {
     $r = rand($min, $max);
     $xml = "<integer-constant>${r}</integer-constant>";
