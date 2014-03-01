@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<property-set>
+  <property>
+    <id></id>
+    <description></description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <impossibility>
+        <deadlock/>
+      </impossibility>
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description></description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <possibility>
+        <deadlock/>
+      </possibility>
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description></description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <place-bound />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description></description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <tokens-count />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description></description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+</property-set>
+
+

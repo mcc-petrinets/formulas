@@ -142,7 +142,9 @@ class UnfoldFormulas extends Base
       }
       return;
     default:
-      echo "Error: unknown node {$formula->getName()}\n";
+      $this->console_output->writeln(
+        "  <warning>Error: unknown node {$formula->getName()}</warning>"
+      );
     }
   }
 
