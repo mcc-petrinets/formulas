@@ -93,13 +93,13 @@ class FormulasToText extends Base
     $id = (string) $property->id;
     $description = (string) $property->description;
     $tags = array();
-    if ((string) $property->tags->is_structural)
+    if ((string) $property->tags->{'is-structural'})
       $tags[] = 'structural';
-    if ((string) $property->tags->is_reachability)
+    if ((string) $property->tags->{'is-reachability'})
       $tags[] = 'reachability';
-    if ((string) $property->tags->is_ctl)
+    if ((string) $property->tags->{'is-ctl'})
       $tags[] = 'ctl';
-    if ((string) $property->tags->is_ltl)
+    if ((string) $property->tags->{'is-ltl'})
       $tags[] = 'ltl';
     $tags = implode(', ', $tags);
     $formula = $this->translate_formula(
