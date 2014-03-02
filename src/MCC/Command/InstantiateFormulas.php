@@ -15,7 +15,7 @@ class InstantiateFormulas extends Base
   {
     $this
       ->setName('formula:instantiate')
-      ->setDescription('Unfold formulas')
+      ->setDescription('Instantiate formulas')
       ->addOption('pattern-file', null,
         InputOption::VALUE_REQUIRED,
         'File name for formulas pattern', './pattern.xml')
