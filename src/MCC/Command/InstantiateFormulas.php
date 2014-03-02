@@ -74,7 +74,9 @@ class InstantiateFormulas extends Base
   protected function perform()
   {
     if (file_exists($this->output))
+    {
       unlink($this->output);
+    }
     $xml = $this->load_xml(file_get_contents($this->input));
     $quantity = count($xml->children());
     $this->progress->setRedrawFrequency(max(1, $quantity / 100));
