@@ -199,7 +199,9 @@ EOT;
   protected function perform()
   {
     if (file_exists($this->output))
+    {
       unlink($this->output);
+    }
     $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
     $this->progress->start($this->console_output, $this->quantity);
     $result = array();
