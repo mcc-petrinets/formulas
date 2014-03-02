@@ -231,6 +231,10 @@ class FixModel extends Base
         $this->progress->advance();
       }
     }
+    else
+    {
+      $this->progress->advance(count($model->net->page->arc));
+    }
     if (!$this->dryrun)
     {
       $model->asXml($file);
