@@ -572,27 +572,6 @@ EOT;
     return $result;
   }
 
-  // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
-  private function xml_adopt($root, $new)
-  {
-    if ($new == null)
-    {
-      $this->console_output->writeln(
-        "<error>Error: not enough operators to generate formula.</error>"
-      );
-      exit(1);
-    }
-    $node = $root->addChild($new->getName(), (string) $new);
-    foreach($new->attributes() as $attr => $value)
-    {
-      $node->addAttribute($attr, $value);
-    }
-    foreach($new->children() as $ch)
-    {
-      $this->xml_adopt($node, $ch);
-    }
-  }
-
   private function copy($a)
   {
     $result = array();
