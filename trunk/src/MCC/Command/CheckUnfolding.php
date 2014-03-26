@@ -42,7 +42,7 @@ class CheckUnfolding extends Base
       if ($count > 0)
       {
         $this->console_output->writeln(
-          "  <warning>{$count} problems have been detected.</warning>"
+          "  <warning>Problems have been detected, see {$dir}/{$this->log_name} for details.</warning>"
         );
       }
     }
@@ -54,6 +54,11 @@ class CheckUnfolding extends Base
     $c = 0;
     foreach ($this->ep->cplaces as $place)
     {
+      // Check that all colored places have at least one unfolding:
+      if (count($place->unfolded) == 0)
+      {
+        fwrite($this->log, "Inconsistency detected: place {$place->name} has no unfolding.\n");
+      }
       $c += count($place->unfolded);
       $this->progress->advance();
     }
