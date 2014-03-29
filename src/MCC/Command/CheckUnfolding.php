@@ -42,7 +42,7 @@ class CheckUnfolding extends Base
       if ($count > 0)
       {
         $this->console_output->writeln(
-          "  <warning>Problems have been detected, see {$dir}/{$this->log_name} for details.</warning>"
+          "<warning>  Problems have been detected, see {$dir}/{$this->log_name} for details.</warning>"
         );
       }
     }
@@ -57,14 +57,14 @@ class CheckUnfolding extends Base
       // Check that all colored places have at least one unfolding:
       if (count($place->unfolded) == 0)
       {
-        fwrite($this->log, "Inconsistency detected: place {$place->name} has no unfolding.\n");
+        fwrite($this->log, "Place {$place->id} (named {$place->name}) has no unfolding.\n");
       }
       $c += count($place->unfolded);
       $this->progress->advance();
     }
     if ($c != count($this->ep->uplaces))
     {
-      fwrite($this->log, "Inconsistency detected: unfolded model may use a bigger parameter!\n");
+      fwrite($this->log, "Unfolded model may use a bigger parameter.\n");
     }
   }
 
@@ -127,21 +127,26 @@ class CheckUnfolding extends Base
     $m = count($this->ep->cplaces);
     if ($n < $m/2)
     {
-      fwrite($this->log, "Inconsistency detected: maximum parameter is reached for only {$n}/{$m} places.\n");
+      fwrite($this->log, "Maximum parameter is reached for only {$n}/{$m} places.\n");
     }
   }
 
   private function check_transitions()
   {
+    $c = 0;
     // Check that every transtion has at least one unfolding:
     foreach ($this->ep->ctransitions as $transition)
     {
       if (count($transition->unfolded) == 0)
       {
-        $name = $transition->name;
-        fwrite($this->log, "Inconsistency detected: transition {$name} has no unfolding.\n");
+        fwrite($this->log, "Transition {$transition->id} (named {$transition->name}) has no unfolding.\n");
       }
+      $c += count($transition->unfolded);
       $this->progress->advance();
+    }
+    if ($c != count($this->ep->utransitions))
+    {
+      fwrite($this->log, "Unfolded model may use a bigger parameter.\n");
     }
   }
 
