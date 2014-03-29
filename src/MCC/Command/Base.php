@@ -96,6 +96,10 @@ abstract class Base extends Command
       '$';
     foreach (scandir($this->root) as $entry)
     {
+      if (! is_dir($this->root . '/' . $entry))
+      {
+        continue;
+      }
       $matches = array();
       if (preg_match('/' . $regex . '/u', $entry, $matches))
       {
