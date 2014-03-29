@@ -324,6 +324,12 @@ EOT;
       $this->boolean_operators[INTEGER_COMPARISON] = false;
       $this->boolean_operators[LIVENESS_OPERATOR] = false;
     }
+    if ($outer &&
+      $this->boolean_operators[REACHABILITY_OPERATOR]
+    )
+    {
+      $this->boolean_operators[BOOLEAN_OPERATOR] = false;
+    }
     if (count(array_filter($this->boolean_operators)) == 0)
     {
       $this->boolean_operators[BOOLEAN_CONSTANT] = true;
