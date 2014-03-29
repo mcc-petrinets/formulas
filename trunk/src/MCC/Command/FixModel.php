@@ -82,13 +82,13 @@ class FixModel extends Base
       if ($this->dryrun)
       {
         $this->console_output->writeln(
-          "  <warning>{$special}: {$count} problems should be fixed.</warning>"
+          "<warning>  {$special}: {$count} problems should be fixed.</warning>"
         );
       }
       else
       {
         $this->console_output->writeln(
-          "  <warning>{$special}: {$count} problems have been fixed.</warning>"
+          "<warning>  {$special}: {$count} problems have been fixed.</warning>"
         );
       }
     }
