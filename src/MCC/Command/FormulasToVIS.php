@@ -29,7 +29,7 @@ class FormulasToVIS extends Base
   {
     $pt_path = dirname($this->pt_file);
     $this->pt_input  = "${pt_path}/{$input->getOption('output')}.xml";
-    $this->pt_output = "${pt_path}/{$input->getOption('output')}.txt";
+    $this->pt_output = "${pt_path}/{$input->getOption('output')}.vis";
   }
 
   protected function perform()
@@ -84,16 +84,17 @@ class FormulasToVIS extends Base
   {
     $id = (string) $property->id;
     $description = (string) $property->description;
-    $result = "# {$id}\n";
-    $result = $result . "# {$description}\n";
-    $formula = $this->translate_formula(
+    $result  = "# {$id}\n";
+    $result .= "# {$description}\n";
+    $result .= $this->translate_formula(
       $property->formula->children()[0],
       true
     );
+    $result .= "\n";
     return $result;
   }
 
-  private function translate_formula($formula, $first = false)
+  private function translate_formula($formula, $in_operator = null)
   {
     $result = null;
     switch ((string) $formula->getName())
@@ -119,19 +120,19 @@ class FormulasToVIS extends Base
     case 'all-paths':
       $sub = $formula->children()[0];
       $result = 'A' .
-        $this->translate_formula($sub);
+        $this->translate_formula($sub, "A");
       break;
     case 'exists-path':
       $sub = $formula->children()[0];
       $result = 'E' .
-        $this->translate_formula($sub);
+        $this->translate_formula($sub, "E");
       break;
     case 'next':
       $succ_ = (string) $formula->{'if-no-successor'};
       if ($succ == 'true') {
         throw new \Exception("X~");
       }
-      $steps_ = (string) $formula->steps;
+      $steps = (string) $formula->steps;
       $sub = null;
       foreach ($formula->children() as $child)
       {
@@ -141,32 +142,36 @@ class FormulasToVIS extends Base
           $sub = $child;
         }
       }
-      $result = "X:{$steps}(" .
-        $this->translate_formula($sub) .
-        ')';
-      if ($first) {
-        $result = "A{$result}";
+      $result = $this->translate_formula($sub);
+      if ($in_operator != "A" || $in_operator != "E") {
+        throw new \Exception("X alone");
+      }
+      for ($i = 0; $i != $steps; $i++) {
+        $result = $in_operator . "X (" . $result . ')';
       }
       break;
     case 'globally':
+      if ($in_operator != "A" || $in_operator != "E") {
+        throw new \Exception("G alone");
+      }
       $sub = $formula->children()[0];
       $result = 'G (' .
         $this->translate_formula($sub) .
         ')';
-      if ($first) {
-        $result = "A{$result}";
-      }
       break;
     case 'finally':
+      if ($in_operator != "A" || $in_operator != "E") {
+        throw new \Exception("F alone");
+      }
       $sub = $formula->children()[0];
       $result = 'F (' .
         $this->translate_formula($sub) .
         ')';
-      if ($first) {
-        $result = "A{$result}";
-      }
       break;
     case 'until':
+      if ($in_operator != "A" || $in_operator != "E") {
+        throw new \Exception("U alone");
+      }
       $before = $formula->before->children()[0];
       $reach  = $formula->reach->children()[0];
       $strength = (string) $formula->strength;
@@ -183,12 +188,9 @@ class FormulasToVIS extends Base
         ") {$operator} (" .
         $this->translate_formula($reachs) .
         '))';
-      if ($first) {
-        $result = "A{$result}";
-      }
       break;
     case 'deadlock':
-      $result = '! AX(TRUE)';
+      $result = '! EX (TRUE)';
       break;
     case 'is-live':
       throw new \Exception("t?lx");
@@ -254,7 +256,7 @@ class FormulasToVIS extends Base
       {
         $res[] = $this->translate_formula($sub);
       }
-      $result = '(' . implode(' == ', $res) . ')';
+      $result = '(' . implode(' = ', $res) . ')';
       $result = $this->wrap_ag($formula->children(), $result);
       break;
     case 'integer-ne':
@@ -263,90 +265,20 @@ class FormulasToVIS extends Base
       {
         $res[] = $this->translate_formula($sub);
       }
-      $result = '! (' . implode(' == ', $res) . ')';
+      $result = '! (' . implode(' = ', $res) . ')';
       $result = $this->wrap_ag($formula->children(), $result);
      break;
     case 'integer-lt':
-      $lhs = $formula->children()[0];
-      $rhs = $formula->children()[1];
-      if ($lhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<integer-ge/>');
-        $this->xml_adopt($x, $rhs);
-        $this->xml_adopt($x, $lhs);
-        $result = $this->translate_formula($x);
-      } elseif ($rhs->getName() == 'integer-constant') {
-        $n = intval((string) $rhs->children()[0]);
-        $result = 'TRUE';
-        for ($i=0; $i < $n; $i++) {
-          $result = $result . ' + (' .
-            $this->translate_formula($lhs) .
-            " == {$i} )";
-        }
-      } else {
-        throw new \Exception("<");
-      }
-      $result = $this->wrap_ag($formula->children(), $result);
+      throw new \Exception("<");
       break;
     case 'integer-le':
-      $lhs = $formula->children()[0];
-      $rhs = $formula->children()[1];
-      if ($lhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<integer-gt/>');
-        $this->xml_adopt($x, $rhs);
-        $this->xml_adopt($x, $lhs);
-        $result = $this->translate_formula($x);
-      } elseif ($rhs->getName() == 'integer-constant') {
-        $n = intval((string) $rhs->children()[0]);
-        $result = 'TRUE';
-        for ($i=0; $i <= $n; $i++) {
-          $result = $result . ' + (' .
-            $this->translate_formula($lhs) .
-            " == {$i} )";
-        }
-      } else {
-        throw new \Exception("<=");
-      }
-      $result = $this->wrap_ag($formula->children(), $result);
+      throw new \Exception("<=");
       break;
     case 'integer-gt':
-      $lhs = $formula->children()[0];
-      $rhs = $formula->children()[1];
-      if ($lhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<integer-le/>');
-        $this->xml_adopt($x, $rhs);
-        $this->xml_adopt($x, $lhs);
-        $result = $this->translate_formula($x);
-      } elseif ($rhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<negation/>');
-        $y = $this->load_xml('<integer-le/>');
-        $this->xml_adopt($y, $lhs);
-        $this->xml_adopt($y, $rhs);
-        $this->xml_adopt($x, $y);
-        $result = $this->translate_formula($x);
-      } else {
-        throw new \Exception(">");
-      }
-      $result = $this->wrap_ag($formula->children(), $result);
+      throw new \Exception(">");
       break;
     case 'integer-ge':
-      $lhs = $formula->children()[0];
-      $rhs = $formula->children()[1];
-      if ($lhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<integer-lt/>');
-        $this->xml_adopt($x, $rhs);
-        $this->xml_adopt($x, $lhs);
-        $result = $this->translate_formula($x);
-      } elseif ($rhs->getName() == 'integer-constant') {
-        $x = $this->load_xml('<negation/>');
-        $y = $this->load_xml('<integer-lt/>');
-        $this->xml_adopt($y, $lhs);
-        $this->xml_adopt($y, $rhs);
-        $this->xml_adopt($x, $y);
-        $result = $this->translate_formula($x);
-      } else {
-        throw new \Exception(">=");
-      }
-      $result = $this->wrap_ag($formula->children(), $result);
+      throw new \Exception(">=");
       break;
     case 'integer-constant':
       $result = (string) $formula->children()[0];
@@ -364,12 +296,7 @@ class FormulasToVIS extends Base
       throw new \Exception("/");
       break;
     case 'place-bound':
-      $places = $formula->place;
-      if (count($places) > 1) {
-        throw new \Exception("bound p1 .. pn");
-      } else {
-        $result = (string) $place->children()[0];
-      }
+      throw new \Exception("bound p1 .. pn");
       break;
     case 'tokens-count':
       $places = $formula->place;
@@ -385,30 +312,6 @@ class FormulasToVIS extends Base
       );
     }
     return $result;
-  }
-
-  private function wrap_ag ($subs, $result)
-  {
-    $is_bound = false;
-    $is_tokens = false;
-    foreach ($subs as $sub) {
-      if ($sub->getName() == 'place-bound') {
-        $is_bound = true;
-      } elseif ($sub->getName() == 'tokens-count') {
-        $is_tokens = true;
-      } else {
-        throw new \Exception($sub->getName());
-      }
-    }
-    if ($is_bound && $is_tokens) {
-      throw new \Exception("#tokens && bound");
-    } elseif ($is_bound) {
-      return "AG ({$result})";
-    } elseif ($is_token) {
-      return $result;
-    } else {
-      throw new \Exception("!#tokens && !bound");
-    }
   }
 
 }
