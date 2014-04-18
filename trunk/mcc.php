@@ -1,5 +1,5 @@
 <?php
-ini_set("memory_limit","512M");
+ini_set("memory_limit","2G");
 ini_set("pcre.backtrack_limit", "99999999");
 ini_set("pcre.recursion_limit", "99999999");
 
@@ -21,6 +21,7 @@ use \MCC\Command\CleanFormulas;
 use \MCC\Command\GenerateC;
 use \MCC\Command\GenerateLua;
 use \MCC\Command\ToCami;
+use \MCC\Command\Order;
 
 require_once "vendor/autoload.php";
 
@@ -53,4 +54,5 @@ $application->add(new FormulasToVIS());
 $application->add(new GenerateC());
 $application->add(new GenerateLua());
 $application->add(new ToCami());
+$application->add(new Order());
 $application->run();
