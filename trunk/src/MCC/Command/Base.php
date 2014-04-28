@@ -96,14 +96,27 @@ abstract class Base extends Command
       '$';
     foreach (scandir($this->root) as $entry)
     {
-      if (! is_dir($this->root . '/' . $entry))
+      if (is_file($this->root . '/' . $entry))
       {
-        continue;
+        try {
+          $p = new \PharData($this->root . '/' . $entry);
+          $p->extractTo($this->root);
+          $output->writeln("<command>Expanded</command> file <instance>{$entry}</instance>");
+          unlink($this->root . '/' . $entry);
+        }
+        catch (Exception $e)
+        {}
       }
-      $matches = array();
-      if (preg_match('/' . $regex . '/u', $entry, $matches))
+    }
+    foreach (scandir($this->root) as $entry)
+    {
+      if (is_dir($this->root . '/' . $entry))
       {
-        $instances[] = new Instance($matches[1], $matches[3]);
+        $matches = array();
+        if (preg_match('/' . $regex . '/u', $entry, $matches))
+        {
+          $instances[] = new Instance($matches[1], $matches[3]);
+        }
       }
     }
     $instances = array_unique($instances, SORT_REGULAR);
