@@ -36,6 +36,9 @@ class Order extends Base
   {
     if ($start == null)
       $start = $id;
+    if (array_key_exists($start, $this->cycles) &&
+      (count($stack) >= count($this->cycles[$start])))
+      return;
     if (array_key_exists($id, $this->places))
       $stack[$id] = true;
     if (array_key_exists($id, $this->pre))
@@ -49,6 +52,23 @@ class Order extends Base
           {
             continue;
           }
+          if (! array_key_exists($start, $this->cycles))
+          {
+            $rhs_size = count ($stack);
+//            echo "Add cycle of size {$rhs_size}.\n";
+            $this->cycles[$start] = $stack;
+          }
+          else
+          {
+            $lhs_size = count ($this->cycles[$start]);
+            $rhs_size = count ($stack);
+            if ($rhs_size < $lhs_size)
+            {
+//              echo "Update cycle of size {$rhs_size}.\n";
+              $this->cycles[$start] = $stack;
+            }
+          }
+          /*
           if (! array_key_exists($start, $this->cycles))
           {
             $this->cycles[$start] = array();
@@ -75,6 +95,7 @@ class Order extends Base
           $this->cycles[$start][] = $stack;
           $c = count($this->cycles[$start]);
           echo "# {$c}\n";
+          */
         }
         else
         {
@@ -127,21 +148,50 @@ class Order extends Base
       $this->pre[$source][$target] = $arc;
     }
 
-    // Search cycles:
+    $places = array();
     foreach ($model->net->page->place as $place)
     {
       $initial = (string) $place->initialMarking->text;
       if (($initial != NULL) && ($initial != ""))
       {
-        $id = (string) $place->attributes()['id'];
-        echo "Searching for place {$id}\n";
-        $this->find_cycles($id);
+        $places[] = $place;
       }
     }
+    $quantity = count($places);
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
+    // Search cycles:
+    foreach ($places as $place)
+    {
+      $id = (string) $place->attributes()['id'];
+      $this->find_cycles($id);
+      $this->progress->advance();
+    }
+    $this->progress->finish();
 
-    $c = count($this->cycles);
-    print ("Found {$c} cycles.\n");
-    print_r($this->cycles);
+    // Fix representation of data:
+    foreach ($this->cycles as $place => $cycle)
+    {
+      $tmp = array();
+      foreach ($cycle as $id => $useless)
+      {
+        $tmp[] = $id;
+      }
+      $this->cycles[$place] = $tmp;
+    }
+
+    // Output to JSON:
+    $dir = dirname($this->pt_file);
+    file_put_contents("{$dir}/order.json", json_encode($this->cycles));
+
+    // Also output to text:
+    $output = array();
+    foreach ($this->cycles as $place => $cycle)
+    {
+      $output[] = "from " . $place . ": " . implode(", ", $cycle);
+    }
+    $txt = implode("\n", $output) . "\n";
+    file_put_contents("{$dir}/order.txt", $txt);
 
     /*
     $keys = array_keys($this->cycles);
