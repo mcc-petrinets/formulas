@@ -220,13 +220,13 @@ EOS;
       $name = null;
       if (count($names) == 1)
       {
-        $name = $names[0];
+        $name = '"' . $names[0] . '"';
       }
       else
       {
-        $name = '(' . implode(', ', $names) . ')';
+        $name = '("' . implode('", "', $names) . '")';
       }
-      $result = "\"{$name}\"?{$level}";
+      $result = "{$name}?{$level}";
       break;
     case 'is-fireable':
       $transition = (string) $formula->transition;
@@ -237,13 +237,13 @@ EOS;
       $name = null;
       if (count($names) == 1)
       {
-        $name = $names[0];
+        $name = '"' . $names[0] . '"';
       }
       else
       {
-        $name = '(' . implode(', ', $names) . ')';
+        $name = '("' . implode('", "', $names) . '")';
       }
-      $result = "\"{$name}\"?";
+      $result = "{$name}?";
       break;
     case 'true':
       $result = 'true';
