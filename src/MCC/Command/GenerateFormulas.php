@@ -220,7 +220,7 @@ EOT;
       }
       $this->progress->advance();
     }
-    $xml = $this->load_xml("<property-set/>");
+    $xml = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
     foreach ($result as $formula)
     {
       $f = $this->load_xml($this->xml);

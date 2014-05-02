@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<property-set xmlns="http://mcc.lip6.fr/">
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+  <property>
+    <id></id>
+    <description>Fireability of a randomly chosen transition</description>
+    <tags>
+      <is-structural>false</is-structural>
+      <is-reachability>false</is-reachability>
+      <is-ctl>false</is-ctl>
+      <is-ltl>false</is-ltl>
+    </tags>
+    <formula>
+      <is-fireable />
+    </formula>
+  </property>
+</property-set>

@@ -12,8 +12,10 @@ class Order extends Base
 
   private $cycles;
   private $pre;
+  private $post;
   private $places;
   private $transitions;
+  private $marked_in_cycle;
 
   protected function configure()
   {
@@ -27,8 +29,10 @@ class Order extends Base
   {
     $this->cycles = array();
     $this->pre = array();
+    $this->post = array();
     $this->places = array();
     $this->transitions = array();
+    $this->marked_in_cycle = 1;
   }
 
 
@@ -146,26 +150,142 @@ class Order extends Base
         $this->pre[$source] = array();
       }
       $this->pre[$source][$target] = $arc;
+      if (! array_key_exists($source, $this->post))
+      {
+        $this->post[$target] = array();
+      }
+      $this->post[$target][$source] = $arc;
     }
 
-    $places = array();
+    $quantity = count($model->net->page->place);
+    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
+    $this->progress->start($this->console_output, $quantity);
+    // Search cycles
+    $remaining = array();
+    foreach ($model->net->page->place as $place)
+    {
+      $id = (string) $place->attributes()['id'];
+      $remaining[$id] = true;
+    }
+    $marked = array();
     foreach ($model->net->page->place as $place)
     {
       $initial = (string) $place->initialMarking->text;
-      if (($initial != NULL) && ($initial != ""))
-      {
-        $places[] = $place;
-      }
-    }
-    $quantity = count($places);
-    $this->progress->setRedrawFrequency(max(1, $quantity / 100));
-    $this->progress->start($this->console_output, $quantity);
-    // Search cycles:
-    foreach ($places as $place)
-    {
       $id = (string) $place->attributes()['id'];
-      $this->find_cycles($id);
-      $this->progress->advance();
+      if (($initial != NULL) && ($initial != ""))
+        $marked[$id] = true;
+    }
+    $associated = array();
+    while (true)
+    {
+      $m = array();
+      foreach ($marked as $id => $v)
+      {
+        if (array_key_exists($id, $associated))
+          continue;
+        $this->find_cycles($id);
+        if (array_key_exists($id, $this->cycles))
+        {
+          foreach ($this->cycles[$id] as $k => $v)
+          {
+            $associated[$k] = $id;
+            unset ($remaining[$k]);
+          }
+          $this->progress->advance(count($this->cycles[$id]));
+        }
+        else
+          $m[$id] = true;
+      }
+      if (count($m) == 0)
+        break;
+      $marked = $m;
+      $this->marked_in_cycle++;
+    }
+    print_r ($this->cycles);
+    $groups_default = array();
+    foreach ($this->cycles as $start => $cycle)
+    {
+      $groups_default[$start] = 0;
+    }
+    $last_count = 0;
+    $divider = 2;
+    while (count($remaining) != 0)
+    foreach ($remaining as $id => $v)
+    {
+      echo "Searching id=" . $id . "\n";
+      $groups = $groups_default;
+      $nb_arcs = 0;
+      if (array_key_exists($id, $this->post))
+      foreach ($this->post[$id] as $t => $arc)
+      {
+        if (array_key_exists($t, $this->post))
+        foreach ($this->post[$t] as $p => $arc)
+        {
+//            echo $p . "  " . $id . "\n";
+          if ($p == $id)
+            continue;
+          else if (array_key_exists($p, $associated))
+            $groups[$associated[$p]] += 1;
+          $nb_arcs++;
+        }
+        if (array_key_exists($t, $this->pre))
+        foreach ($this->pre[$t] as $p => $arc)
+        {
+//            echo $p . "  " . $id . "\n";
+          if ($p == $id)
+            continue;
+          else if (array_key_exists($p, $associated))
+            $groups[$associated[$p]] += 1;
+          $nb_arcs++;
+        }
+      }
+      if (array_key_exists($id, $this->pre))
+      foreach ($this->pre[$id] as $t => $arc)
+      {
+        if (array_key_exists($t, $this->pre))
+        foreach ($this->pre[$t] as $p => $arc)
+        {
+//            echo $p . "  " . $id . "\n";
+          if ($p == $id)
+            continue;
+          else if (array_key_exists($p, $associated))
+            $groups[$associated[$p]] += 1;
+          $nb_arcs++;
+        }
+        if (array_key_exists($t, $this->post))
+        foreach ($this->post[$t] as $p => $arc)
+        {
+//            echo $p . "  " . $id . "\n";
+          if ($p == $id)
+            continue;
+          else if (array_key_exists($p, $associated))
+            $groups[$associated[$p]] += 1;
+          $nb_arcs++;
+        }
+      }
+      print_r ($groups);
+      // Find group with highest value:
+//      echo "Place " . $id . "\n";
+//      print_r($groups);
+      $m = max($groups);
+      echo "sum=" . array_sum($groups) . "\n";
+      echo "value=" . ($nb_arcs / $divider) . "\n";
+      echo "divider=" . $divider . "\n";
+      if (($m == 0) || array_sum($groups) < $nb_arcs / $divider)
+      {}
+      else
+      {
+        echo "here\n";
+        $group = array_search($m, $groups);
+        unset ($remaining[$id]);
+        $associated[$id] = $group;
+        $this->cycles[$group][$id] = 1;
+        $this->progress->advance();
+      }
+      echo "last_count=" . $last_count . "\n";
+      if (count($remaining) == $last_count)
+        $divider *= 2;
+      $last_count = count($remaining);
     }
     $this->progress->finish();
 
@@ -192,57 +312,5 @@ class Order extends Base
     }
     $txt = implode("\n", $output) . "\n";
     file_put_contents("{$dir}/order.txt", $txt);
-
-    /*
-    $keys = array_keys($this->cycles);
-    $merges = array();
-    for ($i = 0; $i < count($keys); $i++)
-    {
-      $with = array();
-      for ($j = $i+1; $j < count($keys); $j++)
-      {
-        $lhs = $this->cycles[$keys[$i]];
-        $rhs = $this->cycles[$keys[$j]];
-        $inter = array_intersect_assoc($lhs, $rhs);
-        if (count($inter) != 0)
-        {
-          $with[] = $j;
-        }
-      }
-      if (count($with) == 1)
-      {
-        $l = $keys[$i];
-        $r = $keys[$with[0]];
-        $merges[] = array($r, $l);
-      }
-    }
-    foreach ($merges as $merge)
-    {
-      $l = $merge[0];
-      $r = $merge[1];
-      $this->cycles[$l] = array_merge($this->cycles[$l], $this->cycles[$r]);
-      unset($this->cycles[$r]);
-    }
-
-    $c = count($this->cycles);
-    print ("Found {$c} cycles.\n");
-    print_r($this->cycles);
-
-    // Add remaining places:
-    $all_places = array();
-    foreach ($this->cycles as $cycle)
-    {
-      foreach ($cycle as $k => $v)
-      {
-        if (array_key_exists($k, $this->places))
-        {
-          $all_places[$k] = true;
-        }
-      }
-    }
-    */
-
-    // Sort and add remaining places:
-
   }
 }
