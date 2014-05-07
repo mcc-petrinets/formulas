@@ -65,7 +65,7 @@ class FormulasToVIS extends Base
       try {
         $result[] = $this->translate_property($property);
       } catch (\Exception $e) {
-        $errors[] = (string) $property->id . ": " . $e->getMessage();
+        $errors[] = (string) $property->id;
       }
       $this->progress->advance();
     }
@@ -128,7 +128,7 @@ class FormulasToVIS extends Base
         $this->translate_formula($sub, "E");
       break;
     case 'next':
-      $succ_ = (string) $formula->{'if-no-successor'};
+      $succ = (string) $formula->{'if-no-successor'};
       if ($succ == 'true') {
         throw new \Exception("X~");
       }
