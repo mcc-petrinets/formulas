@@ -90,7 +90,7 @@ class FormulasToVIS extends Base
       $property->formula->children()[0],
       true
     );
-    $result .= "\n";
+    $result .= ";\n";
     return $result;
   }
 
