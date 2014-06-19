@@ -51,7 +51,7 @@ class ToCami extends Base
       $name    = (string) $place->name->text;
       $marking = (string) $place->initialMarking->text;
       if ($marking == "") {
-        $marking = "1";
+        $marking = "0";
       }
       $id_length      = strlen($id);
       $marking_length = strlen($marking);
