@@ -34,6 +34,11 @@ class ToCosy extends Base
     fwrite($file, "local place      = {}\n");
     fwrite($file, "local transition = {}\n");
     fwrite($file, "local arc        = {}\n");
+    fwrite($file, "\n");
+    fwrite($file, "local p = nil\n");
+    fwrite($file, "local t = nil\n");
+    fwrite($file, "local a = nil\n");
+    fwrite($file, "\n");
     fwrite($file, "local model = {}\n");
     foreach ($model->net->page->place as $place)
     {
@@ -44,7 +49,7 @@ class ToCosy extends Base
         $marking = "0";
       }
       fwrite($file, "do\n");
-      fwrite($file, "  local p = {}\n");
+      fwrite($file, "  p = {}\n");
       fwrite($file, "  p[type] = place\n");
       fwrite($file, "  p.name = '{$name}'\n");
       fwrite($file, "  p.marking = {$marking}\n");
@@ -57,7 +62,7 @@ class ToCosy extends Base
       $id   = (string) $transition->attributes()['id'];
       $name = (string) $transition->name->text;
       fwrite($file, "do\n");
-      fwrite($file, "  local t = {}\n");
+      fwrite($file, "  t = {}\n");
       fwrite($file, "  t[type] = transition\n");
       fwrite($file, "  t.name = '{$name}'\n");
       fwrite($file, "  model['{$id}'] = t\n");
@@ -74,7 +79,7 @@ class ToCosy extends Base
         $valuation = "1";
       }
       fwrite($file, "do\n");
-      fwrite($file, "  local a = {}\n");
+      fwrite($file, "  a = {}\n");
       fwrite($file, "  a[type] = arc\n");
       fwrite($file, "  a.source = model['{$source}']\n");
       fwrite($file, "  a.target = model['{$target}']\n");
