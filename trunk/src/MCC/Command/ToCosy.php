@@ -30,16 +30,18 @@ class ToCosy extends Base
     $this->progress->setRedrawFrequency(max(1, $quantity / 100));
     $this->progress->start($this->console_output, $quantity);
     $file = fopen(preg_replace('/.pnml$/', '.cosy.lua', $this->pt_file), 'w');
-    fwrite($file, "local type       = {}\n");
-    fwrite($file, "local place      = {}\n");
-    fwrite($file, "local transition = {}\n");
-    fwrite($file, "local arc        = {}\n");
-    fwrite($file, "\n");
+    fwrite($file, "local TYPE   = {}\n");
+    fwrite($file, "local TARGET = {}\n");
+    fwrite($file, "local p = nil\n");
     fwrite($file, "local p = nil\n");
     fwrite($file, "local t = nil\n");
     fwrite($file, "local a = nil\n");
     fwrite($file, "\n");
     fwrite($file, "local model = {}\n");
+    fwrite($file, "model.place      = {}\n");
+    fwrite($file, "model.transition = {}\n");
+    fwrite($file, "model.arc        = { pre = {}, post = {} }\n");
+    fwrite($file, "\n");
     foreach ($model->net->page->place as $place)
     {
       $id      = (string) $place->attributes()['id'];
@@ -50,10 +52,10 @@ class ToCosy extends Base
       }
       fwrite($file, "do\n");
       fwrite($file, "  p = {}\n");
-      fwrite($file, "  p[type] = place\n");
+      fwrite($file, "  p [TYPE] = model.place\n");
       fwrite($file, "  p.name = '{$name}'\n");
       fwrite($file, "  p.marking = {$marking}\n");
-      fwrite($file, "  model['{$id}'] = p\n");
+      fwrite($file, "  model ['{$id}'] = p\n");
       fwrite($file, "end\n");
       $this->progress->advance();
     }
@@ -63,9 +65,9 @@ class ToCosy extends Base
       $name = (string) $transition->name->text;
       fwrite($file, "do\n");
       fwrite($file, "  t = {}\n");
-      fwrite($file, "  t[type] = transition\n");
+      fwrite($file, "  t [TYPE] = model.transition\n");
       fwrite($file, "  t.name = '{$name}'\n");
-      fwrite($file, "  model['{$id}'] = t\n");
+      fwrite($file, "  model ['{$id}'] = t\n");
       fwrite($file, "end\n");
       $this->progress->advance();
     }
@@ -80,14 +82,15 @@ class ToCosy extends Base
       }
       fwrite($file, "do\n");
       fwrite($file, "  a = {}\n");
-      fwrite($file, "  a[type] = arc\n");
-      fwrite($file, "  a.source = model['{$source}']\n");
-      fwrite($file, "  a.target = model['{$target}']\n");
+      fwrite($file, "  a [TYPE] = model.arc\n");
+      fwrite($file, "  a.source = { [TYPE] = model.arc.pre , [TARGET] = model ['{$source}'] }\n");
+      fwrite($file, "  a.target = { [TYPE] = model.arc.post, [TARGET] = model ['{$target}'] }\n");
       fwrite($file, "  a.valuation = {$valuation}\n");
-      fwrite($file, "  model[#model + 1] = a\n");
+      fwrite($file, "  model [#model + 1] = a\n");
       fwrite($file, "end\n");
       $this->progress->advance();
     }
+    fwrite($file, "print (collectgarbage 'count')\n");
     fclose($file);
     $this->progress->finish();
   }
