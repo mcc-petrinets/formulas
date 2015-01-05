@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           targetNamespace="http://mcc.lip6.fr/"
+           xmlns:mcc="http://mcc.lip6.fr/">
+
+  <xs:complexType name="property-tag" abstract="true"/>
+  <xs:element name="property-tag" abstract="true" type="mcc:property-tag"/>
+
+  <xs:complexType name="ctl-only">
+    <xs:complexContent>
+      <xs:extension base="mcc:property-tag"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ctl-only" substitutionGroup="mcc:property-tag" type="mcc:ctl-only"/>
+
+  <xs:complexType name="ltl-only">
+    <xs:complexContent>
+      <xs:extension base="mcc:property-tag"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ltl-only" substitutionGroup="mcc:property-tag" type="mcc:ltl-only"/>
+
+  <xs:complexType name="structural-only">
+    <xs:complexContent>
+      <xs:extension base="mcc:property-tag"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="structural-only" substitutionGroup="mcc:property-tag" type="mcc:structural-only"/>
+
+  <xs:complexType name="reachability-only">
+    <xs:complexContent>
+      <xs:extension base="mcc:property-tag"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="reachability-only" substitutionGroup="mcc:property-tag" type="mcc:reachability-only"/>
+
+  <xs:complexType name="formula" abstract="true"/>
+  <xs:element name="formula" abstract="true" type="mcc:formula"/>
+
+  <xs:complexType name="multiset" abstract="true"/>
+  <xs:element name="multiset" abstract="true" type="mcc:multiset"/>
+
+  <xs:complexType name="multiset.comparison" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="multiset.comparison" substitutionGroup="mcc:formula" abstract="true" type="mcc:multiset.comparison"/>
+
+  <xs:complexType name="integer" abstract="true"/>
+  <xs:element name="integer" abstract="true" type="mcc:integer"/>
+
+  <xs:complexType name="integer.comparison" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="integer.comparison" substitutionGroup="mcc:formula" abstract="true" type="mcc:integer.comparison"/>
+
+  <xs:complexType name="formula.system" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="formula.system" substitutionGroup="mcc:formula" abstract="true" type="mcc:formula.system"/>
+
+  <xs:complexType name="formula.state" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="formula.state" substitutionGroup="mcc:formula" abstract="true" type="mcc:formula.state"/>
+
+  <xs:complexType name="formula.path" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="formula.path" substitutionGroup="mcc:formula" abstract="true" type="mcc:formula.path"/>
+
+  <xs:complexType name="formula.composite" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="formula.composite" substitutionGroup="mcc:formula" abstract="true" type="mcc:formula.composite"/>
+
+  <xs:complexType name="formula.petri" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="mcc:formula"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="formula.petri" substitutionGroup="mcc:formula" abstract="true" type="mcc:formula.petri"/>
+
+  <!-- value -->
+  <xs:complexType name="value" abstract="true"/>
+  <xs:element name="value" abstract="true" type="mcc:value"/>
+
+  <xs:element name="value-constant" substitutionGroup="mcc:value">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:value">
+          <xs:attribute name="value" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="value-wildcard" substitutionGroup="mcc:value">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:value"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="value-variable" substitutionGroup="mcc:value">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:value">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- place -->
+  <xs:complexType name="place" abstract="true"/>
+  <xs:element name="place" abstract="true" type="mcc:place"/>
+
+  <xs:element name="place-variable" substitutionGroup="mcc:place">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:place">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="place-name" substitutionGroup="mcc:place">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:place">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="place-restriction" substitutionGroup="mcc:place">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:place">
+          <xs:sequence>
+            <xs:element ref="mcc:place"/>
+            <xs:sequence>
+              <xs:element ref="mcc:multiset"/>
+            </xs:sequence>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- transition -->
+  <xs:complexType name="transition" abstract="true"/>
+  <xs:element name="transition" abstract="true" type="mcc:transition"/>
+
+  <xs:element name="transition-variable" substitutionGroup="mcc:transition">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:transition">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="transition-name" substitutionGroup="mcc:transition">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:transition">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="transition-restriction" substitutionGroup="mcc:transition">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:transition">
+          <xs:sequence>
+            <xs:element ref="mcc:transition"/>
+            <xs:sequence minOccurs="1" maxOccurs="unbounded">
+              <xs:element ref="mcc:binding"/>
+            </xs:sequence>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Binding -->
+
+  <xs:element name="binding">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="mcc:value-variable"/>
+        <xs:element ref="mcc:value"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Properties -->
+
+  <xs:element name="property-set">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="1" maxOccurs="unbounded" ref="mcc:property"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="property">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="id" type="xs:string"/>
+        <xs:sequence minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="mcc:property-tag"/>
+        </xs:sequence>
+        <xs:element ref="mcc:formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- formula.composite -->
+  <xs:element name="true" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="false" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="negation" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="disjunction" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="conjunction" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="exclusive-disjunction" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="implication" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="equivalence" substitutionGroup="mcc:formula.composite">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.composite">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- formula.system -->
+  <xs:element name="invariant" substitutionGroup="mcc:formula.system">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.system">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="impossibility" substitutionGroup="mcc:formula.system">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.system">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- formula.state -->
+  <xs:element name="all-paths" substitutionGroup="mcc:formula.state">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.state">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="exists-path" substitutionGroup="mcc:formula.state">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.state">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- formula.path -->
+  <xs:element name="next" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+            <xs:element name="if-no-successor" type="xs:boolean"/>
+            <xs:element name="steps" type="xs:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="finally" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="globally" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element ref="mcc:formula"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="until" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element name="before">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="mcc:formula"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="reach">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="mcc:formula"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="strength">
+              <xs:simpleType>
+                <xs:restriction base="xs:token">
+                  <xs:enumeration value="weak"/>
+                  <xs:enumeration value="strong"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="release" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element name="before">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="mcc:formula"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="reach">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element ref="mcc:formula"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="strength">
+              <xs:simpleType>
+                <xs:restriction base="xs:token">
+                  <xs:enumeration value="weak"/>
+                  <xs:enumeration value="strong"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="repetition" substitutionGroup="mcc:formula.path">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.path">
+          <xs:sequence>
+            <xs:element ref="mcc:formula.path"/>
+            <xs:element name="minimum" type="xs:integer"/>
+            <xs:element name="maximum" type="xs:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- formula.petri -->
+  <xs:element name="is-fireable" substitutionGroup="mcc:formula.petri">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.petri">
+          <xs:sequence>
+            <xs:element ref="mcc:transition"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="is-deadlock" substitutionGroup="mcc:formula.petri">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.petri"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="is-live" substitutionGroup="mcc:formula.system">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:formula.system">
+          <xs:sequence>
+            <xs:element ref="mcc:transition"/>
+            <xs:element name="level">
+              <xs:simpleType>
+                <xs:restriction base="xs:token">
+                  <xs:enumeration value="l0"/>
+                  <xs:enumeration value="l1"/>
+                  <xs:enumeration value="l2"/>
+                  <xs:enumeration value="l3"/>
+                  <xs:enumeration value="l4"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- integer -->
+  <xs:element name="integer-variable" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-constant" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:attribute name="value" type="xs:integer"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-cardinality" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence>
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="place-bound" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence>
+            <xs:element ref="mcc:place"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sum" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="product" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="substraction" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="division" substitutionGroup="mcc:integer">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- integer.comparison -->
+  <xs:element name="integer-eq" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-ne" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-lt" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-le" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-gt" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-ge" substitutionGroup="mcc:integer.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:integer.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:integer"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- term -->
+  <xs:complexType name="term" abstract="true"/>
+  <xs:element name="term" abstract="true" type="mcc:term"/>
+
+  <xs:element name="tuple" substitutionGroup="mcc:term">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:term">
+          <xs:sequence minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="mcc:binding"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- multiset -->
+  <xs:element name="multiset-repetition" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence>
+            <xs:element name="coefficient" type="xs:integer"/>
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-constant" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence>
+            <xs:element ref="mcc:term"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-variable" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:attribute name="name" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="place-marking" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence>
+            <xs:element ref="mcc:place"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="set-of" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence>
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="union" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="intersection" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence minOccurs="2" maxOccurs="unbounded">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="difference" substitutionGroup="mcc:multiset">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- multiset.comparison -->
+  <xs:element name="multiset-eq" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-ne" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-lt" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-le" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-gt" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="multiset-ge" substitutionGroup="mcc:multiset.comparison">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="mcc:multiset.comparison">
+          <xs:sequence minOccurs="2" maxOccurs="2">
+            <xs:element ref="mcc:multiset"/>
+          </xs:sequence>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
