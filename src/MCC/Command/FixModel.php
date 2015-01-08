@@ -73,10 +73,23 @@ class FixModel extends Base
     fclose($this->log);
   }
 
+  private function lines_of($file)
+  {
+    $result = 0;
+    $handle = fopen($file, "r");
+    while(! feof($handle))
+    {
+      $line = fgets($handle);
+      $result++;
+    }
+    fclose($handle);
+    return $result - 1;
+  }
+
   private function warn_for($file, $special)
   {
     $dir = dirname($file);
-    $count = filesize("{$dir}/{$this->log_name}");
+    $count = $this->lines_of("{$dir}/{$this->log_name}");
     if ($count > 1)
     {
       if ($this->dryrun)
@@ -137,9 +150,7 @@ class FixModel extends Base
     else if ((string) $name->text != $model->net->attributes()['id'])
     {
       fwrite($this->log, "Fixing name from {$name->text} to {$model->net->attributes()['id']}.\n");
-      unset($model->net->name[0]);
-      $model->net->addChild('name');
-      $model->net->name->addChild('text', "{$model->net->attributes()['id']}");
+      $model->net->name->text = "{$model->net->attributes()['id']}";
     }
     $this->progress->advance();
     //
