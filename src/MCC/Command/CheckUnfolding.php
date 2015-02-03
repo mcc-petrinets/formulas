@@ -21,6 +21,19 @@ class CheckUnfolding extends Base
   private $log;
   private $ep;
 
+  private function lines_of($file)
+  {
+    $result = 0;
+    $handle = fopen($file, "r");
+    while(! feof($handle))
+    {
+      $line = fgets($handle);
+      $result++;
+    }
+    fclose($handle);
+    return $result - 1;
+  }
+
   protected function perform()
   {
     if ($this->sn_model && $this->pt_model)
@@ -38,7 +51,7 @@ class CheckUnfolding extends Base
       $this->check_transitions();
       $this->progress->finish();
       fclose($this->log);
-      $count = filesize("{$dir}/{$this->log_name}");
+      $count = $this->lines_of("{$dir}/{$this->log_name}");
       if ($count > 0)
       {
         $this->console_output->writeln(
