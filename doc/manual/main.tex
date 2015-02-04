@@ -136,8 +136,83 @@ This language is designed to evolve in the future editions of the contest.
 It is also designed to integrate with Petri Net Markup Language in the future.
 To do so, the language is provided as a RelaxNG grammar and an XML Schema generated from it.
 
+This document presents this language in two steps: first an informal presentation of the grammar of the language of formulæ used to define properties (and the sublanguages of all the particular categories in which tools can compete at the MCC), and then a description of how these properties are defined in practice and how they can be interfaced with a tool.
+
 \tableofcontents
-%\clearpage
+\clearpage
+
+\section{Grammars for the formulæ}
+
+Each property used in the MCC is defined by a formula on the places and the transitions of the corresponding Petri net. These formulæ follow the general grammar informaly presented below, where A (along all paths) and E (there exists a path) are the standard CTL operators, G (globally), F (finally), X (next), and U (until) are the standard LTL operators, $\lnot$ (not), $\wedge$ (and), and $\vee$ (or) are standard boolean operators, $+$ (plus) and $-$ (minus) are standard integer arithmetic operators.
+The predicate \emph{deadlock} stands for ``the current state is a deadlock'' and the predicate \emph{is-fireable($t_1$,\dots,$t_n$)} stands for ``one of the set of transitions $\{t_1,\dots,\t_n\}$ is fireable from the current state''.
+Finally, \emph{integer-constant} is any integer, \emph{tokens-count($p_1$,\dots,$p_n$)} gives the total number of tokens in the places $p_1$ to $p_n$ at the current state, and \emph{place-bound($p_1$,\dots,$p_n$)} gives the maximum of \emph{tokens-count($p_1$,\dots,$p_n$)} over all (reachable) states.
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+\alt <integer-formula>
+
+<boolean-formula> ::= A <boolean-formula>
+\alt E <boolean-formula>
+\alt G <boolean-formula>
+\alt F <boolean-formula>
+\alt X <boolean-formula>
+\alt <boolean-formula> U <boolean-formula>
+\alt $\lnot$ <boolean-formula>
+\alt <boolean-formula> $\wedge$ <boolean-formula>
+\alt <boolean-formula> $\vee$ <boolean-formula>
+\alt <integer-expression> $\leq$ <integer-expression>
+\alt deadlock
+\alt is-fireable($t_1$,\dots,$t_n$)
+
+<integer-formula> ::= <integer-expression>
+
+<integer-expression> ::= integer-constant
+\alt <integer-expression> + <integer-expression>
+\alt <integer-expression> - <integer-expression>
+\alt place-bound($p_1$,\dots,$p_n$)
+\alt tokens-count($p_1$,\dots,$p_n$)
+
+\end{grammar}
+
+According to this grammar, a large class of formulæ can be defined.
+For the MCC, these formulæ are grouped among several subclasses, each one corresponding to a restriction of the above grammar.
+Each of these subclasses defines a particular category and the tools are tested in each of these category independently.
+For each category of formulæ used at MCC we specify below the restriction of the above grammar that will be used.
+Each category is designated by the name of the XML file providing the formulæ from this category (how formulæ are defined as XML files is the topic of the next Sections of this manual).
+
+\subsection{ReachabilityDeadlock}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= E F deadlock 
+\alt A G $\lnot$ deadlock
+
+\end{grammar}
+
+\subsection{ReachabilityFireabilitySimple}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula> 
+
+<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
+
+\end{grammar}
+
+\subsection{ReachabilityFireability}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
+\alt A G $\lnot$ is-fireable($t_1$,\dots,$t_n$)
+\alt A G is-fireable($t_1$,\dots,$t_n$)
+
+\end{grammar}
+
 
 \section{Description of the langage}
 The property language is designed as a RelaxNG grammar. Thus, properties are given in XML.
@@ -620,46 +695,8 @@ Places and transitions are uniquely identified. The identifiers are those of the
 \end{lstlisting}
 
 
-\section{Categories of properties}
-
-For each category of properties used at MCC we give the restriction of the above grammar (for formulæ) that will be used.
-Each category is designated by the name of the XML file providing the properties from this category.
-
-\subsection{ReachabilityDeadlock.xml}
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= E F deadlock 
-\alt A G $\lnot$ deadlock
-
-\end{grammar}
-
-\subsection{ReachabilityFireabilitySimple.xml}
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula> 
-
-<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
-
-\end{grammar}
-
-\subsection{ReachabilityFireability.xml}
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
-\alt A G $\lnot$ is-fireable($t_1$,\dots,$t_n$)
-\alt A G is-fireable($t_1$,\dots,$t_n$)
-
-\end{grammar}
 
 
-\clearpage
 \section{Tools}
 The RelaxNG grammar can be downloaded from~\url{http://mcc.lip6.fr/properties/mcc-properties.rnc} using:
 \begin{lstlisting}[language=sh]
