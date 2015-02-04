@@ -16,6 +16,9 @@
 \usepackage{listings}
 \usepackage{hyperref}
 \usepackage{longtable}
+\usepackage{syntax}
+
+\setlength{\grammarindent}{10em}
 
 \synctex=1
 
@@ -134,7 +137,7 @@ It is also designed to integrate with Petri Net Markup Language in the future.
 To do so, the language is provided as a RelaxNG grammar and an XML Schema generated from it.
 
 \tableofcontents
-\clearpage
+%\clearpage
 
 \section{Description of the langage}
 The property language is designed as a RelaxNG grammar. Thus, properties are given in XML.
@@ -215,11 +218,20 @@ They define what is expected to hold on the model.
 Formulas are currently of two main types: formul{\ae} that return integers, and formul{\ae}
 that return Booleans.
 
+In the following, for each rule of the grammar defining formulæ we give the RelaxNG representation (on the left) as well as another representation (on the right). This second representation will hopefully help the reader getting better intuition of the allowed formulæ. This representation will be used later to define the subclasses of formulæ considered in each category of the MCC. 
+
+\begin{multicols}{2}
 \begin{lstlisting}
   formula =
       boolean-formula
     | integer-formula
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<formula> ::= <boolean-formula>
+\alt <integer-formula>
+\end{grammar}
+\end{multicols}
 
 %\clearpage
 \subsection{Boolean formul{\ae}}
@@ -261,6 +273,7 @@ We define them in several parts.
 
 These operators are the \lstinline!A! and \lstinline!E! operators of CTL.
 
+\begin{multicols}{2}
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -272,6 +285,12 @@ These operators are the \lstinline!A! and \lstinline!E! operators of CTL.
       }
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= A <boolean-formula>
+\alt E <boolean-formula>
+\end{grammar}
+\end{multicols}
 
 \subsubsection{Path operators}
 
@@ -306,6 +325,7 @@ operators of CTL and LTL.
 %%     | ...
 %% \end{lstlisting}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -327,6 +347,15 @@ operators of CTL and LTL.
       }
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= G <boolean-formula>
+\alt F <boolean-formula>
+\alt X <boolean-formula>
+\alt <boolean-formula> U <boolean-formula>
+\end{grammar}
+\end{multicols}
+
 
 \begin{itemize}
   \item \lstinline!next! should evaluate to false if no successor state exists;
@@ -335,6 +364,7 @@ operators of CTL and LTL.
 
 \subsubsection{Petri net operators}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -344,6 +374,13 @@ operators of CTL and LTL.
       }
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= deadlock
+\alt is-fireable($t_1$,\dots,$t_n$)
+\end{grammar}
+\end{multicols}
+
 
 \begin{itemize}
   \item \lstinline!deadlock! evaluates to true if the current state is a dealock
@@ -387,6 +424,7 @@ These are usual Boolean operators.
 %%     | ...
 %% \end{lstlisting}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -403,6 +441,14 @@ These are usual Boolean operators.
       }
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= $\lnot$ <boolean-formula>
+\alt <boolean-formula> $\wedge$ <boolean-formula>
+\alt <boolean-formula> $\vee$ <boolean-formula>
+\end{grammar}
+\end{multicols}
+
 
 \subsubsection{Comparison operator}
 
@@ -438,6 +484,7 @@ This is the less or equal integer comparison operator.
 %%     | ...
 %% \end{lstlisting}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -447,18 +494,30 @@ This is the less or equal integer comparison operator.
       }
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= <integer-expression> $\leq$ <integer-expression>
+\end{grammar}
+\end{multicols}
+
 
 \subsection{Integer formul{\ae}}
 
 An integer formula is an integer expression.
 The tool must return the integer, that is the result of the expression.
 
+\begin{multicols}{2}
 \begin{lstlisting}
   integer-formula =
       integer-expression
 
   integer-expression = ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<integer-formula> ::= <integer-expression>
+\end{grammar}
+\end{multicols}
 
 \subsubsection{Arithmetic operators}
 
@@ -491,6 +550,7 @@ These are usual arithmetic operators for integers.
 %%     | ...
 %% \end{lstlisting}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   integer-expression =
       ...
@@ -507,10 +567,18 @@ These are usual arithmetic operators for integers.
     }
   | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<integer-expression> ::= integer-constant
+\alt <integer-expression> + <integer-expression>
+\alt <integer-expression> - <integer-expression>
+\end{grammar}
+\end{multicols}
 
 
 \subsubsection{Petri net operators}
 
+\begin{multicols}{2}
 \begin{lstlisting}
   integer-expression =
       ...
@@ -521,6 +589,12 @@ These are usual arithmetic operators for integers.
       place+
     | ...
 \end{lstlisting}
+\columnbreak
+\begin{grammar}
+<integer-expression> ::= place-bound($p_1$,\dots,$p_n$)
+\alt tokens-count($p_1$,\dots,$p_n$)
+\end{grammar}
+\end{multicols}
 
 \begin{itemize}
   \item \lstinline!place-bound! returns the exact of estimated bound of a set of places;
@@ -544,6 +618,46 @@ Places and transitions are uniquely identified. The identifiers are those of the
         xsd:IDREF
       }
 \end{lstlisting}
+
+
+\section{Categories of properties}
+
+For each category of properties used at MCC we give the restriction of the above grammar (for formulæ) that will be used.
+Each category is designated by the name of the XML file providing the properties from this category.
+
+\subsection{ReachabilityDeadlock.xml}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= E F deadlock 
+\alt A G $\lnot$ deadlock
+
+\end{grammar}
+
+\subsection{ReachabilityFireabilitySimple.xml}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula> 
+
+<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
+
+\end{grammar}
+
+\subsection{ReachabilityFireability.xml}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
+\alt A G $\lnot$ is-fireable($t_1$,\dots,$t_n$)
+\alt A G is-fireable($t_1$,\dots,$t_n$)
+
+\end{grammar}
+
 
 \clearpage
 \section{Tools}
