@@ -29,7 +29,7 @@ const CARDINALITY_OPERATOR  = 'cardinality';
 const DEADLOCK_OPERATOR     = 'deadlock';
 const FIREABILITY_OPERATOR  = 'fireability';
 const LIVENESS_OPERATOR     = 'liveness';
-const INTEGER_OPERATOR      = 'integer';
+const INTEGER_OPERATOR      = 'integerop';
 const BOOLEAN_OPERATOR      = 'boolean';
 const CTL_OPERATOR          = 'ctl';
 const LTL_OPERATOR          = 'ltl';
@@ -55,7 +55,8 @@ class GenerateFormulas extends Base
         'File name for formulas output', 'formulas')
       ->addOption('type', null,
         InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
-        'Type of results (boolean | integer)', array('boolean', 'integer'))
+        'The the datatype "returned" by the generated formula, either ' .
+        "'boolean' or 'integer'", array('boolean', 'integer'))
       ->addOption('prefix', null,
         InputOption::VALUE_REQUIRED,
         'Prefix for formula identifiers', 'formula')
@@ -171,10 +172,14 @@ EOT;
     $this->transitions = $this->sn_model
       ? $this->reference_model->ctransitions
       : $this->reference_model->utransitions;
+
+    // binary switches telling what the generation algorithm can use
     $this->integer_operators[INTEGER_CONSTANT     ] = false;
     $this->integer_operators[BOUND_OPERATOR       ] = $this->use_bound;
     $this->integer_operators[CARDINALITY_OPERATOR ] = $this->use_cardinality;
     $this->integer_operators[INTEGER_OPERATOR     ] = $this->use_integer;
+
+    // and more binary switches
     $this->boolean_operators[INTEGER_COMPARISON   ] = false;
     $this->boolean_operators[BOOLEAN_CONSTANT     ] = false;
     $this->boolean_operators[DEADLOCK_OPERATOR    ] = $this->use_dealock;
@@ -184,6 +189,15 @@ EOT;
     $this->boolean_operators[CTL_OPERATOR         ] = $this->use_ctl;
     $this->boolean_operators[LTL_OPERATOR         ] = $this->use_ltl;
     $this->boolean_operators[REACHABILITY_OPERATOR] = $this->use_reachability;
+
+    /*
+    BOOLEAN_CONSTANT will be used only iff nothing else can be used;
+    INTEGER_CONSTANT iff either no other integer operator can be used or if
+    it is called in the right-hand side of a sum, difference, or integer
+    comparison operation
+    INTEGER_COMPARISON will be authorized iff we can either use bounds, or
+    cardinality, or sums, or substractions */
+
     if ($this->types[BOOLEAN_FORMULA] && (
       $this->integer_operators[BOUND_OPERATOR] ||
       $this->integer_operators[CARDINALITY_OPERATOR] ||
@@ -194,6 +208,11 @@ EOT;
       $this->model = $this->sn_model;
     else
       $this->model = $this->pt_model;
+
+    // cesar
+    // var_dump ($this->boolean_operators);
+    // var_dump ($this->integer_operators);
+    // var_dump ($this->types);
   }
 
   protected function perform()
@@ -205,6 +224,8 @@ EOT;
     $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
     $this->progress->start($this->console_output, $this->quantity);
     $result = array();
+
+	 // produce $this->quantity formulas
     for ($i = 0; $i < $this->quantity; $i++)
     {
       // Choose between integer and boolean formula:
@@ -277,6 +298,7 @@ EOT;
       $this->integer_operators[INTEGER_CONSTANT] = true;
     }
     $operator = array_rand(array_filter($this->integer_operators));
+    // $this->debug_cesar (array_filter($this->integer_operators), $allow_constant, $operator);
     $this->integer_operators = $back;
     switch ($operator)
     {
@@ -297,14 +319,25 @@ EOT;
     return $result;
   }
 
+  /*
+  This is the main (recursive) function that generates formulas
+  returning a boolean value
+
+  outer tells you whether you are still in the first levels of the formula
+  and you have only generated (possibly none) boolean combinations
+  */
   private function generate_boolean_formula($outer = false)
   {
     $result = null;
     $this->current_depth++;
+
+    // backup the boolean_operators (since we will modify it here)
     $back = $this->copy($this->boolean_operators);
     if ($this->current_depth >= $this->depth)
     {
       $this->boolean_operators[BOOLEAN_OPERATOR] = false;
+      // if you have already generated CTL, LTL or something different //
+      // than boolean combinations, then disable CTL, LTL and poss/imposs/inv
       if (! $outer)
       {
         $this->boolean_operators[CTL_OPERATOR] = false;
@@ -312,6 +345,16 @@ EOT;
         $this->boolean_operators[REACHABILITY_OPERATOR] = false;
       }
     }
+
+    /*
+    if we are are generating the outmost operator of the formula and we
+    are authorized to have CTL, LTL, and invariant/possible/impossible
+    operators, then remove anything but
+    - CTL
+    - LTL
+    - inv/poss/impos
+    - boolean combinations
+    */
     if ($outer && (
       $this->boolean_operators[CTL_OPERATOR] ||
       $this->boolean_operators[LTL_OPERATOR] ||
@@ -323,18 +366,30 @@ EOT;
       $this->boolean_operators[FIREABILITY_OPERATOR] = false;
       $this->boolean_operators[INTEGER_COMPARISON] = false;
       $this->boolean_operators[LIVENESS_OPERATOR] = false;
+      // BOOLEAN_OPERATOR is left as it was
     }
+
+    /*
+    and, additionally, if you have inv/poss/imposs, then disable boolean
+    combinations
+    */
     if ($outer &&
       $this->boolean_operators[REACHABILITY_OPERATOR]
     )
     {
       $this->boolean_operators[BOOLEAN_OPERATOR] = false;
     }
+
+    // but at least one operator need to be available
     if (count(array_filter($this->boolean_operators)) == 0)
     {
       $this->boolean_operators[BOOLEAN_CONSTANT] = true;
     }
+
+    // choose randomly (the index of) one allowed operator
     $operator = array_rand(array_filter($this->boolean_operators));
+    // $this->debug_cesar (array_filter($this->boolean_operators), $outer, $operator);
+    // restore the boolean_operators array, before the recursive calls !!
     $this->boolean_operators = $back;
     switch ($operator)
     {
@@ -588,4 +643,18 @@ EOT;
     return $result;
   }
 
+  private function debug_cesar($operator_choices, $outer, $choice)
+  {
+    echo "xxxxxxxxxxxx\n";
+    echo "outer/allowct " . ($outer ? 'true' : 'false') . "\n";
+    echo "current_depth " . $this->current_depth . "\n";
+    echo "depth         " . $this->depth . "\n";
+    echo "choices       ";
+    foreach ($operator_choices as $k => $v)
+    {
+      echo "'$k' ";
+    }
+    echo "\n";
+    echo "chosen         " . $choice . "\n";
+  }
 }
