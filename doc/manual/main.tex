@@ -137,7 +137,7 @@ To do so, the language is provided as a RelaxNG grammar and an XML Schema genera
 \clearpage
 
 \section{Description of the langage}
-The property language is designed as a RelaxNG grammar. Thus, properties as given in XML.
+The property language is designed as a RelaxNG grammar. Thus, properties are given in XML.
 We generate a text equivalent from it, but it is not stable and only given for readability.
 
 \begin{lstlisting}
@@ -157,15 +157,43 @@ It contains several properties.
 \end{lstlisting}
 
 \subsection{Properties}
-A property is composed of several madatory parts: a unique identifier, a textual description
+A property is composed of three mandatory parts: a unique identifier, a textual description
 of the property, and a formula.
-It has a set of tags to give a hint about the class of tools that can compute the formula
-(structural, reachability, CTL or LTL). These hints do \emph{not} say that the formula
-is expressed exactly in the language given by the hint, but tells that given minor changes,
-it could be.
+%It has a set of tags to give a hint about the class of tools that can compute the formula
+%(structural, reachability, CTL or LTL). These hints do \emph{not} say that the formula
+%is expressed exactly in the language given by the hint, but tells that given minor changes,
+%it could be.
 
-A property also contains an optional part for the expected result.
-It gives the expected value and a textual explanation.
+%A property also contains an optional part for the expected result.
+%It gives the expected value and a textual explanation.
+%% \begin{lstlisting}
+%%   property = element property {
+%%     element id {
+%%       xsd:ID
+%%     } &
+%%     element description {
+%%       text
+%%     } &
+%%     element tags {
+%%       element is-structural { xsd:boolean } &
+%%       element is-reachability  { xsd:boolean } &
+%%       element is-ctl { xsd:boolean } &
+%%       element is-ltl { xsd:boolean }
+%%     } &
+%%     element expected-result {
+%%       element value {
+%%         xsd:integer | xsd:boolean
+%%       } &
+%%       element explanation {
+%%         text
+%%       }
+%%     }? &
+%%     element formula {
+%%       formula
+%%     }
+%%   }
+%% \end{lstlisting}
+
 \begin{lstlisting}
   property = element property {
     element id {
@@ -174,25 +202,12 @@ It gives the expected value and a textual explanation.
     element description {
       text
     } &
-    element tags {
-      element is-structural { xsd:boolean } &
-      element is-reachability  { xsd:boolean } &
-      element is-ctl { xsd:boolean } &
-      element is-ltl { xsd:boolean }
-    } &
-    element expected-result {
-      element value {
-        xsd:integer | xsd:boolean
-      } &
-      element explanation {
-        text
-      }
-    }? &
     element formula {
       formula
     }
   }
 \end{lstlisting}
+
 
 \subsection{Formul{\ae}}
 Formul{\ae} are the body of properties.
@@ -206,41 +221,41 @@ that return Booleans.
     | integer-formula
 \end{lstlisting}
 
-\clearpage
+%\clearpage
 \subsection{Boolean formul{\ae}}
 
 Boolean formul{\ae} are the majority of available formul{\ae}.
-We difen them in several parts.
+We define them in several parts.
 
 \begin{lstlisting}
   boolean-formula = ...
 \end{lstlisting}
 
-\subsubsection{Reachability operators}
+%% \subsubsection{Reachability operators}
 
-\begin{lstlisting}
-  boolean-formula =
-      ...
-    | element invariant {
-        boolean-formula
-      }
-    | element impossibility {
-        boolean-formula
-      }
-    | element possibility {
-        boolean-formula
-      }
-    | ...
-\end{lstlisting}
+%% \begin{lstlisting}
+%%   boolean-formula =
+%%       ...
+%%     | element invariant {
+%%         boolean-formula
+%%       }
+%%     | element impossibility {
+%%         boolean-formula
+%%       }
+%%     | element possibility {
+%%         boolean-formula
+%%       }
+%%     | ...
+%% \end{lstlisting}
 
-\begin{itemize}
-  \item \lstinline!invariant! evaluates to true if its subformula
-    is verified for all states of the system;
-  \item \lstinline!impossibility! evaluates to true if its subformula
-    is never verified for all states of the system;
-  \item \lstinline!possibility! evaluates to true if its subformula
-    is verified for some states of the system (at least one).
-\end{itemize}
+%% \begin{itemize}
+%%   \item \lstinline!invariant! evaluates to true if its subformula
+%%     is verified for all states of the system;
+%%   \item \lstinline!impossibility! evaluates to true if its subformula
+%%     is never verified for all states of the system;
+%%   \item \lstinline!possibility! evaluates to true if its subformula
+%%     is verified for some states of the system (at least one).
+%% \end{itemize}
 
 \subsubsection{State operators}
 
@@ -263,6 +278,34 @@ These operators are the \lstinline!A! and \lstinline!E! operators of CTL.
 These operators are the \lstinline!X!, \lstinline!G!, \lstinline!F! and \lstinline!U!
 operators of CTL and LTL.
 
+%% \begin{lstlisting}
+%%   boolean-formula =
+%%       ...
+%%     | element globally {
+%%         boolean-formula
+%%       }
+%%     | element finally {
+%%         boolean-formula
+%%       }
+%%     | element next {
+%%         boolean-formula &
+%%         element if-no-successor { xsd:boolean } &
+%%         element steps { xsd:positiveInteger }
+%%       }
+%%     | element until {
+%%         element before {
+%%           boolean-formula
+%%         } &
+%%         element reach {
+%%           boolean-formula
+%%         } &
+%%         element strength {
+%%           "weak" | "strong"
+%%         }
+%%       }
+%%     | ...
+%% \end{lstlisting}
+
 \begin{lstlisting}
   boolean-formula =
       ...
@@ -274,9 +317,6 @@ operators of CTL and LTL.
       }
     | element next {
         boolean-formula &
-        element if-no-successor { xsd:boolean } &
-        element steps { xsd:positiveInteger }
-      }
     | element until {
         element before {
           boolean-formula
@@ -284,19 +324,13 @@ operators of CTL and LTL.
         element reach {
           boolean-formula
         } &
-        element strength {
-          "weak" | "strong"
-        }
       }
     | ...
 \end{lstlisting}
 
 \begin{itemize}
-  \item \lstinline!next! evaluates to true if its subformula
-    is verified \lstinline!steps! states after along the path from the current state;
-    the \lstinline!if-no-successor! value is the value to return if the successor state does
-    not exist;
-  \item \lstinline!until! has a \lstinline!strength! modifier, allowing the weak until.
+  \item \lstinline!next! should evaluate to false if no successor state exists;
+  %\item \lstinline!until! has a \lstinline!strength! modifier, allowing the weak until.
 \end{itemize}
 
 \subsubsection{Petri net operators}
@@ -312,7 +346,7 @@ operators of CTL and LTL.
 \end{lstlisting}
 
 \begin{itemize}
-  \item \lstinline!deadlock! evaluates to true if the current state is in dealock
+  \item \lstinline!deadlock! evaluates to true if the current state is a dealock
     (has no successor);
   \item \lstinline!is-fireable! evaluates to true if one of the set of transitions given
     is fireable from the current state.
@@ -322,11 +356,40 @@ operators of CTL and LTL.
 
 These are usual Boolean operators.
 
+%% \begin{lstlisting}
+%%   boolean-formula =
+%%       ...
+%%     | element true  { empty }
+%%     | element false { empty }
+%%     | element negation {
+%%         boolean-formula
+%%       }
+%%     | element conjunction {
+%%         boolean-formula,
+%%         boolean-formula+
+%%       }
+%%     | element disjunction {
+%%         boolean-formula,
+%%         boolean-formula+
+%%       }
+%%     | element exclusive-disjunction {
+%%         boolean-formula,
+%%         boolean-formula+
+%%       }
+%%     | element implication {
+%%         boolean-formula,
+%%         boolean-formula
+%%       }
+%%     | element equivalence {
+%%         boolean-formula,
+%%         boolean-formula+
+%%       }
+%%     | ...
+%% \end{lstlisting}
+
 \begin{lstlisting}
   boolean-formula =
       ...
-    | element true  { empty }
-    | element false { empty }
     | element negation {
         boolean-formula
       }
@@ -338,49 +401,47 @@ These are usual Boolean operators.
         boolean-formula,
         boolean-formula+
       }
-    | element exclusive-disjunction {
-        boolean-formula,
-        boolean-formula+
-      }
-    | element implication {
-        boolean-formula,
-        boolean-formula
-      }
-    | element equivalence {
-        boolean-formula,
-        boolean-formula+
-      }
     | ...
 \end{lstlisting}
 
-\subsubsection{Comparison operators}
+\subsubsection{Comparison operator}
 
-These are integer comparison operators.
+This is the less or equal integer comparison operator.
+
+%% \begin{lstlisting}
+%%   boolean-formula =
+%%       ...
+%%     | element integer-eq {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | element integer-ne {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | element integer-lt {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | element integer-le {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | element integer-gt {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | element integer-ge {
+%%         integer-expression,
+%%         integer-expression
+%%       }
+%%     | ...
+%% \end{lstlisting}
 
 \begin{lstlisting}
   boolean-formula =
       ...
-    | element integer-eq {
-        integer-expression,
-        integer-expression
-      }
-    | element integer-ne {
-        integer-expression,
-        integer-expression
-      }
-    | element integer-lt {
-        integer-expression,
-        integer-expression
-      }
     | element integer-le {
-        integer-expression,
-        integer-expression
-      }
-    | element integer-gt {
-        integer-expression,
-        integer-expression
-      }
-    | element integer-ge {
         integer-expression,
         integer-expression
       }
@@ -403,32 +464,50 @@ The tool must return the integer, that is the result of the expression.
 
 These are usual arithmetic operators for integers.
 
+%% \begin{lstlisting}
+%%   integer-expression =
+%%       ...
+%%     element integer-constant {
+%%       xsd:integer
+%%     }
+%%   | element integer-sum {
+%%       integer-expression,
+%%       integer-expression+
+%%     }
+%%   | element integer-product {
+%%       integer-expression,
+%%       integer-expression+
+%%     }
+
+%%   | element integer-difference {
+%%       integer-expression,
+%%       integer-expression
+%%     }
+
+%%   | element integer-division {
+%%       integer-expression,
+%%       integer-expression
+%%     }
+%%     | ...
+%% \end{lstlisting}
+
 \begin{lstlisting}
   integer-expression =
       ...
-    element integer-constant {
+  | element integer-constant {
       xsd:integer
     }
   | element integer-sum {
       integer-expression,
       integer-expression+
     }
-  | element integer-product {
-      integer-expression,
-      integer-expression+
-    }
-
   | element integer-difference {
       integer-expression,
       integer-expression
     }
-
-  | element integer-division {
-      integer-expression,
-      integer-expression
-    }
-    | ...
+  | ...
 \end{lstlisting}
+
 
 \subsubsection{Petri net operators}
 
