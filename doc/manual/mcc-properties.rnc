@@ -1,0 +1,99 @@
+default namespace = "http://mcc.lip6.fr/"
+start = property-set
+
+property-set = element property-set {
+  property*
+}
+
+property = element property {
+  element id {
+    xsd:ID
+  } &
+  element description {
+    text
+  } &
+  element formula {
+    formula
+  }
+}
+
+formula =
+    boolean-formula
+  | integer-formula
+
+boolean-formula =
+    element all-paths {
+      boolean-formula
+    }
+  | element exists-path {
+      boolean-formula
+    }
+  | element next {
+      boolean-formula
+    }
+  | element globally {
+      boolean-formula
+    }
+  | element finally {
+      boolean-formula
+    }
+  | element until {
+      element before {
+        boolean-formula
+      } &
+      element reach {
+        boolean-formula
+      }
+    }
+  | element deadlock { empty }
+  | element is-fireable {
+      transition+
+    }
+  | element negation {
+      boolean-formula
+    }
+  | element conjunction {
+      boolean-formula,
+      boolean-formula+
+    }
+  | element disjunction {
+      boolean-formula,
+      boolean-formula+
+    }
+  | element integer-le {
+      integer-expression,
+      integer-expression
+    }
+
+integer-expression =
+    element integer-constant {
+      xsd:integer
+    }
+  | element integer-sum {
+      integer-expression,
+      integer-expression+
+    }
+  | element integer-difference {
+      integer-expression,
+      integer-expression
+    }
+  | element place-bound {
+      place+
+    }
+  | element tokens-count {
+      place+
+  }
+
+place =
+    element place {
+      xsd:IDREF
+    }
+
+transition =
+    element transition {
+      xsd:IDREF
+    }
+
+integer-formula =
+    integer-expression
+
