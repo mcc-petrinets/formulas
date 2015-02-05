@@ -27,6 +27,8 @@ with template ::
 - possible (deadlock)
 - impossible (deadlock)
 
+- FIXME verify this ...
+
 ReachabilityFireabilitySimple.xml
 ===========
 
@@ -214,7 +216,6 @@ A :=
   | I >= I
   | I < I
   | I > I
-  | I
 
 I :=
     tokens-count (p1, ..., pn)
@@ -271,60 +272,54 @@ A :=
 CTLCardinality.xml
 ================
 
-FIXME continue here !!
+formules CTL avec cardinalités seulement + op booleens::
+  --ctl --cardinality --integer --boolean --type=boolean
 
 B :=
     not C
   | C and C
   | C or C
-  | C xor C
-  | C -> C
-  | C <-> C
-  | C
+  | D
 
 C :=
-    not H
-  | H and H
-  | H or H
-  | H xor H
-  | H -> H
-  | H <-> H
-  | H
+    not D
+  | D and D
+  | D or D
+  | D
 
-H :=
+D :=
     A T
   | E T
 
 T :=
-    G V
-  | F V
-  | X_{steps=1,if-no-successor=false} V .. confirmar aqui FIXME
-  | V U_{strength=strong} V
+    G H
+  | F H
+  | X_{steps=1,if-no-successor=false} H
+  | H U_{strength=strong} H
 
-V :=
-    G D
-  | F D
-  | X_{steps=1,if-no-successor=false} D .. confirmar aqui FIXME
-  | D U_{strength=strong} D
-  | D
-
-D :=
-    not A
-  | A and A
-  | A or A
-  | A xor A
-  | A -> A
-  | A <-> A
-  | A
-
-A :=
-    I = I
+H :=
+    B
   | I <= I
-  | I >= I
-  | I < I
-  | I > I
-  | I
 
 I :=
-    tokens-count (p1, ..., pn)
+    integer constant in [0, 1, 2]
+  | tokens-count (p1, ..., pn)
 
+- words produced by this grammar such that the derivation of the word
+substitutes `at most two times the non-terminal B by any of its
+productions`.
+
+- the grammar fragment generated in this category for the 2014 edition was
+different than this and difficult to characterize; for 2015 I propose this
+fragment, easier to characterize. We can modify the "formula:generate"
+command to produce formulas of this shape.
+
+- in particular, in 2014, this fragment was like this: the root node of the
+formula was a CTL operator or a boolean operator; the second level was CLT,
+boolean operator or a integer comparison. If the first two levels were
+boolean operators, the third was a CTL operator; in any other case, the
+third level was an integer comparison. If the third level was a CTL
+operator, the fourth was an integer comparison.
+The integer expresions of an integer comparison were `token-count`
+expressions. I just modified the tool so that it could now also produce an
+integer constant in the left-hand size of an integer comparison.

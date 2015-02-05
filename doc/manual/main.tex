@@ -17,10 +17,31 @@
 \usepackage{hyperref}
 \usepackage{longtable}
 \usepackage{syntax}
+\usepackage{xspace}
 
-\setlength{\grammarindent}{10em}
+\setlength{\grammarindent}{11em}
 
 \synctex=1
+
+\newcommand\tup[1]           {\langle#1\rangle}
+\newcommand\set[1]           {{\{ #1 \mathclose \}}}
+\newcommand\ctla             {\textbf{A}\xspace}
+\newcommand\ctle             {\textbf{E}\xspace}
+\newcommand\ltlf             {\textbf{F}\xspace}
+\newcommand\ltlg             {\textbf{G}\xspace}
+\newcommand\ltlx             {\textbf{X}\xspace}
+\newcommand\ltlu             {\textbf{U}\xspace}
+\newcommand\logicnot         {\boldmath$\lnot$\xspace}
+\newcommand\logicand         {\boldmath$\land$\xspace}
+\newcommand\logicor          {\boldmath$\lor$\xspace}
+\newcommand\atomleq          {\boldmath$\leq$\xspace}
+\newcommand\atomdead         {\textbf{deadlock}\xspace}
+\newcommand\atomisfire[1]    {\textbf{is-fireable}(#1)}
+\newcommand\atomplacebnd[1]  {\textbf{place-bound}(#1)}
+\newcommand\atomtokenscnt[1] {\textbf{token-count}(#1)}
+\newcommand\exprplus         {\boldmath$+$\xspace}
+\newcommand\exprminus        {\boldmath$-$\xspace}
+
 
 \newcommand{\CC}{%
   C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\scriptsize\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\scriptsize\bf +}%
@@ -155,28 +176,33 @@ Finally, \emph{integer-constant} is any integer, \emph{tokens-count($p_1$,\dots,
 <formula> ::= <boolean-formula>
 \alt <integer-formula>
 
-<boolean-formula> ::= A <boolean-formula>
-\alt E <boolean-formula>
-\alt G <boolean-formula>
-\alt F <boolean-formula>
-\alt X <boolean-formula>
-\alt <boolean-formula> U <boolean-formula>
-\alt $\lnot$ <boolean-formula>
-\alt <boolean-formula> $\wedge$ <boolean-formula>
-\alt <boolean-formula> $\vee$ <boolean-formula>
-\alt <integer-expression> $\leq$ <integer-expression>
-\alt deadlock
-\alt is-fireable($t_1$,\dots,$t_n$)
+<boolean-formula> ::= \ctla <boolean-formula>
+\alt \ctle <boolean-formula>
+\alt \ltlg <boolean-formula>
+\alt \ltlf <boolean-formula>
+\alt \ltlx <boolean-formula>
+\alt <boolean-formula> \ltlu <boolean-formula>
+\alt \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor <boolean-formula>
+\alt <atom>
+
+<atom> ::= \atomdead
+\alt \atomisfire{$t_1, \ldots, t_n$}
+\alt <integer-expression> \atomleq <integer-expression>
 
 <integer-formula> ::= <integer-expression>
 
-<integer-expression> ::= integer-constant
-\alt <integer-expression> + <integer-expression>
-\alt <integer-expression> - <integer-expression>
-\alt place-bound($p_1$,\dots,$p_n$)
-\alt tokens-count($p_1$,\dots,$p_n$)
+<integer-expression> ::=
+     <integer-expression> \exprplus <integer-expression>
+\alt <integer-expression> \exprminus <integer-expression>
+\alt \textit{Integer constant}
+\alt \atomplacebnd{$p_1, \ldots, p_n$}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
 
 \end{grammar}
+
+FIXME all integer constants are 0, 1, 2
 
 This grammar defines a large class of formulæ.
 For the MCC, these formulæ are grouped among several subclasses, each one corresponding to a restriction of the above grammar.
@@ -191,219 +217,213 @@ Each category is designated by the name of the XML file providing the formulæ f
 %
 %
 
-\subsection{ReachabilityDeadlock}
+\subsection{Category \textit{ReachabilityDeadlock}}
 
 \begin{grammar}
 
 <formula> ::= <boolean-formula>
 
-<boolean-formula> ::= E F deadlock 
-\alt A G $\lnot$ deadlock
+<boolean-formula> ::= \ctle \ltlf \atomdead
+%\alt A G $\lnot$ deadlock
 
 \end{grammar}
 
-\subsection{ReachabilityFireabilitySimple}
+\subsection{Category \textit{ReachabilityFireabilitySimple}}
 
 \begin{grammar}
 
 <formula> ::= <boolean-formula> 
 
-<boolean-formula> ::= E F is-fireable($t$)
-\alt A G $\lnot$ is-fireable($t$)
-\alt A G is-fireable($t$)
+<boolean-formula> ::= \ctle \ltlf \atomisfire{$t_1, \ldots, t_n$}
+\alt \ctla \ltlg \atomisfire{$t_1, \ldots, t_n$}
 
 \end{grammar}
 
-\subsection{ReachabilityFireability}
+\subsection{Categories \textit{ReachabilityFireability} and \textit{ReachabilityCardinality}}
+
+Both categories contain formulas produced using the same grammar, the only
+difference being the atomic propositions allowed in each one.
+The grammar is the following:
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctle \ltlf <state-formula>
+\alt \ctla \ltlg <state-formula>
+
+<state-formula> ::=  \logicnot  <state-formula>
+\alt <state-formula> \logicand <state-formula>
+\alt <state-formula> \logicor  <state-formula>
+\alt <atom>
+\end{grammar}
+
+Now, the cateory \emph{ReachabilityFireability} only contains
+\atomisfire{$\cdot$} atoms:
+
+\begin{grammar}
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+while the formulas in the \emph{ReachabilityCardinality} category contain
+integer inequalities:
+
+\begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\end{grammar}
+
+Recall that the \textit{Integer constant} will be a number in $\set{0,1,2}$.
+
+\subsection{Category \textit{ReachabilityBounds}}
 
 \begin{grammar}
 
 <formula> ::= <boolean-formula>
 
-<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
-\alt A G $\lnot$ is-fireable($t_1$,\dots,$t_n$)
-\alt A G is-fireable($t_1$,\dots,$t_n$)
+<boolean-formula> ::=  \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor  <boolean-formula>
+\alt <atom>
+
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomplacebnd{$p_1, \ldots, p_n$}
 
 \end{grammar}
 
-\subsection{ReachabilityCardinality}
+\subsection{Cateogory \textit{ReachabilityComputeBounds}}
+
+Observe that this is the only category where formulas evaluate to an
+integer number rather than a boolean value.
 
 \begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= E F <boolean-formula-level1>
-\alt A G $\lnot$ <boolean-formula-level1>
-\alt A G <boolean-formula-level1>
-
-<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
-\alt <boolean-formula-level2>
-
-<boolean-formula-level2> ::= tokens-count($p_1$,\dots,$p_n$) $\leq$ tokens-count($p_1'$,\dots,$p_n'$)
-
-\end{grammar}
-
-\subsection{ReachabilityBounds}
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
-\alt <boolean-formula-level1>
-
-<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
-\alt <boolean-formula-level2>
-
-<boolean-formula-level2> ::= place-bound($p_1$,\dots,$p_n$) $\leq$ place-bound($p_1'$,\dots,$p_n'$)
-
-\end{grammar}
-
-\subsection{ReachabilityComputeBounds}
-
-\begin{grammar}
-
 <formula> ::= <integer-formula>
 
-<integer-formula> ::= place-bound($p_1$,\dots,$p_n$)
-
+<integer-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
 \end{grammar}
 
 
+\subsection{Category \textit{LTLFireabilitySimple}}
 
-\subsection{LTLFireabilitySimple}
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctla <path-formula>
+
+<path-formula> ::=
+     \ltlg <atom>
+\alt \ltlf <atom>
+\alt \ltlx <atom>
+\alt <atom> \ltlu <atom>
+
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+\subsection{Categories \textit{LTLFireability} and \textit{LTLCardinality}}
+
+Both categories contain formulas produced using the same grammar, the only
+difference being the atomic propositions allowed in each one.
+The grammar is the following:
 
 \begin{grammar}
 
 <formula> ::= <boolean-formula>
 
-<boolean-formula> ::= G is-fireable($t$)
-\alt F is-fireable($t$)
-\alt X is-fireable($t$)
-\alt is-fireable($t$) U is-fireable($t'$)
+<boolean-formula> ::= \ctla <path-formula>
+
+<path-formula> ::=
+     \ltlg <path-formula>
+\alt \ltlf <path-formula>
+\alt \ltlx <path-formula>
+\alt <path-formula> \ltlu <path-formula>
+\alt <atom>
 
 \end{grammar}
 
-
-\subsection{LTLFireability}
+Now, the category \emph{LTLFireability} only contains \atomisfire{$\cdot$} atoms:
 
 \begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= G is-fireable($t_1$,\dots,$t_n$)
-\alt F is-fireable($t_1$,\dots,$t_n$)
-\alt X is-fireable($t_1$,\dots,$t_n$)
-\alt is-fireable($t_1$,\dots,$t_n$) U is-fireable($t_1'$,\dots,$t_n$)
-
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-\subsection{LTLCardinality}
+while the formulas in the \emph{LTLCardinality} category contain integer
+inequalities:
 
 \begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
 
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
-\alt G <boolean-formula-level1>
-\alt F <boolean-formula-level1>
-\alt X <boolean-formula-level1>
-\alt <boolean-formula-level1> U <boolean-formula-level1>
-
-<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
-\alt G <boolean-formula-level2>
-\alt F <boolean-formula-level2>
-\alt X <boolean-formula-level2>
-\alt <boolean-formula-level2> U <boolean-formula-level2>
-\alt <boolean-formula-level2>
-
-<boolean-formula-level2> ::= tokens-count($p_1$,\dots,$p_n$) $\leq$ tokens-count($p_1'$,\dots,$p_n'$)
-
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
 \end{grammar}
 
-\subsection{CTLFireabilitySimple}
+
+\subsection{Category \textit{CTLFireabilitySimple}}
 
 \begin{grammar}
-
 <formula> ::= <boolean-formula>
 
-<boolean-formula> ::= A <boolean-formula-level1>
-\alt E <boolean-formula-level1>
+<boolean-formula> ::= \ctla <path-formula>
+\alt \ctle <path-formula>
 
-<boolean-formula-level1> ::= G is-fireable($t$)
-\alt F is-fireable($t$)
-\alt X is-fireable($t$)
-\alt is-fireable($t$) U is-fireable($t'$)
+<path-formula> ::=
+     \ltlg <atom>
+\alt \ltlf <atom>
+\alt \ltlx <atom>
+\alt <atom> \ltlu <atom>
 
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
+\subsection{Cateogries \emph{CTLFireability} and \emph{CTLCardinality}}
 
-\subsection{CTLFireability}
+Both categories contain formulas produced using the same grammar, the only
+difference being the atomic propositions allowed in each one.
+The grammar is the following:
 
 \begin{grammar}
-
 <formula> ::= <boolean-formula>
 
-<boolean-formula> ::= A <boolean-formula-level1>
-\alt E <boolean-formula-level1>
+<boolean-formula> ::=
+     \ctla <path-formula>
+\alt \ctle <path-formula>
+\alt \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor <boolean-formula>
+\alt <atom>
 
-<boolean-formula-level1> ::= G is-fireable($t_1$,\dots,$t_n$)
-\alt F is-fireable($t_1$,\dots,$t_n$)
-\alt X is-fireable($t_1$,\dots,$t_n$)
-\alt is-fireable($t_1$,\dots,$t_n$) U is-fireable($t_1'$,\dots,$t_n'$)
-
+<path-formula> ::=
+     \ltlg <boolean-formula>
+\alt \ltlf <boolean-formula>
+\alt \ltlx <boolean-formula>
+\alt <boolean-formula> \ltlu <boolean-formula>
 \end{grammar}
 
-\subsection{CTLCardinality}
+The cateory \emph{CTLFireability} only contains \atomisfire{$\cdot$} atoms:
 
 \begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
-\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
-\alt <boolean-formula-level1>
-
-<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
-\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
-\alt <boolean-formula-level2>
-
-<boolean-formula-level2> ::= A <boolean-formula-level3>
-\alt E <boolean-formula-level3>
-
-<boolean-formula-level3> ::= G <boolean-formula-level4>
-\alt F <boolean-formula-level4>
-\alt X <boolean-formula-level4>
-\alt <boolean-formula-level4> U <boolean-formula-level4>
-
-<boolean-formula-level4> ::= G <boolean-formula-level5>
-\alt F <boolean-formula-level5>
-\alt X <boolean-formula-level5>
-\alt <boolean-formula-level5> U <boolean-formula-level5>
-\alt <boolean-formula-level5>
-
-<boolean-formula-level5> ::= $\lnot$ <boolean-formula-level6>
-\alt <boolean-formula-level6> $\wedge$ <boolean-formula-level6>
-\alt <boolean-formula-level6> $\vee$ <boolean-formula-level6>
-\alt <boolean-formula-level6>
-
-<boolean-formula-level6> ::= tokens-count($p_1$,\dots,$p_n$)
-
-
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
+while the formulas in the \emph{CTLCardinality} category contain
+integer inequalities:
+
+\begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\end{grammar}
+
+Observe that under the previous definitions it is possible to derivate a
+formula without any CTL operator, by using the last grammar production for
+the non-terminal \synt{boolean-formula}.
+However, such formul{\ae} will never be presented to a tool participating
+in these categories, we will ensure that
+\emph{formul{\ae} contain at least one CTL (either \ctla or \ctle)
+operator}.
 
 \section{Description of the property language as a RelaxNG grammar}
 The property language is designed as a RelaxNG grammar. Thus, properties are given in XML.
