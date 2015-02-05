@@ -208,7 +208,9 @@ Each category is designated by the name of the XML file providing the formulæ f
 
 <formula> ::= <boolean-formula> 
 
-<boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
+<boolean-formula> ::= E F is-fireable($t$)
+\alt A G $\lnot$ is-fireable($t$)
+\alt A G is-fireable($t$)
 
 \end{grammar}
 
@@ -221,6 +223,184 @@ Each category is designated by the name of the XML file providing the formulæ f
 <boolean-formula> ::= E F is-fireable($t_1$,\dots,$t_n$)
 \alt A G $\lnot$ is-fireable($t_1$,\dots,$t_n$)
 \alt A G is-fireable($t_1$,\dots,$t_n$)
+
+\end{grammar}
+
+\subsection{ReachabilityCardinality}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= E F <boolean-formula-level1>
+\alt A G $\lnot$ <boolean-formula-level1>
+\alt A G <boolean-formula-level1>
+
+<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
+\alt <boolean-formula-level2>
+
+<boolean-formula-level2> ::= tokens-count($p_1$,\dots,$p_n$) $\leq$ tokens-count($p_1'$,\dots,$p_n'$)
+
+\end{grammar}
+
+\subsection{ReachabilityBounds}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
+\alt <boolean-formula-level1>
+
+<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
+\alt <boolean-formula-level2>
+
+<boolean-formula-level2> ::= place-bound($p_1$,\dots,$p_n$) $\leq$ place-bound($p_1'$,\dots,$p_n'$)
+
+\end{grammar}
+
+\subsection{ReachabilityComputeBounds}
+
+\begin{grammar}
+
+<formula> ::= <integer-formula>
+
+<integer-formula> ::= place-bound($p_1$,\dots,$p_n$)
+
+\end{grammar}
+
+
+
+\subsection{LTLFireabilitySimple}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= G is-fireable($t$)
+\alt F is-fireable($t$)
+\alt X is-fireable($t$)
+\alt is-fireable($t$) U is-fireable($t'$)
+
+\end{grammar}
+
+
+\subsection{LTLFireability}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= G is-fireable($t_1$,\dots,$t_n$)
+\alt F is-fireable($t_1$,\dots,$t_n$)
+\alt X is-fireable($t_1$,\dots,$t_n$)
+\alt is-fireable($t_1$,\dots,$t_n$) U is-fireable($t_1'$,\dots,$t_n$)
+
+\end{grammar}
+
+\subsection{LTLCardinality}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
+\alt G <boolean-formula-level1>
+\alt F <boolean-formula-level1>
+\alt X <boolean-formula-level1>
+\alt <boolean-formula-level1> U <boolean-formula-level1>
+
+<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
+\alt G <boolean-formula-level2>
+\alt F <boolean-formula-level2>
+\alt X <boolean-formula-level2>
+\alt <boolean-formula-level2> U <boolean-formula-level2>
+\alt <boolean-formula-level2>
+
+<boolean-formula-level2> ::= tokens-count($p_1$,\dots,$p_n$) $\leq$ tokens-count($p_1'$,\dots,$p_n'$)
+
+\end{grammar}
+
+\subsection{CTLFireabilitySimple}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= A <boolean-formula-level1>
+\alt E <boolean-formula-level1>
+
+<boolean-formula-level1> ::= G is-fireable($t$)
+\alt F is-fireable($t$)
+\alt X is-fireable($t$)
+\alt is-fireable($t$) U is-fireable($t'$)
+
+\end{grammar}
+
+
+\subsection{CTLFireability}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= A <boolean-formula-level1>
+\alt E <boolean-formula-level1>
+
+<boolean-formula-level1> ::= G is-fireable($t_1$,\dots,$t_n$)
+\alt F is-fireable($t_1$,\dots,$t_n$)
+\alt X is-fireable($t_1$,\dots,$t_n$)
+\alt is-fireable($t_1$,\dots,$t_n$) U is-fireable($t_1'$,\dots,$t_n'$)
+
+\end{grammar}
+
+\subsection{CTLCardinality}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= $\lnot$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\wedge$ <boolean-formula-level1>
+\alt <boolean-formula-level1> $\vee$ <boolean-formula-level1>
+\alt <boolean-formula-level1>
+
+<boolean-formula-level1> ::= $\lnot$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\wedge$ <boolean-formula-level2>
+\alt <boolean-formula-level2> $\vee$ <boolean-formula-level2>
+\alt <boolean-formula-level2>
+
+<boolean-formula-level2> ::= A <boolean-formula-level3>
+\alt E <boolean-formula-level3>
+
+<boolean-formula-level3> ::= G <boolean-formula-level4>
+\alt F <boolean-formula-level4>
+\alt X <boolean-formula-level4>
+\alt <boolean-formula-level4> U <boolean-formula-level4>
+
+<boolean-formula-level4> ::= G <boolean-formula-level5>
+\alt F <boolean-formula-level5>
+\alt X <boolean-formula-level5>
+\alt <boolean-formula-level5> U <boolean-formula-level5>
+\alt <boolean-formula-level5>
+
+<boolean-formula-level5> ::= $\lnot$ <boolean-formula-level6>
+\alt <boolean-formula-level6> $\wedge$ <boolean-formula-level6>
+\alt <boolean-formula-level6> $\vee$ <boolean-formula-level6>
+\alt <boolean-formula-level6>
+
+<boolean-formula-level6> ::= tokens-count($p_1$,\dots,$p_n$)
+
 
 \end{grammar}
 
@@ -321,7 +501,7 @@ In the following, for each rule of the grammar defining formulæ we give the Rel
 \end{grammar}
 \end{multicols}
 
-\clearpage
+%\clearpage
 \subsection{Boolean formul{\ae}}
 
 Boolean formul{\ae} are the majority of available formul{\ae}.
@@ -609,6 +789,7 @@ The tool must return the integer, that is the result of the expression.
 \end{grammar}
 \end{multicols}
 
+\clearpage
 \subsubsection{Arithmetic operators}
 
 These are usual arithmetic operators for integers.
