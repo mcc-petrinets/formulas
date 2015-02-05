@@ -18,6 +18,7 @@
 \usepackage{longtable}
 \usepackage{syntax}
 \usepackage{xspace}
+\usepackage{booktabs}
 \usepackage[capitalise,english,nameinlink]{cleveref} % load after algorithm2e and hyperref
 
 \hypersetup{
@@ -39,6 +40,10 @@
 
 \newcommand\tup[1]           {\langle#1\rangle}
 \newcommand\set[1]           {{\{ #1 \mathclose \}}}
+\newcommand\eg               {e.g.\@\xspace}
+\newcommand\ie               {i.e.\@\xspace}
+\newcommand\N                {\mathbb{N}}
+
 \newcommand\ctla             {\textbf{A}\xspace}
 \newcommand\ctle             {\textbf{E}\xspace}
 \newcommand\ltlf             {\textbf{F}\xspace}
@@ -55,7 +60,6 @@
 \newcommand\atomtokenscnt[1] {\textbf{token-count}(#1)}
 \newcommand\exprplus         {\boldmath$+$\xspace}
 \newcommand\exprminus        {\boldmath$-$\xspace}
-
 
 \newcommand{\CC}{%
   C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\scriptsize\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\scriptsize\bf +}%
@@ -210,8 +214,8 @@ This document presents the specification language in, conceptually, two steps.
   formulas that will be presented to the tools participating on each
   category of the contest (\cref{s:bnf}).
 \item
-  Second, the document defines the file format used to feed the competing
-  tools with the properties to solve (\cref{s:rng}).
+  Second, the document defines the XML syntax of the files that will
+  actually be passed to the tools (\cref{s:rng}).
 \end{itemize}
 
 \Cref{s:parsing} provides some help on how to automatically generate code
@@ -221,12 +225,62 @@ in various languages to parse the XML files containing the formulas.
 \tableofcontents
 
 \clearpage
+\section{Introduction}
+
+The \mcc{} @ Petri nets compares the competing verification tools on
+several categories.
+Each category contains formulas of a fixed type, \eg, reachability
+formulas, or LTL formulas.
+The categories this year are the same as the last year:
+\footnote{Although the class of formulas (\ie, the specific fragment of the
+BNF grammar presented in \cref{s:bnf}) contained in each category has
+varied from last year.}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Category                       & Description \\
+\midrule
+ReachabilityDeadlock           & Existence of deadlock states \\
+ReachabilityFireabilitySimple  & Firability of transitions \\
+ReachabilityFireability        & Boolean combinations of propositions checking firability of transitions \\
+ReachabilityCardinality        & Boolean combinations of propositions comparing the number of tokens in places\\
+ReachabilityBounds             & Boolean combinations of propositions comparing the bounds of places \\
+ReachabilityComputeBounds      & Computing the bounds of places \\
+LTLFireabilitySimple           & LTL properties with only one linear-time operator and no boolean operator \\
+LTLFireability                 & Full LTL with atomic propositions checking firability of transitions \\
+LTLCardinality                 & Full LTL with atomic propositions comparing the number of tokens in places \\
+CTLFireabilitySimple           & CTL* properties with only one temporal operator and no boolean operator \\
+CTLFireability                 & Full CTL with atomic propositions checking firability of transitions \\
+CTLCardinality                 & Full CTL with atomic propositions comparing the number of tokens in places \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The name of each category designates the
+name of a XML file providing, for every benchmark, a set of formulæ in
+this category.
+
+% FIXME
+% parler du lien entre fichiers xml et tool submission kit (i.e. pour
+% chaque modele il y aura chaque fichier de formules)
+
+Most of the formulas presented to tools have been randomly generated.
+Only very few of them were written by hand.
+Unfortunately, most of the benchmarks submitted to the contest came without
+example verification properties.
+Writing them by hand is a very time consuming task (there is currently more
+than 250 models!).
+This is a very unfortunate situation but we have not found any way to
+overcome it.
+
+
 \section{The BNF grammar of the property language}
 \label{s:bnf}
 
-Each property used in the MCC is defined by a formula on the places and the transitions of the corresponding Petri net. These formulæ follow the general grammar informally presented below, where A (along all paths) and E (there exists a path) are the standard CTL operators, G (globally), F (finally), X (next), and U (until) are the standard LTL operators, $\lnot$ (not), $\wedge$ (and), and $\vee$ (or) are standard boolean operators, $\leq$ (less or equal), $+$ (plus), and $-$ (minus) are standard integer arithmetic operators.
-The predicate \emph{deadlock} stands for ``the current state is a deadlock'' and the predicate \emph{is-fireable($t_1$,\dots,$t_n$)} stands for ``one of the set of transitions $\{t_1,\dots,t_n\}$ is fireable from the current state''.
-Finally, \emph{integer-constant} is any integer, \emph{tokens-count($p_1$,\dots,$p_n$)} gives the total number of tokens in the places $p_1$ to $p_n$ at the current state, and \emph{place-bound($p_1$,\dots,$p_n$)} gives the maximum of \emph{tokens-count($p_1$,\dots,$p_n$)} over all (reachable) states.
+Every property presented to a tool participating in any category of the
+contests can be derivated from the following general grammar of the
+property language:
 
 \begin{grammar}
 <formula> ::= <boolean-formula>
@@ -258,20 +312,64 @@ Finally, \emph{integer-constant} is any integer, \emph{tokens-count($p_1$,\dots,
 
 \end{grammar}
 
-FIXME all integer constants are 0, 1, 2
+The property language considers two kinds of formul\ae{}:
+boolean formul\ae{},
+evaluating to a boolean variable, and integer formul\ae{},
+which evaluate to a natural number.
+Only the category
+\textit{ReachabilityComputeBounds} employs integer formul\ae{}, all other
+categories use only boolean formul\ae{}.
+
+Operators \ctla and \ctle are the standard CTL operators.
+Operators
+\ltlg,
+\ltlf,
+\ltlx,
+\ltlu
+are the standard LTL operators.
+A boolean formula can also contain boolean combinations of boolean
+formulas.
+Atomic propositions are either
+\begin{itemize}
+\item
+  \atomdead, asking that the current state enables no transition,
+\item
+  \atomisfire{$t_1, \ldots, t_n$}, which holds iff either $t_1$, or $t_2$,
+  or \ldots or $t_n$ are enabled at the current state, or
+\item
+  inequalities of the form \synt{expr} \atomleq \synt{expr},
+  where \synt{expr} is an integer expression.
+\end{itemize}
+
+Integer expressions can contain additions and subtractions of
+\emph{Integer constants}, always taken from the set $\set{0, 1, 2}$, and
+the following operators:
+\begin{itemize}
+\item
+  \atomplacebnd{$p_1, \ldots, p_n$}, which returns the exact or estimated
+  maximum number of tokens that any reachable marking can put in all $n$
+  places at the same time.
+\item
+  \atomtokenscnt{$p_1, \ldots, p_n$}, which returns, for the current
+  marking, the exact number of tokens contained in the set
+  $\set{p_1, \ldots, p_n}$ of places.
+\end{itemize}
+Note that, in fact, in the current edition of the \mcc{} no category of the
+contest will contain formulas using additions and subtractions of integer
+expressions. These operators remain here only for future use.
+
+% FIXME
+% give formal semantics to these formulae
 
 This grammar defines a large class of formulæ.
-For the MCC, these formulæ are grouped among several subclasses, each one corresponding to a restriction of the above grammar.
-Each of these subclasses defines a particular category and the tools are tested in each of these category independently.
-For each category of formulæ used at MCC we specify below the restriction of the above grammar that will be used.
-Each category is designated by the name of the XML file providing the formulæ from this category (how formulæ are defined as XML files is the topic of the next Sections of this manual).
+Each category of the contest contains formulas of only some specific
+fragment of this grammar.
+The following subsections define the specific syntax of the formul\ae{}
+that tools participating in a given category shall expect to be provided
+with.
 
-%
-%
-% parler du lien entre fichiers xml et tool submission kit (i.e. pour chaque modele il y aura chaque fichier de formules)
-%
-%
-%
+\Cref{s:rng} presents the correspondence between the above BNF grammar
+and the syntax of the XML files that will actually be provided to the tools.
 
 \subsection{Category \textit{ReachabilityDeadlock}}
 
