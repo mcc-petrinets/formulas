@@ -18,9 +18,23 @@
 \usepackage{longtable}
 \usepackage{syntax}
 \usepackage{xspace}
+\usepackage[capitalise,english,nameinlink]{cleveref} % load after algorithm2e and hyperref
+
+\hypersetup{
+  bookmarksdepth=2,
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  bookmarksopenlevel=2,
+  colorlinks=true,
+  linktocpage=true,
+  breaklinks=true,
+  pageanchor=true,
+  allcolors=[rgb]{0.1,0.1,0.7},
+  pdftitle={Property Language Manual},
+  pdfauthor={The MCC 2015 formula team}
+}
 
 \setlength{\grammarindent}{11em}
-
 \synctex=1
 
 \newcommand\tup[1]           {\langle#1\rangle}
@@ -149,24 +163,66 @@
 \begin{document}
 \color{defaultcolor}
 
+\vspace*{2em}
+\section*{This document}
+
+This document is intended as a guide for the developers of
+the tools participating in the \mcc{} @ Petri nets, edition 2015.
+It specifically contains the following:
+
+\begin{itemize}
+\item
+  The definition of the property language used in the contest this year.
+\item
+  The definition of the language subset presented in each category of the
+  contest (new!)
+\item
+  Instructions on how to parse the XML files containing the properties;
+\end{itemize}
+
+The property language for the 2015 edition has been
+extensively simplified with respect to last year.
+We kept compatibility in mind.
+Any tool which participating in the previous edition of the contests should
+only require minimal changes to accept the new version of the language.
+
+
 \section*{Goals of the property language}
-The property language for the \mcc{} @ Petri Nets is a language designed to allow
-participation of many tools.
-It allows to write structural, reachability, CTL, LTL formul{\ae}.
-It is tightly related to Petri nets, that are the modeling formalism used during the contest.
+
+The property language for the \mcc{} @ Petri Nets is designed to maximize
+the tools participating in the competition.
+It is based on XML and allows to write structural, reachability, CTL, LTL formul{\ae}.
+It is tightly related to Petri nets, that are the modeling formalism of the
+\mcc{}.
 
 This language is designed to evolve in the future editions of the contest.
-It is also designed to integrate with Petri Net Markup Language in the future.
-To do so, the language is provided as a RelaxNG grammar and an XML Schema generated from it.
+It is also designed to integrate with the \emph{Petri Net Markup Language}
+(PNML) in the future.
 
-This document presents this language in two steps: first an informal presentation of the grammar of the language of formulæ used to define properties (and the sublanguages of all the particular categories in which tools can compete at the MCC), and then a description of how these properties are defined in practice and how they can be interfaced with a tool.
 
-Notice that, with simplification in mind, this year property language is a subset of last year language. Any tool which was participating in last year MCC should thus be able to deal with this language. 
+\section*{Outline}
 
-\tableofcontents
+This document presents the specification language in, conceptually, two steps.
+\begin{itemize}
+\item
+  We first use a BNF grammar to describe the overall specification
+  language.  This grammar is also used to formally define the class of
+  formulas that will be presented to the tools participating on each
+  category of the contest (\cref{s:bnf}).
+\item
+  Second, the document defines the file format used to feed the competing
+  tools with the properties to solve (\cref{s:rng}).
+\end{itemize}
+
+\Cref{s:parsing} provides some help on how to automatically generate code
+in various languages to parse the XML files containing the formulas.
+
 \clearpage
+\tableofcontents
 
-\section{Informal grammars for the formulæ}
+\clearpage
+\section{The BNF grammar of the property language}
+\label{s:bnf}
 
 Each property used in the MCC is defined by a formula on the places and the transitions of the corresponding Petri net. These formulæ follow the general grammar informally presented below, where A (along all paths) and E (there exists a path) are the standard CTL operators, G (globally), F (finally), X (next), and U (until) are the standard LTL operators, $\lnot$ (not), $\wedge$ (and), and $\vee$ (or) are standard boolean operators, $\leq$ (less or equal), $+$ (plus), and $-$ (minus) are standard integer arithmetic operators.
 The predicate \emph{deadlock} stands for ``the current state is a deadlock'' and the predicate \emph{is-fireable($t_1$,\dots,$t_n$)} stands for ``one of the set of transitions $\{t_1,\dots,t_n\}$ is fireable from the current state''.
@@ -427,6 +483,7 @@ operator}.
 
 \clearpage
 \section{Description of the property language as a RelaxNG grammar}
+\label{s:rng}
 
 The property language is designed as a RelaxNG grammar. Thus, properties are given in XML.
 We generate a text equivalent from it, but it is not stable and only given for readability.
@@ -956,9 +1013,9 @@ Places and transitions are uniquely identified. The identifiers are those of the
 \end{lstlisting}
 
 
+\section{Parsing the XML formula files}
+\label{s:parsing}
 
-
-\section{Tools}
 The RelaxNG grammar can be downloaded from~\url{http://mcc.lip6.fr/properties/mcc-properties.rnc} using:
 \begin{lstlisting}[language=sh]
   wget http://mcc.lip6.fr/properties/mcc-properties.rnc
