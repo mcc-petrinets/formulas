@@ -83,23 +83,25 @@
 \parindent = 0.0cm
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fancyhf{}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
 \lhead{\textcolor{rulercolor}{Model Checking Contest @ Petri Nets}\\\ \\}
-\chead{\textcolor{rulercolor}{Page {\thepage}/\pageref{LastPage}}\\\ \\\color{rulercolor}\rule{19cm}{1.5pt}}
+\chead{\textcolor{rulercolor}{Page {\thepage}/\pageref{LastPage}}\\\ \\}
 \rhead{\textcolor{rulercolor}{Property Language Manual}\\\ \\}
 
 \lfoot{}
 \cfoot{}
 \rfoot{}
-
-\renewcommand{\headrulewidth}{0pt}
-\renewcommand{\footrulewidth}{0pt}
 %%%%%%%%%%%%% pour un fond
 \newcommand\BackgroundPic{
-\put(0,0){
+\put(0,-160){
 \parbox[b][\paperheight]{\paperwidth}{%
 \vfill
 \centering
-\includegraphics[width=24cm,keepaspectratio]{background.jpg}%
+\includegraphics[width=23.5cm,keepaspectratio]{background2015.jpg}%
 \vfill
 }}}
 %%%%%%%%%%%%%%%%%%%%%%%%% fin fond
@@ -137,6 +139,8 @@ It is also designed to integrate with Petri Net Markup Language in the future.
 To do so, the language is provided as a RelaxNG grammar and an XML Schema generated from it.
 
 This document presents this language in two steps: first an informal presentation of the grammar of the language of formulæ used to define properties (and the sublanguages of all the particular categories in which tools can compete at the MCC), and then a description of how these properties are defined in practice and how they can be interfaced with a tool.
+
+Notice that, with simplification in mind, this year property language is a subset of last year language. Any tool which was participating in last year MCC should thus be able to deal with this language. 
 
 \tableofcontents
 \clearpage
@@ -179,6 +183,13 @@ For the MCC, these formulæ are grouped among several subclasses, each one corre
 Each of these subclasses defines a particular category and the tools are tested in each of these category independently.
 For each category of formulæ used at MCC we specify below the restriction of the above grammar that will be used.
 Each category is designated by the name of the XML file providing the formulæ from this category (how formulæ are defined as XML files is the topic of the next Sections of this manual).
+
+%
+%
+% parler du lien entre fichiers xml et tool submission kit (i.e. pour chaque modele il y aura chaque fichier de formules)
+%
+%
+%
 
 \subsection{ReachabilityDeadlock}
 
@@ -303,7 +314,8 @@ In the following, for each rule of the grammar defining formulæ we give the Rel
     | integer-formula
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize
+\scriptsize\begin{grammar}
 <formula> ::= <boolean-formula>
 \alt <integer-formula>
 \end{grammar}
@@ -362,7 +374,8 @@ These operators are the \lstinline!A! and \lstinline!E! operators of CTL.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize
+\scriptsize\begin{grammar}
 <boolean-formula> ::= A <boolean-formula>
 \alt E <boolean-formula>
 \end{grammar}
@@ -424,7 +437,8 @@ operators of CTL and LTL.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize
+\scriptsize\begin{grammar}
 <boolean-formula> ::= G <boolean-formula>
 \alt F <boolean-formula>
 \alt X <boolean-formula>
@@ -451,7 +465,7 @@ operators of CTL and LTL.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <boolean-formula> ::= deadlock
 \alt is-fireable($t_1$,\dots,$t_n$)
 \end{grammar}
@@ -518,7 +532,7 @@ These are usual Boolean operators.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <boolean-formula> ::= $\lnot$ <boolean-formula>
 \alt <boolean-formula> $\wedge$ <boolean-formula>
 \alt <boolean-formula> $\vee$ <boolean-formula>
@@ -571,7 +585,7 @@ This is the less or equal integer comparison operator.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <boolean-formula> ::= <integer-expression> $\leq$ <integer-expression>
 \end{grammar}
 \end{multicols}
@@ -590,7 +604,7 @@ The tool must return the integer, that is the result of the expression.
   integer-expression = ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <integer-formula> ::= <integer-expression>
 \end{grammar}
 \end{multicols}
@@ -644,7 +658,7 @@ These are usual arithmetic operators for integers.
   | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <integer-expression> ::= integer-constant
 \alt <integer-expression> + <integer-expression>
 \alt <integer-expression> - <integer-expression>
@@ -666,7 +680,7 @@ These are usual arithmetic operators for integers.
     | ...
 \end{lstlisting}
 \columnbreak
-\begin{grammar}
+\scriptsize\begin{grammar}
 <integer-expression> ::= place-bound($p_1$,\dots,$p_n$)
 \alt tokens-count($p_1$,\dots,$p_n$)
 \end{grammar}
