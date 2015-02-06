@@ -200,19 +200,24 @@ It specifically contains:
 
 \subsection{Categories of the contest}
 
-The \mcc{} @ Petri nets compares the competing verification tools on
-several categories.
-Each category contains formulas of a fixed type, \eg, reachability
-formulas, or LTL formulas.
-The categories this year are the same as the last year:
-\footnote{Although the class of formulas (\ie, the specific fragment of the
-BNF grammar presented in \cref{s:bnf}) contained in each category has
-varied from last year.}
+The \mccl{} compares the competing verification tools on four
+categories of verification goals:
+
+\begin{enumerate}
+\item State Space generation
+\item Reachability analysis
+\item LTL analysis
+\item CTL analysis
+\end{enumerate}
+
+To maximize tool participation, we have further divided each category into
+several subcategories, where only restricted kinds of formulas will be
+found. Overall, we propose 12 subcategories:
 
 \begin{center}
 \begin{tabular}{ll}
 \toprule
-Category                       & Description \\
+Subcategory                       & Description \\
 \midrule
 ReachabilityDeadlock           & Existence of deadlock states \\
 ReachabilityFireabilitySimple  & Firability of transitions \\
@@ -230,9 +235,15 @@ CTLCardinality                 & Full CTL with atomic propositions comparing the
 \end{tabular}
 \end{center}
 
-Each category designates the
+Each subcategory designates the
 name of a XML file providing, for every benchmark, a set of formulæ for
-tools competing in this category to solve.
+tools competing in this subcategory to solve.
+
+The 12 subcategories are this year the same as the ones proposed the last
+year.
+However, the class of formulas (\ie, the specific fragment of the
+BNF grammar presented in \cref{s:bnf}) contained in each of them has
+varied from last year.
 
 % FIXME
 % parler du lien entre fichiers xml et tool submission kit (i.e. pour
@@ -242,7 +253,7 @@ Most of the formulas presented to tools have been randomly generated.
 Only very few of them were written by hand.
 Unfortunately, most of the benchmarks submitted to the contest came without
 example verification properties.
-Writing them by hand is a very time consuming task (there is currently more
+Writing them by hand is a very time consuming task (there are currently more
 than 250 models!).
 This is a very unfortunate situation but we have not found any way to
 overcome it.
@@ -273,7 +284,7 @@ This document presents the specification language in, conceptually, two steps.
   We first use a BNF grammar to describe the overall specification
   language.  This grammar is also used to formally define the class of
   formulas that will be presented to the tools participating on each
-  category of the contest (\cref{s:bnf}).
+  subcategory of the contest (\cref{s:bnf}).
 \item
   Second, the document defines the XML syntax of the files that will
   actually be passed to the tools (\cref{s:rng}).
@@ -286,7 +297,7 @@ in various languages to parse the XML files containing the formulas.
 \section{The BNF grammar of the property language}
 \label{s:bnf}
 
-Every property presented to a tool participating in any category of the
+Every property presented to a tool participating in any subcategory of the
 contests can be derived from the following general grammar of the
 property language:
 
@@ -324,9 +335,9 @@ The property language considers two kinds of formul\ae{}:
 boolean formul\ae{},
 evaluating to a boolean value, and integer formul\ae{},
 which evaluate to a natural number.
-Only the category
+Only the subcategory
 \textit{ReachabilityComputeBounds} employs integer formul\ae{}, all other
-categories use only boolean formul\ae{}.
+subcategories use only boolean formul\ae{}.
 
 Operators \ctla and \ctle are the standard CTL operators.
 Operators
@@ -363,7 +374,7 @@ the following operators:
   marking, the exact number of tokens contained in the set
   $\set{p_1, \ldots, p_n}$ of places.
 \end{itemize}
-Note that, in fact, in the current edition of the \mcc{} no category of the
+Note that, in fact, in the current edition of the \mcc{} no subcategory of the
 contest will contain formulas using additions and subtractions of integer
 expressions. These operators remain here only for future use.
 
@@ -371,18 +382,18 @@ expressions. These operators remain here only for future use.
 % give formal semantics to these formulae
 
 This grammar defines a large class of formulæ.
-Each category of the contest contains formulas of only some specific
+Each subcategory of the contest contains formulas of only some specific
 fragment of this grammar.
 The following subsections define the specific syntax of the formul\ae{}
-that tools participating in a given category shall expect to be provided
+that tools participating in a given subcategory shall expect to be provided
 with.
 
 \Cref{s:rng} presents the correspondence between the above BNF grammar
 and the syntax of the XML files that will actually be passed to the tools.
 
-\subsection{Category \textit{ReachabilityDeadlock}}
+\subsection{Subcategory \textit{ReachabilityDeadlock}}
 
-Tools participating in this category will only find one formula to solve
+Tools participating in this subcategory will only find one formula to solve
 for every benchmark:
 
 \begin{grammar}
@@ -394,9 +405,9 @@ for every benchmark:
 
 \end{grammar}
 
-\subsection{Category \textit{ReachabilityFireabilitySimple}}
+\subsection{Subcategory \textit{ReachabilityFireabilitySimple}}
 
-Tools participating in this category will only find two kinds of
+Tools participating in this subcategory will only find two kinds of
 formul\ae{} to solve for every benchmark:
 
 \begin{grammar}
@@ -408,10 +419,10 @@ formul\ae{} to solve for every benchmark:
 
 \end{grammar}
 
-\subsection{Categories \textit{ReachabilityFireability} and \textit{ReachabilityCardinality}}
+\subsection{Subcategories \textit{ReachabilityFireability} and \textit{ReachabilityCardinality}}
 
-Both categories contain formulas produced using the same grammar, the only
-difference being the atomic propositions allowed in each one.
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
 The grammar is the following:
 
 \begin{grammar}
@@ -426,15 +437,15 @@ The grammar is the following:
 \alt <atom>
 \end{grammar}
 
-Now, the cateory \emph{ReachabilityFireability} only contains
+Now, the subcateory \emph{ReachabilityFireability} only contains
 \atomisfire{$\cdot$} atoms:
 
 \begin{grammar}
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-while the formulas in the \emph{ReachabilityCardinality} category uniquely
-contain integer inequalities:
+while the formulas in the \emph{ReachabilityCardinality} subcategory
+uniquely contain integer inequalities:
 
 \begin{grammar}
 <atom> ::= <integer-expression> \atomleq <integer-expression>
@@ -445,7 +456,7 @@ contain integer inequalities:
 
 Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
 
-\subsection{Category \textit{ReachabilityBounds}}
+\subsection{Subcategory \textit{ReachabilityBounds}}
 
 \begin{grammar}
 
@@ -463,9 +474,9 @@ Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
 
 \end{grammar}
 
-\subsection{Cateogory \textit{ReachabilityComputeBounds}}
+\subsection{Subcategory \textit{ReachabilityComputeBounds}}
 
-Observe that this is the only category where formulas evaluate to an
+Observe that this is the only subcategory where formulas evaluate to an
 integer number rather than a boolean value.
 
 \begin{grammar}
@@ -475,7 +486,7 @@ integer number rather than a boolean value.
 \end{grammar}
 
 
-\subsection{Category \textit{LTLFireabilitySimple}}
+\subsection{Subcategory \textit{LTLFireabilitySimple}}
 
 \begin{grammar}
 <formula> ::= <boolean-formula>
@@ -491,10 +502,10 @@ integer number rather than a boolean value.
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-\subsection{Categories \textit{LTLFireability} and \textit{LTLCardinality}}
+\subsection{Subcategories \textit{LTLFireability} and \textit{LTLCardinality}}
 
-Both categories contain formulas produced using the same grammar, the only
-difference being the atomic propositions allowed in each one.
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
 The grammar is the following:
 
 \begin{grammar}
@@ -512,14 +523,15 @@ The grammar is the following:
 
 \end{grammar}
 
-Now, the category \emph{LTLFireability} only contains \atomisfire{$\cdot$} atoms:
+Now, the subcategory \emph{LTLFireability} only contains
+\atomisfire{$\cdot$} atoms:
 
 \begin{grammar}
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-while the formulas in the \emph{LTLCardinality} category contain integer
-inequalities:
+while the formulas in the \emph{LTLCardinality} subcategory only contain
+integer inequalities:
 
 \begin{grammar}
 <atom> ::= <integer-expression> \atomleq <integer-expression>
@@ -529,7 +541,7 @@ inequalities:
 \end{grammar}
 
 
-\subsection{Category \textit{CTLFireabilitySimple}}
+\subsection{Subcategory \textit{CTLFireabilitySimple}}
 
 \begin{grammar}
 <formula> ::= <boolean-formula>
@@ -546,10 +558,10 @@ inequalities:
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-\subsection{Cateogries \emph{CTLFireability} and \emph{CTLCardinality}}
+\subsection{Subcategories \emph{CTLFireability} and \emph{CTLCardinality}}
 
-Both categories contain formulas produced using the same grammar, the only
-difference being the atomic propositions allowed in each one.
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
 The grammar is the following:
 
 \begin{grammar}
@@ -570,13 +582,14 @@ The grammar is the following:
 \alt <boolean-formula> \ltlu <boolean-formula>
 \end{grammar}
 
-The cateory \emph{CTLFireability} only contains \atomisfire{$\cdot$} atoms:
+The subcategory \emph{CTLFireability} only contains \atomisfire{$\cdot$}
+atoms:
 
 \begin{grammar}
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-while the formulas in the \emph{CTLCardinality} category contain
+while the formulas in the \emph{CTLCardinality} subcategory contain
 integer inequalities:
 
 \begin{grammar}
@@ -586,21 +599,23 @@ integer inequalities:
 \alt \atomtokenscnt{$p_1, \ldots, p_n$}
 \end{grammar}
 
-Observe that under the previous definitions it is possible to derivate a
-formula without any CTL operator, by using the last grammar production for
-the non-terminal \synt{boolean-formula}.
-However, such formul{\ae} will never be presented to a tool participating
-in these categories, we will ensure that
-\emph{formul{\ae} contain at least one CTL (either \ctla or \ctle)
-operator}.
+% NOTE - doesn't make sense to say this, we need to filter out in all
+% categories in fact!!
 
-\clearpage
+% Observe that under the previous definitions it is possible to derivate a
+% formula without any CTL operator, by using the last grammar production for
+% the non-terminal \synt{boolean-formula}.
+% However, such formul{\ae} will never be presented to a tool participating
+% in these subcategories, we will ensure that
+% \emph{formul{\ae} contain at least one CTL (either \ctla or \ctle)
+% operator}.
+
 \section{XML format of the property language}
 \label{s:rng}
 
 During the competition, tools will be provided, for every benchmark and
-every category of the contest, with one XML file containing the set of
-formulas to solve for that category in that benchmark.
+every subcategory of the contest, with one XML file containing the set of
+formulas to solve for that subcategory and that benchmark.
 
 The purpose of this section is defining the XML Schema describing the
 structure of the XML files containing the formulas.
