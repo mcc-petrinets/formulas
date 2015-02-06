@@ -285,10 +285,14 @@ EOT;
     $result = null;
     $this->current_depth++;
     $back = $this->copy($this->integer_operators);
-    if (! $allow_constant)
-    {
-      $this->integer_operators[INTEGER_CONSTANT] = false;
-    }
+
+    // the previous version seemed to be buggy, as it effectively never
+    // allowed for integer constants !!!
+    $this->integer_operators[INTEGER_CONSTANT] = ($allow_constant == true);
+    // if (! $allow_constant)
+    // {
+    //   $this->integer_operators[INTEGER_CONSTANT] = false;
+    // }
     if ($this->current_depth >= $this->depth)
     {
       $this->integer_operators[INTEGER_OPERATOR] = false;
@@ -335,6 +339,7 @@ EOT;
     $back = $this->copy($this->boolean_operators);
     if ($this->current_depth >= $this->depth)
     {
+      // if we run into the maximal depth, disable boolean combinations
       $this->boolean_operators[BOOLEAN_OPERATOR] = false;
       // if you have already generated CTL, LTL or something different //
       // than boolean combinations, then disable CTL, LTL and poss/imposs/inv
@@ -498,9 +503,10 @@ EOT;
       "<negation></negation>",
       "<conjunction></conjunction>",
       "<disjunction></disjunction>",
-      "<exclusive-disjunction></exclusive-disjunction>",
-      "<implication></implication>",
-      "<equivalence></equivalence>"
+//      MCC 2015 disallows this:
+//      "<exclusive-disjunction></exclusive-disjunction>",
+//      "<implication></implication>",
+//      "<equivalence></equivalence>"
     );
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
@@ -585,12 +591,13 @@ EOT;
   private function generate_comparison()
   {
     $constants = array(
-      "<integer-eq/>",
-      "<integer-ne/>",
-      "<integer-lt/>",
+//      MCC 2015 disallows most of the operators:
+//      "<integer-eq/>",
+//      "<integer-ne/>",
+//      "<integer-lt/>",
       "<integer-le/>",
-      "<integer-gt/>",
-      "<integer-ge/>"
+//      "<integer-gt/>",
+//      "<integer-ge/>"
     );
     $r = array_rand($constants, 1);
     $result = $this->load_xml($constants[$r]);
