@@ -231,8 +231,8 @@ CTLCardinality                 & Full CTL with atomic propositions comparing the
 \end{center}
 
 Each category designates the
-name of a XML file providing, for every benchmark, a set of formulæ in
-this category.
+name of a XML file providing, for every benchmark, a set of formulæ for
+tools competing in this category to solve.
 
 % FIXME
 % parler du lien entre fichiers xml et tool submission kit (i.e. pour
@@ -262,7 +262,7 @@ It is also designed to integrate with the \emph{Petri Net Markup Language}
 The property language has been
 extensively simplified with respect to the previous edition of the \mcc{}.
 We kept compatibility in mind.
-Any tool which participating in the previous edition of the contests should
+Any tool that participated in the previous edition of the contests should
 only require minimal changes to accept the new version of the language.
 
 \subsection{Outline}
@@ -382,6 +382,9 @@ and the syntax of the XML files that will actually be passed to the tools.
 
 \subsection{Category \textit{ReachabilityDeadlock}}
 
+Tools participating in this category will only find one formula to solve
+for every benchmark:
+
 \begin{grammar}
 
 <formula> ::= <boolean-formula>
@@ -392,6 +395,9 @@ and the syntax of the XML files that will actually be passed to the tools.
 \end{grammar}
 
 \subsection{Category \textit{ReachabilityFireabilitySimple}}
+
+Tools participating in this category will only find two kinds of
+formul\ae{} to solve for every benchmark:
 
 \begin{grammar}
 
@@ -427,8 +433,8 @@ Now, the cateory \emph{ReachabilityFireability} only contains
 <atom> ::= \atomisfire{$t_1, \ldots, t_n$}
 \end{grammar}
 
-while the formulas in the \emph{ReachabilityCardinality} category contain
-integer inequalities:
+while the formulas in the \emph{ReachabilityCardinality} category uniquely
+contain integer inequalities:
 
 \begin{grammar}
 <atom> ::= <integer-expression> \atomleq <integer-expression>
@@ -437,7 +443,7 @@ integer inequalities:
 \alt \atomtokenscnt{$p_1, \ldots, p_n$}
 \end{grammar}
 
-Recall that the \textit{Integer constant} will be a number in $\set{0,1,2}$.
+Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
 
 \subsection{Category \textit{ReachabilityBounds}}
 
@@ -889,7 +895,7 @@ The tool must return the integer, that is the result of the expression.
 \end{lstlisting}
 \columnbreak
 \begin{grammar}
-<integer-formula> ::= <integer-expression> | \ldots
+<integer-formula> ::= <integer-expression>
 \end{grammar}
 \end{multicols}
 
@@ -921,10 +927,11 @@ These are usual arithmetic operators for integers.
      \textit{Integer constant}
 \alt <integer-expression> \exprplus <integer-expression>
 \alt <integer-expression> \exprminus <integer-expression>
+\alt \ldots
 \end{grammar}
 \end{multicols}
 
-\subsubsection{Petri net operators}
+\subsubsection{Token-counting integer operators}
 
 \begin{multicols}{2}
 \begin{lstlisting}
@@ -942,6 +949,7 @@ These are usual arithmetic operators for integers.
 <integer-expression> ::=
      \atomplacebnd{$p_1, \ldots, p_n$}
 \alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\alt \ldots
 \end{grammar}
 \end{multicols}
 
@@ -956,7 +964,7 @@ Recall that
 \subsection{Places and transitions}
 
 Places and transitions are uniquely identified. The identifiers occurring at
-the formula XML files are the \texttt{id}'s present in the PNML model file.
+the formula XML files are the \texttt{id}'s present in the PNML model.
 
 \begin{lstlisting}
   place =
