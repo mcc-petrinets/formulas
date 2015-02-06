@@ -167,65 +167,38 @@
 \begin{document}
 \color{defaultcolor}
 
-\vspace*{2em}
-\section*{This document}
+\vspace*{5cm}
+{\Huge The Property Language Manual \\[8pt]}
+{\Large Model Checking Contest @ Petri Nets 2015}
 
-This document is intended as a guide for the developers of
-the tools participating in the \mcc{} @ Petri nets, edition 2015.
-It specifically contains the following:
-
-\begin{itemize}
-\item
-  The definition of the property language used in the contest this year.
-\item
-  The definition of the language subset presented in each category of the
-  contest (new!)
-\item
-  Instructions on how to parse the XML files containing the properties;
-\end{itemize}
-
-The property language for the 2015 edition has been
-extensively simplified with respect to last year.
-We kept compatibility in mind.
-Any tool which participating in the previous edition of the contests should
-only require minimal changes to accept the new version of the language.
-
-
-\section*{Goals of the property language}
-
-The property language for the \mcc{} @ Petri Nets is designed to maximize
-the tools participating in the competition.
-It is based on XML and allows to write structural, reachability, CTL, LTL formul{\ae}.
-It is tightly related to Petri nets, that are the modeling formalism of the
-\mcc{}.
-
-This language is designed to evolve in the future editions of the contest.
-It is also designed to integrate with the \emph{Petri Net Markup Language}
-(PNML) in the future.
-
-
-\section*{Outline}
-
-This document presents the specification language in, conceptually, two steps.
-\begin{itemize}
-\item
-  We first use a BNF grammar to describe the overall specification
-  language.  This grammar is also used to formally define the class of
-  formulas that will be presented to the tools participating on each
-  category of the contest (\cref{s:bnf}).
-\item
-  Second, the document defines the XML syntax of the files that will
-  actually be passed to the tools (\cref{s:rng}).
-\end{itemize}
-
-\Cref{s:parsing} provides some help on how to automatically generate code
-in various languages to parse the XML files containing the formulas.
+\vfill
+~~
+\hfill
+{\scriptsize v\@. Feb. 6, 2015}
 
 \clearpage
 \tableofcontents
 
 \clearpage
 \section{Introduction}
+
+\subsection{Scope}
+
+This document is intended as a guide for the developers of
+the tools participating in the \mccl{}, edition 2015.
+It specifically contains:
+
+\begin{itemize}
+\item
+  The definition of the property language used in the contest this year.
+\item
+  The definition of the language subset presented in each category of the
+  contest (new!).
+\item
+  Guidance on how to parse the XML files containing the properties.
+\end{itemize}
+
+\subsection{Categories of the contest}
 
 The \mcc{} @ Petri nets compares the competing verification tools on
 several categories.
@@ -257,7 +230,7 @@ CTLCardinality                 & Full CTL with atomic propositions comparing the
 \end{tabular}
 \end{center}
 
-The name of each category designates the
+Each category designates the
 name of a XML file providing, for every benchmark, a set of formulæ in
 this category.
 
@@ -274,12 +247,47 @@ than 250 models!).
 This is a very unfortunate situation but we have not found any way to
 overcome it.
 
+\subsection{Goals and evolution of the property language}
+
+The property language for the \mccl{} is designed to maximize
+the tools participating in the competition.
+It is based on XML and allows to write structural, reachability, CTL, LTL formul{\ae}.
+It is tightly related to Petri nets, that are the modeling formalism of the
+\mcc{}.
+
+This language is designed to evolve in the future editions of the contest.
+It is also designed to integrate with the \emph{Petri Net Markup Language}
+(PNML) in the future.
+
+The property language has been
+extensively simplified with respect to the previous edition of the \mcc{}.
+We kept compatibility in mind.
+Any tool which participating in the previous edition of the contests should
+only require minimal changes to accept the new version of the language.
+
+\subsection{Outline}
+
+This document presents the specification language in, conceptually, two steps.
+\begin{itemize}
+\item
+  We first use a BNF grammar to describe the overall specification
+  language.  This grammar is also used to formally define the class of
+  formulas that will be presented to the tools participating on each
+  category of the contest (\cref{s:bnf}).
+\item
+  Second, the document defines the XML syntax of the files that will
+  actually be passed to the tools (\cref{s:rng}).
+\end{itemize}
+
+\Cref{s:parsing} provides some help on how to automatically generate code
+in various languages to parse the XML files containing the formulas.
+
 
 \section{The BNF grammar of the property language}
 \label{s:bnf}
 
 Every property presented to a tool participating in any category of the
-contests can be derivated from the following general grammar of the
+contests can be derived from the following general grammar of the
 property language:
 
 \begin{grammar}
@@ -314,7 +322,7 @@ property language:
 
 The property language considers two kinds of formul\ae{}:
 boolean formul\ae{},
-evaluating to a boolean variable, and integer formul\ae{},
+evaluating to a boolean value, and integer formul\ae{},
 which evaluate to a natural number.
 Only the category
 \textit{ReachabilityComputeBounds} employs integer formul\ae{}, all other
@@ -327,9 +335,8 @@ Operators
 \ltlx,
 \ltlu
 are the standard LTL operators.
-We define that the \ltlx operator evaluate to false if the current if no
-successor state exists.
-A boolean formula can also contain boolean combinations of boolean
+We define that the \ltlx operator evaluate to false if no successor state
+exists.  A boolean formula can also contain boolean combinations of boolean
 formulas.
 Atomic propositions are either
 \begin{itemize}
@@ -344,7 +351,7 @@ Atomic propositions are either
 \end{itemize}
 
 Integer expressions can contain additions and subtractions of
-\emph{Integer constants}, always taken from the set $\set{0, 1, 2}$, and
+\emph{Integer constants}, always taken from the set $\set{1, 2, 3}$, and
 the following operators:
 \begin{itemize}
 \item
@@ -371,7 +378,7 @@ that tools participating in a given category shall expect to be provided
 with.
 
 \Cref{s:rng} presents the correspondence between the above BNF grammar
-and the syntax of the XML files that will actually be provided to the tools.
+and the syntax of the XML files that will actually be passed to the tools.
 
 \subsection{Category \textit{ReachabilityDeadlock}}
 
@@ -581,6 +588,7 @@ in these categories, we will ensure that
 \emph{formul{\ae} contain at least one CTL (either \ctla or \ctle)
 operator}.
 
+\clearpage
 \section{XML format of the property language}
 \label{s:rng}
 
@@ -916,7 +924,6 @@ These are usual arithmetic operators for integers.
 \end{grammar}
 \end{multicols}
 
-\clearpage
 \subsubsection{Petri net operators}
 
 \begin{multicols}{2}
@@ -946,7 +953,7 @@ Recall that
   \item \lstinline!tokens-count! returns the exact number of tokens in a set of places.
 \end{itemize}
 
-\subsection{Places and Transitions}
+\subsection{Places and transitions}
 
 Places and transitions are uniquely identified. The identifiers occurring at
 the formula XML files are the \texttt{id}'s present in the PNML model file.
