@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://mcc.lip6.fr/" xmlns:ns1="http://mcc.lip6.fr/">
+  <xs:element name="property-set">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="ns1:property"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="property">
+    <xs:complexType>
+      <xs:all>
+        <xs:element ref="ns1:id"/>
+        <xs:element ref="ns1:description"/>
+        <xs:element ref="ns1:formula"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="id" type="xs:ID"/>
+  <xs:element name="description" type="xs:string"/>
+  <xs:element name="formula" type="ns1:formula"/>
+  <xs:complexType name="formula">
+    <xs:choice>
+      <xs:element ref="ns1:boolean-formula"/>
+      <xs:element ref="ns1:integer-formula"/>
+    </xs:choice>
+  </xs:complexType>
+  <xs:element name="boolean-formula" abstract="true"/>
+  <xs:element name="all-paths" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="exists-path" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="next" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="globally" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="finally" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="until" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:all>
+        <xs:element ref="ns1:before"/>
+        <xs:element ref="ns1:reach"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="before">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="reach">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="deadlock" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType/>
+  </xs:element>
+  <xs:element name="is-fireable" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ns1:transition"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="negation" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="conjunction" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+        <xs:element maxOccurs="unbounded" ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="disjunction" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:boolean-formula"/>
+        <xs:element maxOccurs="unbounded" ref="ns1:boolean-formula"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-le" substitutionGroup="ns1:boolean-formula">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:integer-expression"/>
+        <xs:element ref="ns1:integer-expression"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-expression" abstract="true" substitutionGroup="ns1:integer-formula"/>
+  <xs:element name="integer-constant" substitutionGroup="ns1:integer-expression" type="xs:integer"/>
+  <xs:element name="integer-sum" substitutionGroup="ns1:integer-expression">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:integer-expression"/>
+        <xs:element maxOccurs="unbounded" ref="ns1:integer-expression"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="integer-difference" substitutionGroup="ns1:integer-expression">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ns1:integer-expression"/>
+        <xs:element ref="ns1:integer-expression"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="place-bound" substitutionGroup="ns1:integer-expression">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ns1:place"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="tokens-count" substitutionGroup="ns1:integer-expression">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="ns1:place"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="place" type="xs:IDREF"/>
+  <xs:element name="transition" type="xs:IDREF"/>
+  <xs:element name="integer-formula" abstract="true"/>
+</xs:schema>

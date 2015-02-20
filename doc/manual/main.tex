@@ -1,0 +1,1092 @@
+\documentclass[10pt,english,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+
+\usepackage[svgnames]{xcolor}
+\usepackage{a4wide}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{eurosym}
+\usepackage{vmargin}
+\usepackage{fancyhdr}
+\usepackage{multicol}
+\usepackage{lastpage}
+\usepackage{eso-pic}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{syntax}
+\usepackage{xspace}
+\usepackage{booktabs}
+\usepackage[capitalise,english,nameinlink]{cleveref} % load after algorithm2e and hyperref
+
+\hypersetup{
+  bookmarksdepth=2,
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  bookmarksopenlevel=2,
+  colorlinks=true,
+  linktocpage=true,
+  breaklinks=true,
+  pageanchor=true,
+  allcolors=[rgb]{0.1,0.5,0.1},
+  pdftitle={Property Language Manual},
+  pdfauthor={The MCC 2015 formula team}
+}
+
+\setlength{\grammarindent}{11em}
+\synctex=1
+
+\newcommand\tup[1]           {\langle#1\rangle}
+\newcommand\set[1]           {{\{ #1 \mathclose \}}}
+\newcommand\eg               {e.g.\@\xspace}
+\newcommand\ie               {i.e.\@\xspace}
+\newcommand\N                {\mathbb{N}}
+
+\newcommand\ctla             {\textbf{A}\xspace}
+\newcommand\ctle             {\textbf{E}\xspace}
+\newcommand\ltlf             {\textbf{F}\xspace}
+\newcommand\ltlg             {\textbf{G}\xspace}
+\newcommand\ltlx             {\textbf{X}\xspace}
+\newcommand\ltlu             {\textbf{U}\xspace}
+\newcommand\logicnot         {\boldmath$\lnot$\xspace}
+\newcommand\logicand         {\boldmath$\land$\xspace}
+\newcommand\logicor          {\boldmath$\lor$\xspace}
+\newcommand\atomleq          {\boldmath$\leq$\xspace}
+\newcommand\atomdead         {\textbf{deadlock}\xspace}
+\newcommand\atomisfire[1]    {\textbf{is-fireable}(#1)}
+\newcommand\atomplacebnd[1]  {\textbf{place-bound}(#1)}
+\newcommand\atomtokenscnt[1] {\textbf{token-count}(#1)}
+\newcommand\exprplus         {\boldmath$+$\xspace}
+\newcommand\exprminus        {\boldmath$-$\xspace}
+
+\newcommand{\CC}{%
+  C\nolinebreak\hspace{-.05em}\raisebox{.4ex}{\scriptsize\bf +}\nolinebreak\hspace{-.10em}\raisebox{.4ex}{\scriptsize\bf +}%
+}
+
+%\definecolor{listinggray}{gray}{0.92}
+\lstdefinelanguage{rnc}
+{ morekeywords={element, complexType, sequence, ID, IDREF, complexContent, extension, attribute}
+, morekeywords=[2]{name, minOccurs, maxOccurs, ref, type, substitutionGroup, base, abstract}
+, morekeywords=[3]{xs, mcc}
+, basicstyle=\scriptsize\fontfamily{fvm}\selectfont
+, keywordstyle=\scriptsize\fontfamily{fvm}\selectfont\color{Purple}
+, keywordstyle=[2]\scriptsize\fontfamily{fvm}\selectfont\color{DarkBlue}
+, keywordstyle=[3]\scriptsize\fontfamily{fvm}\selectfont\color{ForestGreen}
+, stringstyle=\scriptsize\fontfamily{fvm}\selectfont\color{FireBrick}
+, morestring=[b]"
+, backgroundcolor=\color{blue!10}
+}
+\lstset{
+  rulecolor=\color{black}
+, breaklines=true
+, tabsize=2
+, flexiblecolumns=false
+, keywordstyle=\bfseries
+, basicstyle=\scriptsize\ttfamily
+, xleftmargin=1cm
+, xrightmargin=1cm
+, language=rnc
+}
+\lstdefinelanguage{xsd}
+{ morekeywords={element, complexType, sequence, ID, IDREF, complexContent, extension, attribute}
+, morekeywords=[2]{name, minOccurs, maxOccurs, ref, type, substitutionGroup, base, abstract}
+, morekeywords=[3]{xs, mcc}
+, basicstyle=\scriptsize\fontfamily{fvm}\selectfont
+, keywordstyle=\scriptsize\fontfamily{fvm}\selectfont\color{Purple}
+, keywordstyle=[2]\scriptsize\fontfamily{fvm}\selectfont\color{DarkBlue}
+, keywordstyle=[3]\scriptsize\fontfamily{fvm}\selectfont\color{ForestGreen}
+, stringstyle=\scriptsize\fontfamily{fvm}\selectfont\color{FireBrick}
+, morestring=[b]"
+, backgroundcolor=\color{blue!10}
+}
+\lstdefinelanguage{mpl}
+{ basicstyle=\scriptsize\fontfamily{fvm}\selectfont
+, keywordstyle=\scriptsize\fontfamily{fvm}\selectfont\color{Purple}
+, stringstyle=\scriptsize\fontfamily{fvm}\selectfont\color{FireBrick}
+, morestring=[b]"
+, backgroundcolor=\color{green!10}
+}
+
+\definecolor{rulercolor}{RGB}{255,255,255}
+\definecolor{sectioncolor}{RGB}{50,50,50}
+\definecolor{defaultcolor}{RGB}{100,37,16}
+
+\oddsidemargin = 1cm
+\evensidemargin = 1cm
+\textwidth = 19cm
+\topmargin = 1.2cm
+\textheight = 24cm
+\parskip = 0.1cm
+\parindent = 0.0cm
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fancyhf{}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\lhead{\textcolor{rulercolor}{Model Checking Contest @ Petri Nets}\\\ \\}
+\chead{\textcolor{rulercolor}{Page {\thepage}/\pageref{LastPage}}\\\ \\}
+\rhead{\textcolor{rulercolor}{Property Language Manual}\\\ \\}
+
+\lfoot{}
+\cfoot{}
+\rfoot{}
+%%%%%%%%%%%%% pour un fond
+\newcommand\BackgroundPic{
+\put(0,-160){
+\parbox[b][\paperheight]{\paperwidth}{%
+\vfill
+\centering
+\includegraphics[width=23.5cm,keepaspectratio]{background2015.jpg}%
+\vfill
+}}}
+%%%%%%%%%%%%%%%%%%%%%%%%% fin fond
+
+\renewcommand{\rmdefault}{phv}
+\renewcommand{\sfdefault}{cmr}
+%\renewcommand{\ttdefault}{pcr}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\fk}[1]{\color{blue}FK: #1\color{defaultcolor}\ }
+\newcommand{\fp}[1]{\color{red}FK: #1\color{defaultcolor}\ }
+
+\newcommand{\mcc}[0]{MCC}
+\newcommand{\mccl}[0]{Model Checking Contest @ Petri Nets}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\myparagraph[1]{\color{sectioncolor}\smallskip\textbf{#1. }\color{defaultcolor}}
+\newcommand\mysection[1]{\color{sectioncolor}\section{#1}\color{defaultcolor}}
+\newcommand\mysubsection[1]{\color{sectioncolor}\subsection{#1}\color{defaultcolor}}
+
+\pagestyle{fancy}
+\AddToShipoutPicture{\BackgroundPic}
+
+\begin{document}
+\color{defaultcolor}
+
+\vspace*{5cm}
+\Huge
+The Property Language Manual \\[10pt]
+\Large
+Model Checking Contest @ Petri Nets 2015
+
+\vspace{3cm}
+\large
+Contact: \\[15pt]
+The \mcc{} formula team, \\
+\href{mailto:cesar.rodriguez@lipn.fr}{César Rodríguez},
+\href{mailto:loig.jezequel@irccyn.ec-nantes.fr}{Loïg Jezequel},
+\href{mailto:emmanuel.paviot-adet@lip6.fr}{Emmanuel Paviot-Adet}
+
+\vfill
+~
+\hfill
+\scriptsize
+v\@. Feb\@. 10, 2015
+\normalsize
+
+\clearpage
+\tableofcontents
+
+\clearpage
+\section{Introduction}
+
+\subsection{Scope}
+
+This document is intended as a guide for the developers of
+the tools participating in the \mccl{}, edition 2015.
+It specifically contains:
+
+\begin{itemize}
+\item
+  The definition of the property language used in the contest this year.
+\item
+  The definition of the language subset presented in each category of the
+  contest (new!).
+\item
+  Guidance on how to parse the XML files containing the properties.
+\end{itemize}
+
+\subsection{Categories of the contest}
+
+The \mccl{} compares the competing verification tools on four
+categories of verification goals:
+
+\begin{enumerate}
+\item State Space generation
+\item Reachability analysis
+\item LTL analysis
+\item CTL analysis
+\end{enumerate}
+
+To maximize tool participation, we have further divided each category into
+several subcategories, where only restricted kinds of formulas will be
+found. Overall, we propose 12 subcategories:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Subcategory                       & Description \\
+\midrule
+ReachabilityDeadlock           & Existence of deadlock states \\
+ReachabilityFireabilitySimple  & Firability of transitions \\
+ReachabilityFireability        & Boolean combinations of propositions checking firability of transitions \\
+ReachabilityCardinality        & Boolean combinations of propositions comparing the number of tokens in places\\
+ReachabilityBounds             & Boolean combinations of propositions comparing the bounds of places \\
+ReachabilityComputeBounds      & Computing the bounds of places \\
+\midrule
+LTLFireabilitySimple           & LTL properties with only one linear-time operator and no boolean operator \\
+LTLFireability                 & Full LTL with atomic propositions checking firability of transitions \\
+LTLCardinality                 & Full LTL with atomic propositions comparing the number of tokens in places \\
+\midrule
+CTLFireabilitySimple           & CTL properties with only one temporal operator and no boolean operator \\
+CTLFireability                 & Full CTL with atomic propositions checking firability of transitions \\
+CTLCardinality                 & Full CTL with atomic propositions comparing the number of tokens in places \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Each subcategory designates the
+name of a XML file providing, for every benchmark, a set of formulæ for
+tools competing in this subcategory to solve.
+
+The 12 subcategories are this year the same as the ones proposed the last
+year.
+However, the class of formulas (\ie, the specific fragment of the
+BNF grammar presented in \cref{s:bnf}) contained in each of them has
+varied from last year.
+
+% FIXME
+% parler du lien entre fichiers xml et tool submission kit (i.e. pour
+% chaque modele il y aura chaque fichier de formules)
+
+Most of the formulas presented to tools have been randomly generated.
+Only very few of them were written by hand.
+Unfortunately, most of the benchmarks submitted to the contest came without
+example verification properties.
+Writing them by hand is a very time consuming task (there are currently more
+than 250 models!).
+This is a very unfortunate situation but we have not found any way to
+overcome it.
+
+\subsection{Goals and evolution of the property language}
+
+The property language for the \mccl{} is designed to maximize
+the tools participating in the competition.
+It is based on XML and allows to write structural, reachability, CTL, LTL formul{\ae}.
+It is tightly related to Petri nets, that are the modeling formalism of the
+\mcc{}.
+
+This language is designed to evolve in the future editions of the contest.
+It is also designed to integrate with the \emph{Petri Net Markup Language}
+(PNML) in the future.
+
+The property language has been
+extensively simplified with respect to the previous edition of the \mcc{}.
+We kept compatibility in mind.
+Any tool that participated in the previous edition of the contests should
+only require minimal changes to accept the new version of the language.
+
+\subsection{Outline}
+
+This document presents the specification language in, conceptually, two steps.
+\begin{itemize}
+\item
+  We first use a BNF grammar to describe the overall specification
+  language.  This grammar is also used to formally define the class of
+  formulas that will be presented to the tools participating on each
+  subcategory of the contest (\cref{s:bnf}).
+\item
+  Second, the document defines the XML syntax of the files that will
+  actually be passed to the tools (\cref{s:rng}).
+\end{itemize}
+
+\Cref{s:parsing} provides some help on how to automatically generate code
+in various languages to parse the XML files containing the formulas.
+
+\section{The BNF grammar of the property language}
+\label{s:bnf}
+
+Every property presented to a tool participating in any subcategory of the
+contests can be derived from the following general grammar of the
+property language:
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+\alt <integer-formula>
+
+<boolean-formula> ::= \ctla <boolean-formula>
+\alt \ctle <boolean-formula>
+\alt \ltlg <boolean-formula>
+\alt \ltlf <boolean-formula>
+\alt \ltlx <boolean-formula>
+\alt <boolean-formula> \ltlu <boolean-formula>
+\alt \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor <boolean-formula>
+\alt <atom>
+
+<atom> ::= \atomdead
+\alt \atomisfire{$t_1, \ldots, t_n$}
+\alt <integer-expression> \atomleq <integer-expression>
+
+<integer-formula> ::= <integer-expression>
+
+<integer-expression> ::=
+     <integer-expression> \exprplus <integer-expression>
+\alt <integer-expression> \exprminus <integer-expression>
+\alt \textit{Integer constant}
+\alt \atomplacebnd{$p_1, \ldots, p_n$}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+
+\end{grammar}
+
+The property language considers two kinds of formul\ae{}:
+boolean formul\ae{},
+evaluating to a boolean value, and integer formul\ae{},
+which evaluate to a natural number.
+Only the subcategory
+\textit{ReachabilityComputeBounds} employs integer formul\ae{}, all other
+subcategories use only boolean formul\ae{}.
+
+Operators \ctla and \ctle are the standard CTL operators.
+Operators
+\ltlg,
+\ltlf,
+\ltlx,
+\ltlu
+are the standard LTL operators.
+We define that the \ltlx operator evaluate to false if no successor state
+exists.  A boolean formula can also contain boolean combinations of boolean
+formulas.
+Atomic propositions are either
+\begin{itemize}
+\item
+  \atomdead, asking that the current state enables no transition,
+\item
+  \atomisfire{$t_1, \ldots, t_n$}, which holds iff either $t_1$, or $t_2$,
+  or \ldots or $t_n$ are enabled at the current state, or
+\item
+  inequalities of the form \synt{expr} \atomleq \synt{expr},
+  where \synt{expr} is an integer expression.
+\end{itemize}
+
+Integer expressions can contain additions and subtractions of
+\emph{Integer constants}, always taken from the set $\set{1, 2, 3}$, and
+the following operators:
+\begin{itemize}
+\item
+  \atomplacebnd{$p_1, \ldots, p_n$}, which returns the exact or estimated
+  maximum number of tokens that any reachable marking can put in all $n$
+  places at the same time.
+\item
+  \atomtokenscnt{$p_1, \ldots, p_n$}, which returns, for the current
+  marking, the exact number of tokens contained in the set
+  $\set{p_1, \ldots, p_n}$ of places.
+\end{itemize}
+Note that, in fact, in the current edition of the \mcc{} no subcategory of the
+contest will contain formulas using additions and subtractions of integer
+expressions. These operators remain here only for future use.
+
+% FIXME
+% give formal semantics to these formulae
+
+This grammar defines a large class of formulæ.
+Each subcategory of the contest contains formulas of only some specific
+fragment of this grammar.
+The following subsections define the specific syntax of the formul\ae{}
+that tools participating in a given subcategory shall expect to be provided
+with.
+
+\Cref{s:rng} presents the correspondence between the above BNF grammar
+and the syntax of the XML files that will actually be passed to the tools.
+
+\subsection{Subcategory \textit{ReachabilityDeadlock}}
+
+Tools participating in this subcategory will only find one formula to solve
+for every benchmark:
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctle \ltlf \atomdead
+%\alt A G $\lnot$ deadlock
+
+\end{grammar}
+
+\subsection{Subcategory \textit{ReachabilityFireabilitySimple}}
+
+Tools participating in this subcategory will only find two kinds of
+formul\ae{} to solve for every benchmark:
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula> 
+
+<boolean-formula> ::= \ctle \ltlf \atomisfire{$t_1, \ldots, t_n$}
+\alt \ctla \ltlg \atomisfire{$t_1, \ldots, t_n$}
+
+\end{grammar}
+
+\subsection{Subcategories \textit{ReachabilityFireability} and \textit{ReachabilityCardinality}}
+
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
+The grammar is the following:
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctle \ltlf <state-formula>
+\alt \ctla \ltlg <state-formula>
+
+<state-formula> ::=  \logicnot  <state-formula>
+\alt <state-formula> \logicand <state-formula>
+\alt <state-formula> \logicor  <state-formula>
+\alt <atom>
+\end{grammar}
+
+Now, the subcateory \emph{ReachabilityFireability} only contains
+\atomisfire{$\cdot$} atoms:
+
+\begin{grammar}
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+while the formulas in the \emph{ReachabilityCardinality} subcategory
+uniquely contain integer inequalities:
+
+\begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\end{grammar}
+
+Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
+
+\subsection{Subcategory \textit{ReachabilityBounds}}
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::=  \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor  <boolean-formula>
+\alt <atom>
+
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomplacebnd{$p_1, \ldots, p_n$}
+
+\end{grammar}
+
+\subsection{Subcategory \textit{ReachabilityComputeBounds}}
+
+Observe that this is the only subcategory where formulas evaluate to an
+integer number rather than a boolean value.
+
+\begin{grammar}
+<formula> ::= <integer-formula>
+
+<integer-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
+\end{grammar}
+
+
+\subsection{Subcategory \textit{LTLFireabilitySimple}}
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctla <path-formula>
+
+<path-formula> ::=
+     \ltlg <atom>
+\alt \ltlf <atom>
+\alt \ltlx <atom>
+\alt <atom> \ltlu <atom>
+
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+\subsection{Subcategories \textit{LTLFireability} and \textit{LTLCardinality}}
+
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
+The grammar is the following:
+
+\begin{grammar}
+
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctla <path-formula>
+
+<path-formula> ::=
+     \ltlg <path-formula>
+\alt \ltlf <path-formula>
+\alt \ltlx <path-formula>
+\alt <path-formula> \ltlu <path-formula>
+\alt <atom>
+
+\end{grammar}
+
+Now, the subcategory \emph{LTLFireability} only contains
+\atomisfire{$\cdot$} atoms:
+
+\begin{grammar}
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+while the formulas in the \emph{LTLCardinality} subcategory only contain
+integer inequalities:
+
+\begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\end{grammar}
+
+
+\subsection{Subcategory \textit{CTLFireabilitySimple}}
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::= \ctla <path-formula>
+\alt \ctle <path-formula>
+
+<path-formula> ::=
+     \ltlg <atom>
+\alt \ltlf <atom>
+\alt \ltlx <atom>
+\alt <atom> \ltlu <atom>
+
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+\subsection{Subcategories \emph{CTLFireability} and \emph{CTLCardinality}}
+
+Both subcategories contain formulas produced using the same grammar, the
+only difference being the atomic propositions allowed in each one.
+The grammar is the following:
+
+\begin{grammar}
+<formula> ::= <boolean-formula>
+
+<boolean-formula> ::=
+     \ctla <path-formula>
+\alt \ctle <path-formula>
+\alt \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor <boolean-formula>
+\alt <atom>
+
+<path-formula> ::=
+     \ltlg <boolean-formula>
+\alt \ltlf <boolean-formula>
+\alt \ltlx <boolean-formula>
+\alt <boolean-formula> \ltlu <boolean-formula>
+\end{grammar}
+
+The subcategory \emph{CTLFireability} only contains \atomisfire{$\cdot$}
+atoms:
+
+\begin{grammar}
+<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
+\end{grammar}
+
+while the formulas in the \emph{CTLCardinality} subcategory contain
+integer inequalities:
+
+\begin{grammar}
+<atom> ::= <integer-expression> \atomleq <integer-expression>
+
+<integer-expression> ::= \textit{Integer constant}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\end{grammar}
+
+% NOTE - doesn't make sense to say this, we need to filter out in all
+% categories in fact!!
+
+% Observe that under the previous definitions it is possible to derivate a
+% formula without any CTL operator, by using the last grammar production for
+% the non-terminal \synt{boolean-formula}.
+% However, such formul{\ae} will never be presented to a tool participating
+% in these subcategories, we will ensure that
+% \emph{formul{\ae} contain at least one CTL (either \ctla or \ctle)
+% operator}.
+
+\section{XML format of the property language}
+\label{s:rng}
+
+During the competition, tools will be provided, for every benchmark and
+every subcategory of the contest, with one XML file containing the set of
+formulas to solve for that subcategory and that benchmark.
+
+The purpose of this section is defining the XML Schema describing the
+structure of the XML files containing the formulas.
+In fact, we describe a RelaxNG representation of the XML Schema.
+
+Each XML file will be provided together with a plain text file describing
+the formula in a more readable way.
+The format of this text file is not guaranteed to be preserved in future
+editions of the contest. This file is just provided for readability.
+
+As an introducing example, consider the following property, given in XML
+(left) and the corresponding to a set of formulas containing only one
+formula (right) generated by the grammar in \cref{s:bnf}.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+   <?xml version="1.0"?>
+   <property-set xmlns="http://mcc.lip6.fr/">
+    <property>
+     <id>Dekker-PT-010-test1</id>
+     <description>
+      Automatically generated formula.
+     </description>
+     <formula>
+      <exists-path>
+       <until>
+        <before>
+         <negation>
+          <integer-le>
+           <integer-constant>1</integer-constant>
+           <tokens-count>
+            <place>p3_0</place>
+           </tokens-count>
+          </integer-le>
+         </negation>
+        </before>
+        <reach>
+         <is-fireable>
+          <transition>withdraw_4_8</transition>
+         </is-fireable>
+        </reach>
+       </until>
+      </exists-path>
+     </formula>
+    </property>
+   </property-set>
+\end{lstlisting}
+\columnbreak
+\vspace*{2cm}
+\ctle ((\logicnot (1 \atomleq \atomtokenscnt{p3\_0})) U \atomisfire{withdraw\_4\_8})
+\end{multicols}
+
+What follows is the description of the RelaxNG grammar describing the XML
+files provided to the tools.
+
+\subsection{Property sets}
+The \lstinline[language=xsd]!property-set! element is the root of the XML representation.
+It contains one or more properties.
+\begin{lstlisting}
+  default namespace = "http://mcc.lip6.fr/"
+  start = property-set
+
+  property-set = element property-set {
+    property*
+  }
+\end{lstlisting}
+
+\subsection{Properties}
+A property is composed of three mandatory parts: a unique identifier, a textual description
+of the property, and the formula itself.
+%It has a set of tags to give a hint about the class of tools that can compute the formula
+%(structural, reachability, CTL or LTL). These hints do \emph{not} say that the formula
+%is expressed exactly in the language given by the hint, but tells that given minor changes,
+%it could be.
+
+%A property also contains an optional part for the expected result.
+%It gives the expected value and a textual explanation.
+%% \begin{lstlisting}
+%%   property = element property {
+%%     element id {
+%%       xsd:ID
+%%     } &
+%%     element description {
+%%       text
+%%     } &
+%%     element tags {
+%%       element is-structural { xsd:boolean } &
+%%       element is-reachability  { xsd:boolean } &
+%%       element is-ctl { xsd:boolean } &
+%%       element is-ltl { xsd:boolean }
+%%     } &
+%%     element expected-result {
+%%       element value {
+%%         xsd:integer | xsd:boolean
+%%       } &
+%%       element explanation {
+%%         text
+%%       }
+%%     }? &
+%%     element formula {
+%%       formula
+%%     }
+%%   }
+%% \end{lstlisting}
+
+\begin{lstlisting}
+  property = element property {
+    element id {
+      xsd:ID
+    } &
+    element description {
+      text
+    } &
+    element formula {
+      formula
+    }
+  }
+\end{lstlisting}
+
+
+\subsection{Formul{\ae}}
+Formul{\ae} are the body of properties.
+They define what is expected to hold on the model.
+Formul\ae{} are currently of two main types: formul{\ae} that return integers, and formul{\ae}
+that return Booleans.
+
+In the following, for each rule of the grammar defining formulæ we give the
+RelaxNG representation (on the left) as well as the corresponding part of
+the BNF grammar (on the right).
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  formula =
+      boolean-formula
+    | integer-formula
+\end{lstlisting}
+\columnbreak
+\begin{grammar}
+<formula> ::= <boolean-formula>
+\alt <integer-formula>
+\end{grammar}
+\end{multicols}
+
+\subsubsection{CTL state operators}
+
+These operators correspond to the \ctla and \ctle operators of CTL.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  boolean-formula =
+      ...
+    | element all-paths {
+        boolean-formula
+      }
+    | element exists-path {
+        boolean-formula
+      }
+    | ...
+\end{lstlisting}
+\columnbreak
+\begin{grammar}
+<boolean-formula> ::= \ctla <boolean-formula>
+\alt \ctle <boolean-formula>
+\alt \ldots
+\end{grammar}
+\end{multicols}
+
+\subsubsection{Path operators}
+
+These operators are the
+\ltlg,
+\ltlf,
+\ltlx, and
+\ltlu
+operators of CTL and LTL
+Recall that the \lstinline!next! operator should evaluate to false if no
+successor state exists.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  boolean-formula =
+      ...
+    | element globally {
+        boolean-formula
+      }
+    | element finally {
+        boolean-formula
+      }
+    | element next {
+        boolean-formula &
+    | element until {
+        element before {
+          boolean-formula
+        } &
+        element reach {
+          boolean-formula
+        } &
+      }
+    | ...
+\end{lstlisting}
+\columnbreak
+\setlength{\grammarindent}{10em}
+\begin{grammar}
+<boolean-formula> ::=
+     \ltlg <boolean-formula>
+\alt \ltlf <boolean-formula>
+\alt \ltlx <boolean-formula>
+\alt <boolean-formula> \ltlu <boolean-formula>
+\alt \ldots
+\end{grammar}
+\end{multicols}
+
+\subsubsection{Boolean operators}
+
+These are usual Boolean operators.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  boolean-formula =
+      ...
+    | element negation {
+        boolean-formula
+      }
+    | element conjunction {
+        boolean-formula,
+        boolean-formula+
+      }
+    | element disjunction {
+        boolean-formula,
+        boolean-formula+
+      }
+    | ...
+\end{lstlisting}
+\columnbreak
+\setlength{\grammarindent}{6em}
+\begin{grammar}
+<boolean-formula> ::=
+     \logicnot <boolean-formula>
+\alt <boolean-formula> \logicand <boolean-formula>
+\alt <boolean-formula> \logicor <boolean-formula>
+\alt \ldots
+\end{grammar}
+\end{multicols}
+
+
+\subsubsection{Atomic propositions}
+
+There is three types of atomic propositions.
+Recall that
+\lstinline!deadlock! evaluates to true if the current state is a deadlock
+(has no successor) and
+\lstinline!is-fireable! evaluates to true if one of the set of transitions
+given is fireable from the current state.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  boolean-formula =
+      ...
+    | element deadlock { empty }
+    | element is-fireable {
+        transition+
+      }
+    | element integer-le {
+        integer-expression,
+        integer-expression
+      }
+    | ...
+\end{lstlisting}
+\columnbreak
+\setlength{\grammarindent}{6em}
+\begin{grammar}
+<boolean-formula> ::= <atom> | \ldots
+
+<atom> ::= \atomdead
+\alt \atomisfire{$t_1, \ldots, t_n$}
+\alt <integer-expression> \atomleq <integer-expression>
+\end{grammar}
+\end{multicols}
+
+
+\subsection{Integer formul{\ae}}
+
+An integer formula is an integer expression.
+The tool must return the integer, that is the result of the expression.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  integer-formula =
+      integer-expression
+
+  integer-expression = ...
+\end{lstlisting}
+\columnbreak
+\begin{grammar}
+<integer-formula> ::= <integer-expression>
+\end{grammar}
+\end{multicols}
+
+\subsubsection{Arithmetic operators}
+
+These are usual arithmetic operators for integers.
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  integer-expression =
+      ...
+  | element integer-constant {
+      xsd:integer
+    }
+  | element integer-sum {
+      integer-expression,
+      integer-expression+
+    }
+  | element integer-difference {
+      integer-expression,
+      integer-expression
+    }
+  | ...
+\end{lstlisting}
+\columnbreak
+\setlength{\grammarindent}{6em}
+\begin{grammar}
+<integer-expression> ::=
+     \textit{Integer constant}
+\alt <integer-expression> \exprplus <integer-expression>
+\alt <integer-expression> \exprminus <integer-expression>
+\alt \ldots
+\end{grammar}
+\end{multicols}
+
+\subsubsection{Token-counting integer operators}
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  integer-expression =
+      ...
+  | element place-bound {
+      place+
+    }
+  | element tokens-count {
+      place+
+    | ...
+\end{lstlisting}
+\columnbreak
+\begin{grammar}
+<integer-expression> ::=
+     \atomplacebnd{$p_1, \ldots, p_n$}
+\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+\alt \ldots
+\end{grammar}
+\end{multicols}
+
+Recall that
+\begin{itemize}
+  \item \lstinline!place-bound! returns the exact of estimated bound of a set of places;
+    for several places, it means the maximum number of tokens in all these places at the same
+    time;
+  \item \lstinline!tokens-count! returns the exact number of tokens in a set of places.
+\end{itemize}
+
+\subsection{Places and transitions}
+
+Places and transitions are uniquely identified. The identifiers occurring at
+the formula XML files are the \texttt{id}'s present in the PNML model.
+
+\begin{lstlisting}
+  place =
+      element place {
+        xsd:IDREF
+      }
+
+  transition =
+      element transition {
+        xsd:IDREF
+      }
+\end{lstlisting}
+
+
+\section{Parsing the XML formula files}
+\label{s:parsing}
+
+The RelaxNG grammar can be downloaded from~\url{http://mcc.lip6.fr/properties/mcc-properties.rnc} using:
+\begin{lstlisting}[language=sh]
+  wget http://mcc.lip6.fr/properties/mcc-properties.rnc
+\end{lstlisting}
+
+The XML schema file can be downloaded from~\url{http://mcc.lip6.fr/properties/mcc-properties.xsd} using:
+\begin{lstlisting}[language=sh]
+  wget http://mcc.lip6.fr/properties/mcc-properties.xsd
+\end{lstlisting}
+
+\subsection{How to generate the XML schema from the RelaxNG grammar?}
+The Trang tool is able to transform the RelaxNG grammar into an XML Schema.
+Visit \url{http://www.thaiopensource.com/relaxng/trang.html} to install this tool.
+
+\begin{lstlisting}[language=sh]
+  trang -I rnc -O xsd mcc-properties.rnc mcc-properties.xsd
+\end{lstlisting}
+
+\subsection{How to generate C++ classes from the XML Schema?}
+Generation of {\CC} classes requires Code Synthesis' xsd tool
+(\url{http://www.codesynthesis.com/products/xsd/}).
+This tool converts the XML Schema of the property language to a set of \CC{} classes,
+an XML validating parser, and an XML output.
+This tool is free software, and is available for numerous platforms.
+It is available at \url{http://www.codesynthesis.com/products/xsd/download.xhtml}.
+Parsing and validating XML also requires to install Xerces-\CC{},
+available at \url{http://xerces.apache.org/xerces-c/}.
+
+After installing the \lstinline!xsd! tool,
+you have to fix the file \lstinline!xsd/cxx/zc-istream.txx!:
+\begin{lstlisting}[language=C++]
+35c35
+<       setg (b, b, e);
+---
+>       this->setg (b, b, e);
+\end{lstlisting}
+
+The conversion from the XML Schema to \CC{} classes is then performed using the following command:
+\begin{lstlisting}[language=sh]
+  mkdir -o src/cxx/
+  xsd cxx-tree \
+      --generate-serialization \
+      --generate-doxygen \
+      --generate-ostream \
+      --generate-comparison \
+      --generate-detach \
+      --generate-default-ctor \
+      --generate-polymorphic --polymorphic-type-all \
+      --namespace-map http://mcc.lip6.fr=mcc \
+      --output-dir src/cxx/ \
+      --root-element property-set \
+      mcc-properties.xsd
+\end{lstlisting}
+
+\subsection{How to generate Java classes from the XML Schema?}
+Conversion from the XML Schema to Java classes requires the Java Architecture for XML Binding
+(JAXB -- \url{http://jaxb.java.net/}).
+It is included in recent Java distributions.
+
+To generate the classes, use the following command:
+\begin{lstlisting}[language=sh]
+  mkdir -o src/java/
+  xjc -d src/java/ -p mcc mcc-properties.xsd
+\end{lstlisting}
+It generates a set of Java files in the \lstinline!java! directory.
+
+\subsection{How to generate Python classes from the XML Schema?}
+The python script generateDS (\url{http://www.rexx.com/~dkuhlman/generateDS.html}) generates Python code from the XML Schema.
+
+\begin{lstlisting}[language=sh]
+  mkdir -p src/python/
+  python generateDS.py -m -f --silence -o src/python/mcc-properties.py mcc-properties.xsd
+\end{lstlisting}
+
+\subsection{How to generate C\# classes from the XML Schema?}
+There seems to be also tools for C\# developers: \\
+\url{http://stackoverflow.com/questions/386155/comparison-of-xsd-codegenerators-c}.
+We did not test them, but are interested by feedback if you use one.
+
+\end{document}
