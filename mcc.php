@@ -35,6 +35,7 @@ $application->add(new \MCC\Command\TagFormulas());
 $application->add(new \MCC\Command\FormulasAddNamespace());
 $application->add(new \MCC\Command\UnfoldFormulas());
 $application->add(new \MCC\Command\InstantiateFormulas());
+$application->add(new \MCC\Command\FormulasCheck());
 $application->add(new \MCC\Command\FormulasToText());
 $application->add(new \MCC\Command\FormulasToVIS());
 $application->add(new \MCC\Command\GenerateC());
