@@ -44,12 +44,12 @@ class FormulasCheck extends Base
   
   protected function perform()
   {
-//	$this->console_output->writeln("perform " . $this->sn_smt . " " . $this->pt_smt);
+//  $this->console_output->writeln("perform " . $this->sn_smt . " " . $this->pt_smt);
     $this->ep = new EquivalentElements($this->sn_model, $this->pt_model);
     if ($this->sn_model != null)
     {
       $this->check
-			(
+        (
         $this->sn_input,
         $this->sn_output,
         $this->sn_smt,
@@ -71,7 +71,7 @@ class FormulasCheck extends Base
 
   protected function check ($input, $output, $smt, $places, $transitions)
   {
-//	$this->console_output->writeln("check " . $smt);
+//  $this->console_output->writeln("check " . $smt);
     if (! file_exists($input))
     {
       $this->console_output->writeln(
@@ -83,31 +83,37 @@ class FormulasCheck extends Base
     $quantity = count($xml->children());
     $this->progress->setRedrawFrequency(max(1, $quantity / 100));
     $this->progress->start($this->console_output, $quantity);
-    $out = array();
+    $n = 0;
+    $to_suppress = array();
     foreach ($xml->property as $property)
     {
       $result = array(true, array(), "");
       $result = $this->perform_check($property->formula->children()[0], $places, 
-        	                         $transitions, $smt);
+                                     $transitions, $smt);
       
       if ($result[2] != "")
       {
-		$result[0] = $result[0] && $this->call_smt($result, $smt);
-	  }
-	  
-	  if (!$result[0])
-	  {
-	    unset($property->formula);
-	    unset($property->description);
-//	  	$out[] = $this->save_xml($property->formula->children()[0]);
-	  }
-
+        $result[0] = $result[0] && $this->call_smt($result, $smt);
+      }
+      
+      if (!$result[0])
+      {
+        $to_suppress[] = $n;
+//        $this->console_output->writeln("On supprime : " . $n);
+//        unset($xml->children()[$n]);
+      }
+      $n++;
       $this->progress->advance();
+    }
+    $n = 0;
+    foreach ($to_suppress as $i)
+    {
+      unset($xml->children()[$i - $n]);
+      $n++;
     }
     $this->progress->finish();
     if (file_exists($output))
       unlink($output);
-//    $out = implode("\n", $out);
     file_put_contents($output, $this->save_xml($xml));
   }
 
@@ -120,7 +126,7 @@ class FormulasCheck extends Base
   //     associée n'a aucun sens)
   //   * une chaîne de caractère représentant la formule booléenne déjà calculée
     $result = array(true, array(), "");
-//	$this->console_output->writeln("perform_check " . $smt);
+//  $this->console_output->writeln("perform_check " . $smt);
     switch ((string) $formula->getName())
     {
     case 'invariant':
@@ -135,8 +141,8 @@ class FormulasCheck extends Base
       
       if ($result[2] != "")
       {
-		$result[0] = $result[0] && $this->call_smt($result, $smt);
-	  }
+        $result[0] = $result[0] && $this->call_smt($result, $smt);
+      }
 
       $result[1] = array();
       $result[2] = "";
@@ -155,8 +161,8 @@ class FormulasCheck extends Base
       
       if ($result[2] != "")
       {
-		$result[0] = $result[0] && $this->call_smt($result, $smt);
-	  }
+        $result[0] = $result[0] && $this->call_smt($result, $smt);
+      }
 
       $result[1] = array();
       $result[2] = "";
@@ -168,8 +174,8 @@ class FormulasCheck extends Base
       
       if ($result_b[2] != "")
       {
-		$result[0] = $result[0] && $this->call_smt($result_b, $smt);
-	  }
+        $result[0] = $result[0] && $this->call_smt($result_b, $smt);
+      }
 
       if ($result_b[0])
       {
@@ -178,7 +184,7 @@ class FormulasCheck extends Base
         if ($result_r[2] != "")
         {
            $result[0] = $result[0] && $this->call_smt($result_r, $smt);
-	    }
+        }
 
         $result[0] = $result_r[0];
       }
@@ -204,8 +210,8 @@ class FormulasCheck extends Base
       $result = $this->perform_check($sub, $places, $transitions, $smt);
       if ($result[2] != '')
       {
-	      $result[2] = '(not ' . $result[2] . ')';
-	    }
+          $result[2] = '(not ' . $result[2] . ')';
+        }
       break;
     case 'conjunction':
       $result = $this->collect_formula($formula, 'and', $places, $transitions, $smt);
@@ -243,7 +249,7 @@ class FormulasCheck extends Base
     case 'integer-constant':
       $value = (string) $formula;
       $result[2] = $value;
-//	  $this->console_output->writeln($value);
+//    $this->console_output->writeln($value);
       break;
     case 'integer-sum':
       $result = $this->collect_formula($formula, '+', $places, $transitions, $smt);
@@ -270,13 +276,13 @@ class FormulasCheck extends Base
       }
       if ($res[1] != '')
       {
-	    $result[2] = '(' . implode(' + ', $res) . ')';
+        $result[2] = '(' . implode(' + ', $res) . ')';
       }
       else
       {
         $result[2] = $res[0];
       }
-//	  $this->console_output->writeln($result[2]);
+//    $this->console_output->writeln($result[2]);
       break;
     default:
       $this->console_output->writeln(
@@ -289,7 +295,7 @@ class FormulasCheck extends Base
 
   protected function collect_formula($formula, $operator, $places, $transitions, $smt)
   {
-//	$this->console_output->writeln('CF ' . $operator);
+//  $this->console_output->writeln('CF ' . $operator);
     $result = array(true, array(), "");
     $form = array();
     $found = false;
@@ -318,41 +324,41 @@ class FormulasCheck extends Base
     {
       $result[2] = '(' . $operator . ' ' . implode(' ', $form) . ')';
     }
-//	$this->console_output->writeln($result[2]);
+//  $this->console_output->writeln($result[2]);
     return $result;
   }
 
   protected function call_smt($result, $smt)
   {
-  	$decl = '';
+    $decl = '';
     foreach ($result[1] as $var => $val)
     {
       $decl = '(declare-fun ' . $var . " () Int)\n" . $decl;
     }
     $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert ' . $result[2] . ')' .  "\n(check-sat)";
     file_put_contents($smt, $to_verify);
-	$output = array();
-	$command = 'z3 -smt2 ' . $smt;
-	exec($command, $output);
-	if ($output[0] != 'sat')
-	{
-	  $this->console_output->writeln('unsat 1 !');
-	  $res = false;
-	}
-	else
-	{
-	  $res = true;
-	}
-    $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert (not ' . $result[2] . "))\n(check-sat)";
-    file_put_contents($smt, $to_verify);
-	$output = array();
-	$command = 'z3 -smt2 ' . $smt;
-	exec($command, $output);
-	if ($output[0] != 'sat')
-	{
-	  $this->console_output->writeln('unsat 2 !');
-	  $res = false;
-	}
-	return $res;
+    $output = array();
+    $command = 'z3 -smt2 ' . $smt;
+    exec($command, $output);
+    if ($output[0] != 'sat')
+    {
+      $this->console_output->writeln('unsat 1 !');
+      $res = false;
+    }
+    else
+    {
+      $res = true;
+      $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert (not ' . $result[2] . "))\n(check-sat)";
+      file_put_contents($smt, $to_verify);
+      $output = array();
+      $command = 'z3 -smt2 ' . $smt;
+      exec($command, $output);
+      if ($output[0] != 'sat')
+      {
+        $this->console_output->writeln('unsat 2 !');
+        $res = false;
+      }
+    }
+    return $res;
   }
 }
