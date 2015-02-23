@@ -148,7 +148,7 @@ abstract class Base extends Command
   {
   }
 
-  protected function load_xml($xml)
+  public function load_xml($xml)
   {
     return new \SimpleXmlElement($xml, LIBXML_COMPACT | LIBXML_NOBLANKS);
   }
