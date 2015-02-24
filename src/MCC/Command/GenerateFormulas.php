@@ -139,10 +139,12 @@ EOT;
     $this->progress->start($this->console_output, $this->quantity);
     $result = array();
 
-    // produce $this->quantity formulas
+    // produce $this->quantity formulas, store them in the array $result[]
     for ($i = 0; $i < $this->quantity; $i++)
     {
-      $result[] = $grammar->generate ($this->max_depth);
+      $formula = $grammar->generate ($this->max_depth);
+      if ($this->filter_out_formula ($formula)) continue;
+      $result[] = $formula;
       $this->progress->advance();
     }
 
@@ -164,7 +166,6 @@ EOT;
     if ($this->chain)
     {
       foreach (array(
-        'formula:tag',
         'formula:unfold',
         'formula:to-text'
       ) as $c)
@@ -177,14 +178,16 @@ EOT;
             'parameter' => $this->parameter,
             '--output'  => $this->output_name,
           );
-        if ($c == 'formula:tag')
-        {
-          $arguments[] = '--no-warning';
-        }
         $input = new ArrayInput($arguments);
-        //$returnCode = $command->run($input, $this->console_output);
+        $returnCode = $command->run($input, $this->console_output);
       }
     }
+  }
+
+  private function filter_out_formula ($formula)
+  {
+    // return true if the formula should be filtered out; false if we should keep it
+    return false;
   }
 
   private function copy($a)
@@ -261,7 +264,7 @@ EOT;
       }
       else
       {
-        $g->add_rule (new Rule ($state_formula,     array ($leq,      $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($state_formula,     array ($leq,      $integer_expression, $tokens_count)));
         $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
         $g->add_rule (new Rule ($integer_expression, array ($tokens_count)));
       }
@@ -272,7 +275,7 @@ EOT;
       $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
       $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
       $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $integer_expression)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $place_bound)));
 
       $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
       $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
@@ -315,7 +318,7 @@ EOT;
       }
       else
       {
-        $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $place_bound)));
         $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
         $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
       }
@@ -358,7 +361,7 @@ EOT;
       }
       else
       {
-        $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $place_bound)));
         $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
         $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
       }
@@ -396,21 +399,29 @@ EOT;
     echo "This function is intended for debugging purposes\n";
     foreach ($this->all_subcategories as $cat)
     {
-      echo "\n\nCategory '$cat'\n";
+      echo "\n\nCategory '$cat': Grammar\n";
       echo "==============================\n";
       $g = $this->build_grammar ($cat);
       echo "$g\n\n";
       $g->health_check ();
 
+      echo "\nCategory '$cat': Example 1\n";
+      echo "------------------------------\n";
       $xml_tree = $g->generate (10);
       echo $this->save_xml($xml_tree);
 
+      echo "\nCategory '$cat': Example 2\n";
+      echo "------------------------------\n";
       $xml_tree = $g->generate (10);
       echo $this->save_xml($xml_tree);
 
+      echo "\nCategory '$cat': Example 3\n";
+      echo "------------------------------\n";
       $xml_tree = $g->generate (10);
       echo $this->save_xml($xml_tree);
     }
+
+    exit (0);
   }
 
   private function test2 ()
