@@ -221,6 +221,7 @@ EOT;
     $boolean_formula    = new Symbol ("boolean-formula");
     $integer_formula    = new Symbol ("integer-formula");
     $state_formula      = new Symbol ("state-formula");
+    $path_formula       = new Symbol ("path-formula");
     $atom               = new Symbol ("atom");
     $integer_expression = new Symbol ("integer-expression");
     $tmp1               = new Symbol ("tmp-formula1");
@@ -243,6 +244,7 @@ EOT;
       break;
 
     case SUBCAT_REACHABILITY_FIREABILITY :
+    case SUBCAT_REACHABILITY_CARDINALITY :
       $g = new Grammar ($this, $boolean_formula);
       $g->add_rule (new Rule ($boolean_formula, array ($exists,   $tmp1)));
       $g->add_rule (new Rule ($boolean_formula, array ($all,      $tmp2)));
@@ -252,8 +254,113 @@ EOT;
       $g->add_rule (new Rule ($state_formula,   array ($not,      $state_formula)));
       $g->add_rule (new Rule ($state_formula,   array ($and,      $state_formula, $state_formula)));
       $g->add_rule (new Rule ($state_formula,   array ($or,       $state_formula, $state_formula)));
-      $g->add_rule (new Rule ($state_formula,   array ($atom)));
+      if ($subcategory == SUBCAT_REACHABILITY_FIREABILITY)
+      {
+        $g->add_rule (new Rule ($state_formula,     array ($is_fireable)));
+      }
+      else
+      {
+        $g->add_rule (new Rule ($state_formula,     array ($leq,      $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expresion, array ($tokens_count)));
+      }
+      break;
+
+    case SUBCAT_REACHABILITY_BOUNDS :
+      $g = new Grammar ($this, $boolean_formula);
+      $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $integer_expression)));
+
+      $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
+      $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+      break;
+
+    case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
+      $g = new Grammar ($this, $integer_formula);
+      $g->add_rule (new Rule ($integer_formula, array ($place_bound)));
+      break;
+
+    case SUBCAT_LTL_FIREABILITY_SIMPLE :
+      $g = new Grammar ($this, $boolean_formula);
+      $g->add_rule (new Rule ($boolean_formula, array ($all,      $path_formula)));
+
+      $g->add_rule (new Rule ($path_formula,    array ($globally, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($finally, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($next, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($until, $tmp1, $tmp2)));
+      $g->add_rule (new Rule ($tmp1,            array ($until_before, $atom)));
+      $g->add_rule (new Rule ($tmp2,            array ($until_reach, $atom)));
+
       $g->add_rule (new Rule ($atom,            array ($is_fireable)));
+      break;
+
+    case SUBCAT_LTL_FIREABILITY :
+    case SUBCAT_LTL_CARDINALITY :
+      $g = new Grammar ($this, $boolean_formula);
+      $g->add_rule (new Rule ($boolean_formula, array ($all,      $path_formula)));
+
+      $g->add_rule (new Rule ($path_formula,    array ($globally, $path_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($finally, $path_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($next, $path_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($until, $tmp1, $tmp2)));
+      $g->add_rule (new Rule ($tmp1,            array ($until_before, $path_formula)));
+      $g->add_rule (new Rule ($tmp2,            array ($until_reach, $path_formula)));
+
+      if ($subcategory == SUBCAT_LTL_FIREABILITY)
+      {
+        $g->add_rule (new Rule ($path_formula,      array ($is_fireable)));
+      }
+      else
+      {
+        $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+      }
+      break;
+
+    case SUBCAT_CTL_FIREABILITY_SIMPLE :
+      $g = new Grammar ($this, $boolean_formula);
+      $g->add_rule (new Rule ($boolean_formula, array ($all,      $path_formula)));
+      $g->add_rule (new Rule ($boolean_formula, array ($exists,   $path_formula)));
+
+      $g->add_rule (new Rule ($path_formula,    array ($globally, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($finally, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($next, $atom)));
+      $g->add_rule (new Rule ($path_formula,    array ($until, $tmp1, $tmp2)));
+      $g->add_rule (new Rule ($tmp1,            array ($until_before, $atom)));
+      $g->add_rule (new Rule ($tmp2,            array ($until_reach, $atom)));
+
+      $g->add_rule (new Rule ($atom,            array ($is_fireable)));
+      break;
+
+    case SUBCAT_CTL_FIREABILITY :
+    case SUBCAT_CTL_CARDINALITY :
+      $g = new Grammar ($this, $boolean_formula);
+      $g->add_rule (new Rule ($boolean_formula, array ($all,      $path_formula)));
+      $g->add_rule (new Rule ($boolean_formula, array ($exists,   $path_formula)));
+      $g->add_rule (new Rule ($boolean_formula, array ($not,      $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula, array ($and,      $boolean_formula, $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula, array ($or,       $boolean_formula, $boolean_formula)));
+
+      $g->add_rule (new Rule ($path_formula,    array ($globally, $boolean_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($finally, $boolean_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($next, $boolean_formula)));
+      $g->add_rule (new Rule ($path_formula,    array ($until, $tmp1, $tmp2)));
+      $g->add_rule (new Rule ($tmp1,            array ($until_before, $boolean_formula)));
+      $g->add_rule (new Rule ($tmp2,            array ($until_reach, $boolean_formula)));
+
+      if ($subcategory == SUBCAT_CTL_FIREABILITY)
+      {
+        $g->add_rule (new Rule ($boolean_formula,   array ($is_fireable)));
+      }
+      else
+      {
+        $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $integer_expression)));
+        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+      }
       break;
 
     default :
@@ -558,6 +665,28 @@ class Grammar
   {
     $this->static_analysis ();
 
+    // - the head of every rule needs to be a non-terminal
+    // - the first symbol of the body needs to be a terminal
+    //   if there is more than one symbol in the body
+    foreach ($this->rules as $rule)
+    {
+      if ($rule->head->is_terminal)
+      {
+        $msg = "There are rules whose head is a terminal !!!";
+        throw new \Exception ($msg);
+      }
+      if (count ($rule->body) == 0)
+      {
+        $msg = "There are rules with an empty body";
+        throw new \Exception ($msg);
+      }
+      if (count($rule->body) > 1 && ! $rule->body[0]->is_terminal)
+      {
+        $msg = "The first symbol in the body of a rule needs to be a terminal";
+        throw new \Exception ($msg);
+      }
+    }
+
     // the grammar generates at least one string of terminals
     if ($this->start_symbol->min_derivation_len == INT_MAX)
     {
@@ -573,22 +702,6 @@ class Grammar
     {
       $msg = "This grammar contains dead rules (which cannot be used in any derivation)!";
       throw new \Exception ($msg);
-    }
-
-    // the first symbol in every rule's body needs to be a terminal
-    // if there is more than one symbol in the body
-    foreach ($this->rules as $rule)
-    {
-      if (count ($rule->body) == 0)
-      {
-        $msg = "There are rules with an empty body";
-        throw new \Exception ($msg);
-      }
-      if (count($rule->body) > 1 && ! $rule->body[0]->is_terminal)
-      {
-        $msg = "The first symbol in the body of a rule needs to be a terminal";
-        throw new \Exception ($msg);
-      }
     }
   }
 
