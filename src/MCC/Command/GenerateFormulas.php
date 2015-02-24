@@ -74,7 +74,7 @@ class GenerateFormulas extends Base
   private $property_xml_template = <<<EOT
   <property>
     <id></id>
-    <description>Automatically generated formula.</description>
+    <description>Automatically generated</description>
     <formula></formula>
   </property>
 EOT;
@@ -157,7 +157,7 @@ EOT;
       $this->xml_adopt($xml_tree, $property);
       $this->id++;
     }
-    echo $this->save_xml($xml_tree);
+    #echo $this->save_xml($xml_tree);
     file_put_contents($this->output, $this->save_xml($xml_tree));
     $this->progress->finish();
 
