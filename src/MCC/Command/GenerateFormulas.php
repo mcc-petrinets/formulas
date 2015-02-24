@@ -99,7 +99,7 @@ EOT;
 
   protected function perform()
   {
-    $this->test1 ();
+    $this->test2 ();
     return;
 
     if (file_exists($this->output))
@@ -208,13 +208,13 @@ EOT;
     switch ($subcategory)
     {
     case SUBCAT_REACHABILITY_DEADLOCK :
-      $g = new Grammar ($boolean_formula);
+      $g = new Grammar ($this, $boolean_formula);
       $g->add_rule (new Rule ($boolean_formula, array ($exists,  $tmp1)));
       $g->add_rule (new Rule ($tmp1,            array ($finally, $deadlock)));
       break;
 
     case SUBCAT_REACHABILITY_FIREABILITY_SIMPLE :
-      $g = new Grammar ($boolean_formula);
+      $g = new Grammar ($this, $boolean_formula);
       $g->add_rule (new Rule ($boolean_formula, array ($exists,   $tmp1)));
       $g->add_rule (new Rule ($boolean_formula, array ($all,      $tmp2)));
       $g->add_rule (new Rule ($tmp1,            array ($finally,  $is_fireable)));
@@ -222,7 +222,7 @@ EOT;
       break;
 
     case SUBCAT_REACHABILITY_FIREABILITY :
-      $g = new Grammar ($boolean_formula);
+      $g = new Grammar ($this, $boolean_formula);
       $g->add_rule (new Rule ($boolean_formula, array ($exists,   $tmp1)));
       $g->add_rule (new Rule ($boolean_formula, array ($all,      $tmp2)));
       $g->add_rule (new Rule ($tmp1,            array ($finally,  $state_formula)));
@@ -274,6 +274,25 @@ EOT;
 
   private function test2 ()
   {
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_DEADLOCK);
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY_SIMPLE);
+    $g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY);
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_CARDINALITY);
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_BOUNDS);
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_COMPUTE_BOUNDS);
+    //$g = $this->build_grammar (
+    //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY_SIMPLE);
+    //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY);
+    //$g = $this->build_grammar (SUBCAT_LTL_CARDINALITY);
+    //$g = $this->build_grammar (
+    //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY_SIMPLE);
+    //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY);
+    //$g = $this->build_grammar (SUBCAT_CTL_CARDINALITY);
+
+    echo "$g\n\n";
+
+    $xml_tree = $g->generate (4);
+    echo $this->save_xml($xml_tree);
   }
 }
 
@@ -379,15 +398,19 @@ class Rule
 
 class Grammar
 {
-  public $start_symbol;
-  public $rules;
-  public $mark = 1;
-  public $static_analysis_done = false;
+  private $start_symbol;
+  private $rules;
+  private $mark = 1;
+  private $static_analysis_done = false;
 
-  public function __construct ($ss)
+  private $generate_formulas_ref;
+
+
+  public function __construct ($generate_formulas_ref, $ss)
   {
     $this->start_symbol = $ss;
     $this->rules = array ();
+    $this->generate_formulas_ref = $generate_formulas_ref;
   }
 
   public function add_rule ($rule)
@@ -395,37 +418,44 @@ class Grammar
     $this->rules[] = $rule;
   }
 
-  public function generate ($max_depth, $symbol = null)
+  public function generate ($max_depth = 5, $symbol = null)
   {
     if ($symbol == null) $symbol = $this->start_symbol;
     if ($symbol->min_derivation_len > $max_depth)
     {
-      echo "error - minimum derivation from this symbol is deeper than authorized\n";
-      return;
+      $msg = "The minimum derivation length for this grammar is " .
+          "{$symbol->min_derivation_len}, but you authorized a maximum depth " .
+          "of $max_depth.";
+      throw new \Exception ($msg);
     }
-    __generate ($symbol, $max_depth);
+    return $this->__generate ($symbol, $max_depth);
   }
 
   private function __generate ($symbol, $max_depth)
   {
+    echo "__generate: symbol $symbol, max_depth $max_depth\n";
+
     assert ($symbol->min_derivation_len <= $max_depth);
     if ($symbol->is_terminal) return $symbol->generate ();
 
     $choices_array = $this->find_matching_rules ($symbol, $max_depth);
+    echo "__generate: " . count ($choices_array) . " matching rules\n";
     assert (count ($choices_array) >= 1);
     $index = array_rand ($choices_array);
     $rule = $choices_array[$index];
+    echo "__generate: rule picked: \n" . $rule . "\n";
 
     assert (count($rule->body) >= 1);
-    if (count($rule->body) == 1) return __generate ($rule->body[0]);
+    if (count($rule->body) == 1) return $this->__generate ($rule->body[0]);
     assert ($rule->body[0]->is_terminal);
     $xml_tree = $rule->body[0]->generate ();
 
     for ($i = 1; $i < count ($rule->body); $i++)
     {
-      $xml_subtree = __generate ($rule->body[$i], $max_depth - 1);
-      $this->xml_adopt ($xml_tree, $xml_subtree);
+      $xml_subtree = $this->__generate ($rule->body[$i], $max_depth - 1);
+      $this->generate_formulas_ref->xml_adopt ($xml_tree, $xml_subtree);
     }
+    return $xml_tree;
   }
 
   private function find_matching_rules ($symbol, $max_deriv_len = INT_MAX)
@@ -507,7 +537,8 @@ class Grammar
     // the grammar generates at least one string of terminals
     if ($this->start_symbol->min_derivation_len == INT_MAX)
     {
-      echo "warning - this grammar do not generate any string!\n";
+      $msg = "This grammar do not generate any string!";
+      throw new \Exception ($msg);
     }
 
     // every rule can be used in at least one terminal derivation
@@ -516,7 +547,8 @@ class Grammar
     $dead_rules = sa_find_dead_rules ($visited);
     if (count ($dead_rules))
     {
-      echo "warning - this grammar contains dead rules !\n";
+      $msg = "This grammar contains dead rules!";
+      throw new \Exception ($msg);
     }
 
     // the first symbol in every rule's body needs to be a terminal
@@ -525,12 +557,13 @@ class Grammar
     {
       if (count ($rule->body) == 0)
       {
-        echo "error - there is rules with an empty body\n";
-        continue;
+        $msg = "There are rules with an empty body";
+        throw new \Exception ($msg);
       }
       if (count($rule->body) > 1 && ! $rule->body[0]->is_terminal)
       {
-        echo "error - the first symbol in the body of a rule needs to be a terminal\n";
+        $msg = "The first symbol in the body of a rule needs to be a terminal";
+        throw new \Exception ($msg);
       }
     }
   }

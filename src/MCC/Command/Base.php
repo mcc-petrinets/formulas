@@ -163,7 +163,7 @@ abstract class Base extends Command
   }
 
   // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
-  protected function xml_adopt($root, $new)
+  public function xml_adopt($root, $new)
   {
     if ($new == null)
     {
