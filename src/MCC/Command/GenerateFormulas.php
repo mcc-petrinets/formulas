@@ -1,5 +1,8 @@
 <?php
+
 namespace MCC\Command;
+
+error_reporting(-1);
 
 use \Symfony\Component\Console\Input\ArrayInput;
 use \Symfony\Component\Console\Input\InputOption;
@@ -34,6 +37,12 @@ class GenerateFormulas extends Base
     parent::configure();
     $this->setName('formula:generate')
       ->setDescription('Generate formulas')
+      ->addOption('show-subcategories', null,
+        InputOption::VALUE_NONE,
+        "Display the list of accepted values of the option `--subcategory'")
+      ->addOption('show-grammar', null,
+        InputOption::VALUE_NONE,
+        "Display a human-readable representation of the formal grammar associated with the value of the `--subcategory' option")
       ->addOption('chain', null,
         InputOption::VALUE_NONE,
         'Chain with unfolding and conversion to text')
@@ -48,7 +57,7 @@ class GenerateFormulas extends Base
         'The competition subcategory for which we will generate formulas', 'ReachabilityDeadlock')
       ->addOption('depth', null,
         InputOption::VALUE_REQUIRED,
-        'Unfold the grammar of the specified subcategory up to this depth and generate a random formula from this unfolded grammar (at most)', 3)
+        'Unfold the grammar of the specified subcategory up to this depth and generate a random formula from this unfolded grammar (at most)', 6)
       ;
   }
 
@@ -61,7 +70,7 @@ class GenerateFormulas extends Base
   private $output;
   private $subcategory;
   private $quantity;
-  private $depth;
+  private $max_depth;
   private $property_xml_template = <<<EOT
   <property>
     <id></id>
@@ -69,9 +78,33 @@ class GenerateFormulas extends Base
     <formula></formula>
   </property>
 EOT;
+  private $all_subcategories = array (
+        SUBCAT_REACHABILITY_DEADLOCK
+      , SUBCAT_REACHABILITY_FIREABILITY_SIMPLE
+      , SUBCAT_REACHABILITY_FIREABILITY
+      , SUBCAT_REACHABILITY_CARDINALITY
+      , SUBCAT_REACHABILITY_BOUNDS
+      , SUBCAT_REACHABILITY_COMPUTE_BOUNDS
+
+      , SUBCAT_LTL_FIREABILITY_SIMPLE
+      , SUBCAT_LTL_FIREABILITY
+      , SUBCAT_LTL_CARDINALITY
+
+      , SUBCAT_CTL_FIREABILITY_SIMPLE
+      , SUBCAT_CTL_FIREABILITY
+      , SUBCAT_CTL_CARDINALITY);
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
+    $this->chain       = $input->getOption('chain');
+    $this->subcategory = $input->getOption('subcategory');
+    $this->quantity    = intval($input->getOption('quantity'));
+    $this->max_depth   = intval($input->getOption('depth'));
+    $this->id = 1;
+
+    if ($input->getOption ('show-subcategories')) $this->show_subcategories ();
+    if ($input->getOption ('show-grammar')) $this->show_grammar ();
+
     $path = NULL;
     if ($this->sn_model)
       $path = dirname($this->sn_file);
@@ -79,11 +112,7 @@ EOT;
       $path = dirname($this->pt_file);
     $this->output_name = $input->getOption('output');
     $this->output      = "${path}/{$this->output_name}.xml";
-    $this->chain       = $input->getOption('chain');
-    $this->subcategory = $input->getOption('subcategory');
-    $this->quantity    = intval($input->getOption('quantity'));
-    $this->depth       = intval($input->getOption('depth'));
-    $this->id = 1;
+
     $this->reference_model = new EquivalentElements($this->sn_model, $this->pt_model);
     $this->places = $this->sn_model
       ? $this->reference_model->cplaces
@@ -99,8 +128,7 @@ EOT;
 
   protected function perform()
   {
-    $this->test2 ();
-    return;
+    $grammar = $this->build_grammar ($this->subcategory);
 
     if (file_exists($this->output))
     {
@@ -113,13 +141,7 @@ EOT;
     // produce $this->quantity formulas
     for ($i = 0; $i < $this->quantity; $i++)
     {
-      $g = $this->build_grammar (SUBCAT_REACHABILITY_DEADLOCK);
-      return;
-      $g->static_analysis ();
-      var_dump ($g);
-      echo "$g\n";
-
-      $result[] = null;
+      $result[] = $grammar->generate ($this->max_depth);
       $this->progress->advance();
     }
 
@@ -127,15 +149,14 @@ EOT;
     $xml_tree = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
     foreach ($result as $formula)
     {
-      echo "\nsave formula\n";
       $property = $this->load_xml($this->property_xml_template);
-      var_dump ($property);
       $property->id = $this->model->net->attributes()['id'] .
         "-{$this->subcategory}-" . $this->id;
       $this->xml_adopt($property->formula, $formula);
       $this->xml_adopt($xml_tree, $property);
       $this->id++;
     }
+    echo $this->save_xml($xml_tree);
     file_put_contents($this->output, $this->save_xml($xml_tree));
     $this->progress->finish();
 
@@ -236,39 +257,42 @@ EOT;
       break;
 
     default :
-      $this->console_output->writeln(
-          "<error>Error: internal error, unknown subcategory '$subcategory'</error>");
-      return null;
+      $msg = "Unknown subcategory '$subcategory', use the option `--show-subcategories' to display the full list of known contest grammars";
+      throw new \Exception ($msg);
     }
 
     $g->static_analysis ();
     return $g;
   }
 
-  private function test1 ()
+  private function show_subcategories ()
   {
-    foreach (array (
-        SUBCAT_REACHABILITY_DEADLOCK            ,
-        SUBCAT_REACHABILITY_FIREABILITY_SIMPLE  ,
-        SUBCAT_REACHABILITY_FIREABILITY         ,
-        SUBCAT_REACHABILITY_CARDINALITY         ,
-        SUBCAT_REACHABILITY_BOUNDS              ,
-        SUBCAT_REACHABILITY_COMPUTE_BOUNDS      ,
-        
-        SUBCAT_LTL_FIREABILITY_SIMPLE           ,
-        SUBCAT_LTL_FIREABILITY                  ,
-        SUBCAT_LTL_CARDINALITY                  ,
-        
-        SUBCAT_CTL_FIREABILITY_SIMPLE           ,
-        SUBCAT_CTL_FIREABILITY                  ,
-        SUBCAT_CTL_CARDINALITY                  
-        )
-        as $cat)
+    $this->console_output->writeln("\nThe allowed subcategories are the following:\n");
+    foreach ($this->all_subcategories as $cat)
+    {
+      $this->console_output->writeln ($cat);
+    }
+    exit (0);
+  }
+
+  private function show_grammar ()
+  {
+    $this->console_output->writeln("\nShowing the grammar for the subcategory '$this->subcategory':\n");
+    $g = $this->build_grammar ($this->subcategory);
+    $this->console_output->writeln("$g\n");
+    exit (0);
+  }
+
+  private function grammar_health_checks ()
+  {
+    echo "This function is intended to be used for debugging purposes\n";
+    foreach ($this->all_subcategories as $cat)
     {
       echo "Category '$cat'\n";
       echo "==============================\n";
       $g = $this->build_grammar ($cat);
       echo "$g\n\n";
+      $g->health_check ();
     }
   }
 
@@ -276,8 +300,8 @@ EOT;
   {
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_DEADLOCK);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY_SIMPLE);
-    $g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY);
-    //$g = $this->build_grammar (SUBCAT_REACHABILITY_CARDINALITY);
+    //$g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY);
+    $g = $this->build_grammar (SUBCAT_REACHABILITY_CARDINALITY);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_BOUNDS);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_COMPUTE_BOUNDS);
     //$g = $this->build_grammar (
@@ -291,7 +315,7 @@ EOT;
 
     echo "$g\n\n";
 
-    $xml_tree = $g->generate (4);
+    $xml_tree = $g->generate (5);
     echo $this->save_xml($xml_tree);
   }
 }
@@ -425,7 +449,7 @@ class Grammar
     {
       $msg = "The minimum derivation length for this grammar is " .
           "{$symbol->min_derivation_len}, but you authorized a maximum depth " .
-          "of $max_depth.";
+          "of $max_depth. For more info, use the option `--show-grammar'.";
       throw new \Exception ($msg);
     }
     return $this->__generate ($symbol, $max_depth);
@@ -438,7 +462,7 @@ class Grammar
     assert ($symbol->min_derivation_len <= $max_depth);
     if ($symbol->is_terminal) return $symbol->generate ();
 
-    $choices_array = $this->find_matching_rules ($symbol, $max_depth);
+    $choices_array = $this->find_matching_rules ($symbol, $max_depth - 1);
     echo "__generate: " . count ($choices_array) . " matching rules\n";
     assert (count ($choices_array) >= 1);
     $index = array_rand ($choices_array);
@@ -446,7 +470,7 @@ class Grammar
     echo "__generate: rule picked: \n" . $rule . "\n";
 
     assert (count($rule->body) >= 1);
-    if (count($rule->body) == 1) return $this->__generate ($rule->body[0]);
+    if (count($rule->body) == 1) return $this->__generate ($rule->body[0], $max_depth - 1);
     assert ($rule->body[0]->is_terminal);
     $xml_tree = $rule->body[0]->generate ();
 
@@ -530,9 +554,9 @@ class Grammar
     }
   }
 
-  private function health_check ()
+  public function health_check ()
   {
-    static_analysis ();
+    $this->static_analysis ();
 
     // the grammar generates at least one string of terminals
     if ($this->start_symbol->min_derivation_len == INT_MAX)
@@ -542,12 +566,12 @@ class Grammar
     }
 
     // every rule can be used in at least one terminal derivation
-    $visited = new_mark ();
+    $visited = $this->new_mark ();
     $this->sa_mark_reachable_symbols ($this->start_symbol, $visited);
-    $dead_rules = sa_find_dead_rules ($visited);
+    $dead_rules = $this->sa_find_dead_rules ($visited);
     if (count ($dead_rules))
     {
-      $msg = "This grammar contains dead rules!";
+      $msg = "This grammar contains dead rules (which cannot be used in any derivation)!";
       throw new \Exception ($msg);
     }
 
@@ -577,9 +601,10 @@ class Grammar
     $dead_rules = array ();
     foreach ($this->rules as $rule)
     {
-      if ($rule->head->marked != $reachable_non_term
+      if ($rule->head->mark != $reachable_non_term
           || $rule->min_derivation_len == INT_MAX)
       {
+        // echo "detected dead rule: $rule";
         $dead_rules[] = $rule;
       }
     }
@@ -590,8 +615,9 @@ class Grammar
   {
     if ($symbol->mark == $visited) return;
     $symbol->mark = $visited;
+    echo "symbol $symbol visited\n";
 
-    foreach (find_matching_rules ($symbol) as $rule)
+    foreach ($this->find_matching_rules ($symbol) as $rule)
     {
       assert ($symbol == $rule->head);
       foreach ($rule->body as $symbol2)
