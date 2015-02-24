@@ -128,6 +128,7 @@ EOT;
 
   protected function perform()
   {
+    //$this->grammar_health_checks ();
     $grammar = $this->build_grammar ($this->subcategory);
 
     if (file_exists($this->output))
@@ -261,8 +262,8 @@ EOT;
       else
       {
         $g->add_rule (new Rule ($state_formula,     array ($leq,      $integer_expression, $integer_expression)));
-        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
-        $g->add_rule (new Rule ($integer_expresion, array ($tokens_count)));
+        $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expression, array ($tokens_count)));
       }
       break;
 
@@ -273,8 +274,8 @@ EOT;
       $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
       $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $integer_expression)));
 
-      $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
-      $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+      $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+      $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
       break;
 
     case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
@@ -315,8 +316,8 @@ EOT;
       else
       {
         $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $integer_expression)));
-        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
-        $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+        $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
       }
       break;
 
@@ -358,8 +359,8 @@ EOT;
       else
       {
         $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $integer_expression)));
-        $g->add_rule (new Rule ($integer_expresion, array ($integer_constant)));
-        $g->add_rule (new Rule ($integer_expresion, array ($place_bound)));
+        $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+        $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
       }
       break;
 
@@ -392,14 +393,23 @@ EOT;
 
   private function grammar_health_checks ()
   {
-    echo "This function is intended to be used for debugging purposes\n";
+    echo "This function is intended for debugging purposes\n";
     foreach ($this->all_subcategories as $cat)
     {
-      echo "Category '$cat'\n";
+      echo "\n\nCategory '$cat'\n";
       echo "==============================\n";
       $g = $this->build_grammar ($cat);
       echo "$g\n\n";
       $g->health_check ();
+
+      $xml_tree = $g->generate (10);
+      echo $this->save_xml($xml_tree);
+
+      $xml_tree = $g->generate (10);
+      echo $this->save_xml($xml_tree);
+
+      $xml_tree = $g->generate (10);
+      echo $this->save_xml($xml_tree);
     }
   }
 
@@ -411,11 +421,11 @@ EOT;
     $g = $this->build_grammar (SUBCAT_REACHABILITY_CARDINALITY);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_BOUNDS);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_COMPUTE_BOUNDS);
-    //$g = $this->build_grammar (
+
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY_SIMPLE);
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY);
     //$g = $this->build_grammar (SUBCAT_LTL_CARDINALITY);
-    //$g = $this->build_grammar (
+
     //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY_SIMPLE);
     //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY);
     //$g = $this->build_grammar (SUBCAT_CTL_CARDINALITY);
@@ -564,17 +574,17 @@ class Grammar
 
   private function __generate ($symbol, $max_depth)
   {
-    echo "__generate: symbol $symbol, max_depth $max_depth\n";
+    #echo "__generate: symbol $symbol, max_depth $max_depth\n";
 
     assert ($symbol->min_derivation_len <= $max_depth);
     if ($symbol->is_terminal) return $symbol->generate ();
 
     $choices_array = $this->find_matching_rules ($symbol, $max_depth - 1);
-    echo "__generate: " . count ($choices_array) . " matching rules\n";
+    #echo "__generate: " . count ($choices_array) . " matching rules\n";
     assert (count ($choices_array) >= 1);
     $index = array_rand ($choices_array);
     $rule = $choices_array[$index];
-    echo "__generate: rule picked: \n" . $rule . "\n";
+    #echo "__generate: rule picked: \n" . $rule . "\n";
 
     assert (count($rule->body) >= 1);
     if (count($rule->body) == 1) return $this->__generate ($rule->body[0], $max_depth - 1);
@@ -728,7 +738,7 @@ class Grammar
   {
     if ($symbol->mark == $visited) return;
     $symbol->mark = $visited;
-    echo "symbol $symbol visited\n";
+    #echo "symbol $symbol visited\n";
 
     foreach ($this->find_matching_rules ($symbol) as $rule)
     {
