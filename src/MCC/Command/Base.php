@@ -148,7 +148,7 @@ abstract class Base extends Command
   {
   }
 
-  protected function load_xml($xml)
+  public function load_xml($xml)
   {
     return new \SimpleXmlElement($xml, LIBXML_COMPACT | LIBXML_NOBLANKS);
   }
@@ -163,7 +163,7 @@ abstract class Base extends Command
   }
 
   // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement
-  protected function xml_adopt($root, $new)
+  public function xml_adopt($root, $new)
   {
     if ($new == null)
     {
