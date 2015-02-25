@@ -174,7 +174,7 @@ class FormulasCheck extends Base
       
       if ($result_b[2] != "")
       {
-        $result[0] = $result[0] && $this->call_smt($result_b, $smt);
+        $result_b[0] = $result_b[0] && $this->call_smt($result_b, $smt);
       }
 
       if ($result_b[0])
@@ -183,7 +183,7 @@ class FormulasCheck extends Base
       
         if ($result_r[2] != "")
         {
-           $result[0] = $result[0] && $this->call_smt($result_r, $smt);
+           $result_r[0] = $result_r[0] && $this->call_smt($result_r, $smt);
         }
 
         $result[0] = $result_r[0];
@@ -264,7 +264,6 @@ class FormulasCheck extends Base
       $result = $this->collect_formula($formula, 'div', $places, $transitions, $smt);
       break;
     case 'place-bound':
-      break;
     case 'tokens-count':
       $res = array();
       foreach ($formula->place as $place)
@@ -274,9 +273,9 @@ class FormulasCheck extends Base
         $res[] = $name;
         $result[1][$name] = 1;
       }
-      if ($res[1] != '')
+      if (count($res) >= 2)
       {
-        $result[2] = '(' . implode(' + ', $res) . ')';
+        $result[2] = '(+ ' . implode(' ', $res) . ')';
       }
       else
       {
@@ -336,26 +335,28 @@ class FormulasCheck extends Base
       $decl = '(declare-fun ' . $var . " () Int)\n" . $decl;
     }
     $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert ' . $result[2] . ')' .  "\n(check-sat)";
+//    $this->console_output->writeln("Vérification 1 : \n" . $to_verify);
     file_put_contents($smt, $to_verify);
     $output = array();
     $command = 'z3 -smt2 ' . $smt;
     exec($command, $output);
     if ($output[0] != 'sat')
     {
-      $this->console_output->writeln('unsat 1 !');
+//      $this->console_output->writeln('unsat 1 ! : ' . $output[0]);
       $res = false;
     }
     else
     {
       $res = true;
       $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert (not ' . $result[2] . "))\n(check-sat)";
+//      $this->console_output->writeln("Vérification 2 : \n" . $to_verify);
       file_put_contents($smt, $to_verify);
       $output = array();
       $command = 'z3 -smt2 ' . $smt;
       exec($command, $output);
       if ($output[0] != 'sat')
       {
-        $this->console_output->writeln('unsat 2 !');
+//        $this->console_output->writeln('unsat 2 ! : ' . $output[0]);
         $res = false;
       }
     }
