@@ -11,6 +11,7 @@ use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Output\OutputInterface;
 use \MCC\Command\Base;
 use \MCC\Formula\EquivalentElements;
+use \MCC\Formula\CheckFormula;
 
 const INT_MAX                                 = 9999999;
 
@@ -93,6 +94,8 @@ EOT;
       , SUBCAT_CTL_FIREABILITY_SIMPLE
       , SUBCAT_CTL_FIREABILITY
       , SUBCAT_CTL_CARDINALITY);
+  private $checker;
+  private $smt;
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
@@ -124,6 +127,9 @@ EOT;
       $this->model = $this->sn_model;
     else
       $this->model = $this->pt_model;
+
+    $this->checker = new CheckFormula();
+    $this->smt = "${path}/test.smt";
   }
 
   protected function perform()
@@ -143,7 +149,9 @@ EOT;
     for ($i = 0; $i < $this->quantity; $i++)
     {
       $formula = $grammar->generate ($this->max_depth);
-      if ($this->filter_out_formula ($formula)) continue;
+      while ($this->filter_out_formula ($formula)) {
+          $formula = $grammar->generate ($this->max_depth);
+      }
       $result[] = $formula;
       $this->progress->advance();
     }
@@ -187,7 +195,15 @@ EOT;
   private function filter_out_formula ($formula)
   {
     // return true if the formula should be filtered out; false if we should keep it
-    return false;
+    $result = array(true, array(), "");
+    $result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
+
+    if ($result[2] != "")
+    {
+      $result[0] = $result[0] && $this->checker->call_smt($result, $this->smt);
+    }
+
+    return !$result[0];
   }
 
   private function copy($a)
