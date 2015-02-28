@@ -1,33 +1,34 @@
 <?xml version="1.0"?>
+<property-set xmlns="http://mcc.lip6.fr/">
   <property>
     <id>Dekker-PT-010-ReachabilityFireability-1</id>
     <description>Automatically generated</description>
     <formula>
-      <exists-path>
-        <finally>
-          <is-fireable>
-            <transition>withdraw_9_8</transition>
-          </is-fireable>
-        </finally>
-      </exists-path>
+      <all-paths>
+        <globally>
+          <negation>
+            <disjunction>
+              <is-fireable>
+                <transition>exit_2</transition>
+              </is-fireable>
+              <is-fireable>
+                <transition>exit_7</transition>
+              </is-fireable>
+            </disjunction>
+          </negation>
+        </globally>
+      </all-paths>
     </formula>
   </property>
-
-<!--
   <property>
     <id>Dekker-PT-010-ReachabilityFireability-2</id>
     <description>Automatically generated</description>
     <formula>
       <all-paths>
         <globally>
-          <disjunction>
-            <is-fireable>
-              <transition>withdraw_4_1</transition>
-            </is-fireable>
-            <is-fireable>
-              <transition>withdraw_9_6</transition>
-            </is-fireable>
-          </disjunction>
+          <is-fireable>
+            <transition>withdraw_3_4</transition>
+          </is-fireable>
         </globally>
       </all-paths>
     </formula>
@@ -39,14 +40,14 @@
       <all-paths>
         <globally>
           <negation>
-            <disjunction>
+            <conjunction>
               <is-fireable>
-                <transition>enter_5</transition>
+                <transition>try_9</transition>
               </is-fireable>
               <is-fireable>
-                <transition>withdraw_1_9</transition>
+                <transition>withdraw_6_4</transition>
               </is-fireable>
-            </disjunction>
+            </conjunction>
           </negation>
         </globally>
       </all-paths>
@@ -56,28 +57,13 @@
     <id>Dekker-PT-010-ReachabilityFireability-4</id>
     <description>Automatically generated</description>
     <formula>
-      <exists-path>
-        <finally>
-          <disjunction>
-            <conjunction>
-              <is-fireable>
-                <transition>try_9</transition>
-              </is-fireable>
-              <is-fireable>
-                <transition>withdraw_3_8</transition>
-              </is-fireable>
-            </conjunction>
-            <disjunction>
-              <is-fireable>
-                <transition>withdraw_5_6</transition>
-              </is-fireable>
-              <is-fireable>
-                <transition>withdraw_1_5</transition>
-              </is-fireable>
-            </disjunction>
-          </disjunction>
-        </finally>
-      </exists-path>
+      <all-paths>
+        <globally>
+          <is-fireable>
+            <transition>withdraw_1_4</transition>
+          </is-fireable>
+        </globally>
+      </all-paths>
     </formula>
   </property>
   <property>
@@ -86,9 +72,19 @@
     <formula>
       <exists-path>
         <finally>
-          <is-fireable>
-            <transition>exit_9</transition>
-          </is-fireable>
+          <conjunction>
+            <is-fireable>
+              <transition>withdraw_8_0</transition>
+            </is-fireable>
+            <disjunction>
+              <is-fireable>
+                <transition>exit_2</transition>
+              </is-fireable>
+              <is-fireable>
+                <transition>withdraw_1_8</transition>
+              </is-fireable>
+            </disjunction>
+          </conjunction>
         </finally>
       </exists-path>
     </formula>
@@ -100,19 +96,17 @@
       <exists-path>
         <finally>
           <conjunction>
+            <is-fireable>
+              <transition>withdraw_2_5</transition>
+            </is-fireable>
             <disjunction>
               <is-fireable>
-                <transition>withdraw_7_1</transition>
+                <transition>withdraw_7_2</transition>
               </is-fireable>
               <is-fireable>
-                <transition>withdraw_7_5</transition>
+                <transition>withdraw_4_0</transition>
               </is-fireable>
             </disjunction>
-            <negation>
-              <is-fireable>
-                <transition>withdraw_7_4</transition>
-              </is-fireable>
-            </negation>
           </conjunction>
         </finally>
       </exists-path>
@@ -122,13 +116,17 @@
     <id>Dekker-PT-010-ReachabilityFireability-7</id>
     <description>Automatically generated</description>
     <formula>
-      <exists-path>
-        <finally>
-          <is-fireable>
-            <transition>withdraw_6_7</transition>
-          </is-fireable>
-        </finally>
-      </exists-path>
+      <all-paths>
+        <globally>
+          <negation>
+            <negation>
+              <is-fireable>
+                <transition>exit_0</transition>
+              </is-fireable>
+            </negation>
+          </negation>
+        </globally>
+      </all-paths>
     </formula>
   </property>
   <property>
@@ -137,16 +135,16 @@
     <formula>
       <exists-path>
         <finally>
-          <disjunction>
+          <conjunction>
             <negation>
               <is-fireable>
-                <transition>withdraw_7_4</transition>
+                <transition>enter_6</transition>
               </is-fireable>
             </negation>
             <is-fireable>
-              <transition>withdraw_5_9</transition>
+              <transition>try_2</transition>
             </is-fireable>
-          </disjunction>
+          </conjunction>
         </finally>
       </exists-path>
     </formula>
@@ -155,23 +153,13 @@
     <id>Dekker-PT-010-ReachabilityFireability-9</id>
     <description>Automatically generated</description>
     <formula>
-      <exists-path>
-        <finally>
-          <conjunction>
-            <is-fireable>
-              <transition>withdraw_3_7</transition>
-            </is-fireable>
-            <disjunction>
-              <is-fireable>
-                <transition>withdraw_5_3</transition>
-              </is-fireable>
-              <is-fireable>
-                <transition>try_8</transition>
-              </is-fireable>
-            </disjunction>
-          </conjunction>
-        </finally>
-      </exists-path>
+      <all-paths>
+        <globally>
+          <is-fireable>
+            <transition>withdraw_1_2</transition>
+          </is-fireable>
+        </globally>
+      </all-paths>
     </formula>
   </property>
   <property>
@@ -180,23 +168,11 @@
     <formula>
       <exists-path>
         <finally>
-          <disjunction>
-            <is-fireable>
-              <transition>withdraw_6_3</transition>
-            </is-fireable>
-            <conjunction>
-              <is-fireable>
-                <transition>withdraw_4_6</transition>
-              </is-fireable>
-              <is-fireable>
-                <transition>withdraw_2_3</transition>
-              </is-fireable>
-            </conjunction>
-          </disjunction>
+          <is-fireable>
+            <transition>withdraw_5_2</transition>
+          </is-fireable>
         </finally>
       </exists-path>
     </formula>
   </property>
 </property-set>
-
--->

@@ -4,6 +4,7 @@ import xml.parsers.expat
 
 class Transition :
     def __init__ (self, name) :
+        self.ident = None
         self.name = name
         self.pre = set ()
         self.cont = set ()
@@ -50,6 +51,7 @@ class Transition :
 
 class Place :
     def __init__ (self, name) :
+        self.ident = None
         self.name = name
         self.pre = set ()
         self.cont = set ()
@@ -98,8 +100,9 @@ class Marking :
     def __init__ (self) :
         self.__marking = {}
         self.formulas_sat = set ()
-        self.formulas_unkn = set ()
+        self.formulas_undef = set ()
         self.fully_expanded = False
+        self.m = 0
 
     def __getitem__ (self, place) :
         if place not in self.__marking : return 0
@@ -115,13 +118,18 @@ class Marking :
             yield p
 
     def __repr__ (self) :
-        return repr (self.__marking)
+        s = " ".join ("%s=%d" % (repr (p), self.__marking[p]) for p in self.__marking)
+        return "[%s, %s]" % (str (id (self)), s)
 
     def __str__ (self) :
-        s = "marking:\n\t" + str (self.__marking)
+        s = "===============\n"
+        s += "marking:"
+        for p in sorted (self.__marking) :
+            s += "\n\t%8s = %d" % (repr (p), self.__marking[p])
         s += "\nfully_expanded:\n\t" + str (self.fully_expanded)
         s += "\nformulas_sat:\n\t" + str (self.formulas_sat)
-        s += "\nformulas_unkn:\n\t" + str (self.formulas_unkn)
+        s += "\nformulas_undef:\n\t" + str (self.formulas_undef)
+        s += "\n===============\n"
         return s
 
     def __hash__ (self) :
@@ -131,13 +139,23 @@ class Marking :
         return i
 
     def __eq__ (self, other) :
-        return  self.__marking == other
+        return  self.__marking == other.__marking
 
     def copy (self) :
         new = Marking () 
         for place in self.__marking :
             new.__marking[place] = self.__marking[place]
         return new
+
+    def is_sat (self, formula) :
+        return formula in self.formulas_sat
+
+    def is_unsat (self, formula) :
+        return formula not in self.formulas_sat and \
+                formula not in self.formulas_undef
+
+    def is_undef (self, formula) :
+        return formula in self.formulas_undef
 
 class Net :
     def __init__ (self, sanity_check=True) :
@@ -152,6 +170,16 @@ class Net :
         self.date = ''
         self.note = ''
         self.version = ''
+
+    def trans_lookup (self, ident) :
+        for t in self.trans :
+            if t.ident == ident : return t
+        return None
+
+    def place_lookup (self, ident) :
+        for p in self.places :
+            if p.ident == ident : return p
+        return None
 
     def new_mark (self) :
         self.m += 1
@@ -382,7 +410,7 @@ class Net :
         f.write ('\tnode\t[shape=circle fillcolor=gray95];')
         for p in self.places :
             if m != 0 and p.m != m: continue
-            s = ' (%d)' % p.m0 if p.m0 > 0 else ''
+            s = ' (%d)' % self.m0[p] if self.m0[p] > 0 else ''
             s = '\n\t%sp%d [label="%s%s"];\n' % (prefx, id (p), repr (p), s)
             for t in p.pre :
                 if m == 0 or t.m == m :
@@ -680,8 +708,10 @@ class Net :
             if d['type'] == 'place' :
                 if 'm0' not in d : d['m0'] = 0
                 idx[d['id']] = self.place_add (d['name'], int (d['m0']))
+                idx[d['id']].ident = d['id']
             elif d['type'] == 'transition' :
                 idx[d['id']] = self.trans_add (d['name'])
+                idx[d['id']].ident = d['id']
             elif d['type'] == 'net' :
                 self.title = d['name']
         for d in self.__pnmlq :
