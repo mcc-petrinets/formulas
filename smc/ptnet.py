@@ -16,7 +16,7 @@ class Transition :
         return str (self.name)
 
     def __str__ (self) :
-        return "%s Pre %s;  Cont %s;  Post %s" \
+        return "'%s' Pre %s;  Cont %s;  Post %s" \
                 % (self.__repr__ (), self.pre, self.cont, self.post)
 
     def pre_add (self, p) :
@@ -63,7 +63,7 @@ class Place :
         return str (self.name)
 
     def __str__ (self) :
-        return "%s Pre %s;  Cont %s;  Post %s" \
+        return "'%s' Pre %s;  Cont %s;  Post %s" \
                 % (self.__repr__ (), self.pre, self.cont, self.post)
 
     def pre_add (self, t) :
@@ -760,7 +760,7 @@ class Net :
             return
         else :
             # this else clause is just to be on the safe side
-            raise Exception, 'unknown entity "%s"' % tag
+            raise Exception, 'unexpected XML tag "%s"' % tag
 
 
     def __pnml_end (self, tag):
