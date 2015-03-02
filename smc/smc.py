@@ -1143,9 +1143,9 @@ def test5 () :
 def parse () :
     p = argparse.ArgumentParser (usage = __doc__, add_help=False)
     p.add_argument ("-h", "--help", action="store_true")
-    p.add_argument ("--max-depth", type=int, default=9)
-    p.add_argument ("--max-states", type=int, default=1500)
-    p.add_argument ("--mcc15-stop-after", type=int, default=16)
+    p.add_argument ("--max-depth", type=int, default=-1)
+    p.add_argument ("--max-states", type=int, default=2000)
+    p.add_argument ("--mcc15-stop-after", type=int, default=-1)
 
     p.add_argument ('net_path')
     p.add_argument ('formula_path')
