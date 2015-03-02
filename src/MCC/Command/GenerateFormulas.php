@@ -148,10 +148,12 @@ EOT;
     // produce $this->quantity formulas, store them in the array $result[]
     for ($i = 0; $i < $this->quantity; $i++)
     {
-      $formula = $grammar->generate ($this->max_depth);
-      while ($this->filter_out_formula ($formula)) {
-          $formula = $grammar->generate ($this->max_depth);
+      do
+      {
+        $formula = $grammar->generate ($this->max_depth);
       }
+      while ($this->filter_out_formula ($formula));
+
       $result[] = $formula;
       $this->progress->advance();
     }
@@ -195,6 +197,7 @@ EOT;
   private function filter_out_formula ($formula)
   {
     // return true if the formula should be filtered out; false if we should keep it
+    #return false;
     $result = array(true, array(), "");
     $result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
 
@@ -334,9 +337,9 @@ EOT;
       }
       else
       {
-        $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $place_bound)));
+        $g->add_rule (new Rule ($path_formula,      array ($leq, $integer_expression, $tokens_count)));
         $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
-        $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+        $g->add_rule (new Rule ($integer_expression, array ($tokens_count)));
       }
       break;
 
@@ -377,9 +380,9 @@ EOT;
       }
       else
       {
-        $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $place_bound)));
+        $g->add_rule (new Rule ($boolean_formula,   array ($leq, $integer_expression, $tokens_count)));
         $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
-        $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+        $g->add_rule (new Rule ($integer_expression, array ($tokens_count)));
       }
       break;
 
