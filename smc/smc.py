@@ -45,9 +45,13 @@ except Exception, e:
     print 'You might want to use "easy_install --user PACKAGE"'
     sys.exit (1)
 finally :
-    if sys.version_info < (2, 6, 1) :
-        print '\n\nWARNING: This tool requires Python v.2.6.1 at least!!\n'
-    sys.path.append (os.path.dirname (sys.argv[0]) + '/../lib/')
+    if sys.version_info < (2, 7, 0) or sys.version_info >= (3, 0, 0) :
+        print ("")
+        print ("*** ERROR ***")
+        print ("This tool relies on Python 2.7!!")
+        print ("Install Python 2.7 or modify the first line of the file 'smc.py' so that it calls Python 2.7")
+        print ("")
+        sys.exit (1)
 
 import ptnet
 
@@ -912,10 +916,6 @@ def db (*msg) :
     s += ' '.join (str(x) for x in msg)
     sys.stderr.write (s + '\n')
 
-def usage () :
-    print __doc__
-    sys.exit (0);
-
 def test1 () :
     n = ptnet.Net (True)
     try :
@@ -1151,7 +1151,9 @@ def parse () :
     p.add_argument ('formula_path')
 
     args = p.parse_args ()
-    if args.help : usage ()
+    if args.help :
+        print __doc__
+        sys.exit (0);
 
     if args.max_depth < 0 :
         args.max_depth = sys.maxint
