@@ -67,6 +67,7 @@ class GenerateFormulas extends Base
   public  $places;
   public  $transitions;
   private $id;
+  private $nb_formula;
   private $output_name;
   private $output;
   private $subcategory;
@@ -101,7 +102,16 @@ EOT;
   {
     $this->chain       = $input->getOption('chain');
     $this->subcategory = $input->getOption('subcategory');
-    $this->quantity    = intval($input->getOption('quantity'));
+    $this->nb_formula  = intval($input->getOption('quantity'));
+    if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
+        ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
+        ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
+        ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
+        ($this->subcategory != SUBCAT_LTL_CARDINALITY))
+      $this->quantity    = 10*$this->nb_formula;
+    else
+      $this->quantity    = $this->nb_formula;
+    
     $this->max_depth   = intval($input->getOption('depth'));
     $this->id = 1;
 
@@ -135,63 +145,81 @@ EOT;
   protected function perform()
   {
     //$this->grammar_health_checks ();
-    $grammar = $this->build_grammar ($this->subcategory);
-
-    if (file_exists($this->output))
+    do
     {
-      unlink($this->output);
-    }
-    $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
-    $this->progress->start($this->console_output, $this->quantity);
-    $result = array();
+      $grammar = $this->build_grammar ($this->subcategory);
 
-    // produce $this->quantity formulas, store them in the array $result[]
-    for ($i = 0; $i < $this->quantity; $i++)
-    {
-      do
-      {
-        $formula = $grammar->generate ($this->max_depth);
+      if (file_exists($this->output))
+     {
+        unlink($this->output);
       }
-      while ($this->filter_out_formula ($formula));
+      $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
+      $this->progress->start($this->console_output, $this->quantity);
+      $result = array();
 
-      $result[] = $formula;
-      $this->progress->advance();
-    }
-
-    // save all formulas into one xml file
-    $xml_tree = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
-    foreach ($result as $formula)
-    {
-      $property = $this->load_xml($this->property_xml_template);
-      $property->id = $this->model->net->attributes()['id'] .
-        "-{$this->subcategory}-" . $this->id;
-      $this->xml_adopt($property->formula, $formula);
-      $this->xml_adopt($xml_tree, $property);
-      $this->id++;
-    }
-    #echo $this->save_xml($xml_tree);
-    file_put_contents($this->output, $this->save_xml($xml_tree));
-    $this->progress->finish();
-
-    if ($this->chain)
-    {
-      foreach (array(
-        'formula:unfold',
-        'formula:to-text'
-      ) as $c)
+      // produce $this->quantity formulas, store them in the array $result[]
+      for ($i = 0; $i < $this->quantity; $i++)
       {
-        $command = $this->getApplication()->find($c);
-        $arguments = array(
-            'command'   => $c,
-            'root'      => $this->root,
-            'model'     => $this->model_name,
-            'parameter' => $this->parameter,
-            '--output'  => $this->output_name,
-          );
-        $input = new ArrayInput($arguments);
-        $returnCode = $command->run($input, $this->console_output);
+        do
+        {
+          $formula = $grammar->generate ($this->max_depth);
+        }
+        while ($this->filter_out_formula ($formula));
+
+        $result[] = $formula;
+        $this->progress->advance();
       }
-    }
+
+      // save all formulas into one xml file
+      $xml_tree = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
+      foreach ($result as $formula)
+      {
+        $property = $this->load_xml($this->property_xml_template);
+        $property->id = $this->model->net->attributes()['id'] .
+          "-{$this->subcategory}-" . $this->id;
+        $this->xml_adopt($property->formula, $formula);
+        $this->xml_adopt($xml_tree, $property);
+        $this->id++;
+      }
+      #echo $this->save_xml($xml_tree);
+      file_put_contents($this->output, $this->save_xml($xml_tree));
+      $this->progress->finish();
+
+      if ($this->chain)
+      {
+        foreach (array(
+          'formula:unfold',
+          'formula:to-text'
+        ) as $c)
+        {
+          $command = $this->getApplication()->find($c);
+          $arguments = array(
+              'command'   => $c,
+              'root'      => $this->root,
+              'model'     => $this->model_name,
+              'parameter' => $this->parameter,
+              '--output'  => $this->output_name,
+            );
+          $this->console_output->writeln($this->output_name);
+          $input = new ArrayInput($arguments);
+          $returnCode = $command->run($input, $this->console_output);
+        }
+      }
+      
+      if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
+          ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
+          ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
+          ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
+          ($this->subcategory != SUBCAT_LTL_CARDINALITY))
+      {
+        $found = $this->filter_out_file();
+//        $found = true;
+      }
+      else
+      {
+        $found = true;
+      }
+    } while ($found == false);
   }
 
   private function filter_out_formula ($formula)
@@ -207,6 +235,86 @@ EOT;
     }
 
     return !$result[0];
+  }
+
+  private function filter_out_file ()
+  {
+      if ($this->pt_model)
+      {
+        $model = $this->pt_file;
+        $file = dirname($this->pt_file) . '/' . $this->output_name . '.xml';
+        if ($file)
+        {
+          $command = 'smc/smc.py --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
+//        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
+          $output = array();
+          exec($command, $output);
+
+          if (count($output) < $this->nb_formula)
+          {
+            $result = false;
+          }
+          else
+          {
+            $result = true;
+            $xml = $this->load_xml(file_get_contents($file));
+            if ($this->sn_model)
+            {
+              $file_col = dirname($this->sn_file) . '/' . $this->output_name . '.xml';
+              $xml_col = $this->load_xml(file_get_contents($file_col));
+            }
+            $to_suppress = array();
+            $n = 0;
+            $i = 0;
+            // Réécrire le fichier en gardant les propriétés intéressantes
+            foreach ($xml->property as $property)
+            {
+              if (($n < $this->nb_formula) && ((string) $property->id == $output[$n]))
+              {
+                $n++;
+              }
+              else
+              {
+                $to_suppress[] = $i;
+              }
+              $i++;
+            }
+            $n = 0;
+            foreach ($to_suppress as $i)
+            {
+              unset($xml->children()[$i - $n]);
+              if ($this->sn_model)
+              {
+                unset($xml_col->children()[$i - $n]);
+              }
+              $n++;
+            }
+            unlink($file);
+            file_put_contents($file, $this->save_xml($xml));
+            if ($this->sn_model)
+            {
+              unlink($file_col);
+              file_put_contents($file_col, $this->save_xml($xml_col));
+            }
+            $command = $this->getApplication()->find('formula:to-text');
+            $arguments = array(
+                'command'   => $command,
+                'root'      => $this->root,
+                'model'     => $this->model_name,
+                'parameter' => $this->parameter,
+                '--output'  => $this->output_name,
+              );
+            $this->console_output->writeln($this->output_name);
+            $input = new ArrayInput($arguments);
+            $returnCode = $command->run($input, $this->console_output);
+          }
+        }
+        else
+          $result = true;
+      }
+      else
+        $result = true;
+      return $result;
   }
 
   private function copy($a)
