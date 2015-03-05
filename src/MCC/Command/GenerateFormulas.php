@@ -67,6 +67,7 @@ class GenerateFormulas extends Base
   public  $places;
   public  $transitions;
   private $id;
+  private $nb_formula;
   private $output_name;
   private $output;
   private $subcategory;
@@ -101,7 +102,16 @@ EOT;
   {
     $this->chain       = $input->getOption('chain');
     $this->subcategory = $input->getOption('subcategory');
-    $this->quantity    = intval($input->getOption('quantity'));
+    $this->nb_formula  = intval($input->getOption('quantity'));
+    if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
+        ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
+        ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
+        ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
+        ($this->subcategory != SUBCAT_LTL_CARDINALITY))
+      $this->quantity    = 10*$this->nb_formula;
+    else
+      $this->quantity    = $this->nb_formula;
+    
     $this->max_depth   = intval($input->getOption('depth'));
     $this->id = 1;
 
@@ -174,41 +184,42 @@ EOT;
       #echo $this->save_xml($xml_tree);
       file_put_contents($this->output, $this->save_xml($xml_tree));
       $this->progress->finish();
+
+      if ($this->chain)
+      {
+        foreach (array(
+          'formula:unfold',
+          'formula:to-text'
+        ) as $c)
+        {
+          $command = $this->getApplication()->find($c);
+          $arguments = array(
+              'command'   => $c,
+              'root'      => $this->root,
+              'model'     => $this->model_name,
+              'parameter' => $this->parameter,
+              '--output'  => $this->output_name,
+            );
+          $this->console_output->writeln($this->output_name);
+          $input = new ArrayInput($arguments);
+          $returnCode = $command->run($input, $this->console_output);
+        }
+      }
       
       if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
-         ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
-         ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
-         ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
-         ($this->subcategory != SUBCAT_LTL_CARDINALITY))
+          ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
+          ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
+          ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
+          ($this->subcategory != SUBCAT_LTL_CARDINALITY))
       {
-//        $found = $this->filter_out_file($this->output);
-        $found = true;
+        $found = $this->filter_out_file();
+//        $found = true;
       }
       else
       {
         $found = true;
       }
     } while ($found == false);
-
-    if ($this->chain)
-    {
-      foreach (array(
-        'formula:unfold',
-        'formula:to-text'
-      ) as $c)
-      {
-        $command = $this->getApplication()->find($c);
-        $arguments = array(
-            'command'   => $c,
-            'root'      => $this->root,
-            'model'     => $this->model_name,
-            'parameter' => $this->parameter,
-            '--output'  => $this->output_name,
-          );
-        $input = new ArrayInput($arguments);
-        $returnCode = $command->run($input, $this->console_output);
-      }
-    }
   }
 
   private function filter_out_formula ($formula)
@@ -226,53 +237,83 @@ EOT;
     return !$result[0];
   }
 
-  private function filter_out_file ($file)
+  private function filter_out_file ()
   {
-      $output = array();
-      if ($this->sn_model)
-        $model = $this->sn_file;
-      else
+      if ($this->pt_model)
+      {
         $model = $this->pt_file;
-//        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 3';
-      $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
-      exec($command, $output);
-      $this->console_output->writeln($command);
-      foreach ($output as $toprint)
-      $this->console_output->writeln($toprint);
-
-      if (count($output) < 2)
-      {
-        $result = false;
-      }
-      else
-      {
-        $result = true;
-        $xml = $this->load_xml(file_get_contents($file));
-        $to_suppress = array();
-        $n = 0;
-        $i = 0;
-        // Réécrire le fichier en gardant les propriétés intéressantes
-        foreach ($xml->property as $property)
+        $file = dirname($this->pt_file) . '/' . $this->output_name . '.xml';
+        if ($file)
         {
-          if ((string) $property->id == $output[$n])
+          $command = 'smc/smc.py --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
+//        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
+          $output = array();
+          exec($command, $output);
+
+          if (count($output) < $this->nb_formula)
           {
-            $n++;
+            $result = false;
           }
           else
           {
-            $to_suppress[] = $i;
+            $result = true;
+            $xml = $this->load_xml(file_get_contents($file));
+            if ($this->sn_model)
+            {
+              $file_col = dirname($this->sn_file) . '/' . $this->output_name . '.xml';
+              $xml_col = $this->load_xml(file_get_contents($file_col));
+            }
+            $to_suppress = array();
+            $n = 0;
+            $i = 0;
+            // Réécrire le fichier en gardant les propriétés intéressantes
+            foreach ($xml->property as $property)
+            {
+              if (($n < $this->nb_formula) && ((string) $property->id == $output[$n]))
+              {
+                $n++;
+              }
+              else
+              {
+                $to_suppress[] = $i;
+              }
+              $i++;
+            }
+            $n = 0;
+            foreach ($to_suppress as $i)
+            {
+              unset($xml->children()[$i - $n]);
+              if ($this->sn_model)
+              {
+                unset($xml_col->children()[$i - $n]);
+              }
+              $n++;
+            }
+            unlink($file);
+            file_put_contents($file, $this->save_xml($xml));
+            if ($this->sn_model)
+            {
+              unlink($file_col);
+              file_put_contents($file_col, $this->save_xml($xml_col));
+            }
+            $command = $this->getApplication()->find('formula:to-text');
+            $arguments = array(
+                'command'   => $command,
+                'root'      => $this->root,
+                'model'     => $this->model_name,
+                'parameter' => $this->parameter,
+                '--output'  => $this->output_name,
+              );
+            $this->console_output->writeln($this->output_name);
+            $input = new ArrayInput($arguments);
+            $returnCode = $command->run($input, $this->console_output);
           }
-          $i++;
         }
-        $n = 0;
-        foreach ($to_suppress as $i)
-        {
-          unset($xml->children()[$i - $n]);
-          $n++;
-        }
-        unlink($file);
-        file_put_contents($file, $this->save_xml($xml));
+        else
+          $result = true;
       }
+      else
+        $result = true;
       return $result;
   }
 
