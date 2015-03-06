@@ -696,6 +696,8 @@ class Net :
 
         self.__pnmlitm = {}
         self.__pnmlq = []
+        self.__pnmldepth = 0
+        self.__pnmlskipdepth = sys.maxint
         par.ParseFile (f)
         if len (self.__pnmlitm) == 0 :
             raise Exception, 'missplaced "%s" entity' % tag
@@ -724,7 +726,9 @@ class Net :
         del self.__pnmlq
 
     def __pnml_start (self, tag, attr):
-        #print "START", repr (tag), attr
+        self.__pnmldepth += 1
+        #print "START", repr (tag), attr, "depth", self.__pnmldepth, "skip depth", self.__pnmlskipdepth
+        if self.__pnmldepth >= self.__pnmlskipdepth : return
 
         if tag == 'net' :
             if len (self.__pnmlitm) != 0 :
@@ -754,18 +758,22 @@ class Net :
             self.__pnmlitm['data'] = 'm0'
             self.__pnmlitm['m0'] = ''
 
-        elif tag in ['page', 'pnml', 'graphics', 'text', 'offset', 'text'] :
+        # bug if inscription is an arc weight !!!!
+        elif tag in ['toolspecific', 'graphics', 'inscription'] :
+            self.__pnmlskipdepth = self.__pnmldepth
             return
-        elif tag in ['position', 'inscription', 'dimension', 'fill', 'line'] :
+        elif tag in ['page', 'pnml', 'text'] :
             return
+        # 'offset', 'position', 'dimension', 'fill', 'line', 'size', 'structure', 'unit', 'subunits', 'places'
         else :
             # this else clause is just to be on the safe side
-            raise Exception, 'unexpected XML tag "%s"' % tag
-
+            raise Exception, 'Unexpected XML tag "%s", probably I cannot handle this model. Is this a P/T model?' % tag
 
     def __pnml_end (self, tag):
         #print "END  ", repr (tag)
-        pass
+        self.__pnmldepth -= 1
+        if self.__pnmldepth < self.__pnmlskipdepth :
+            self.__pnmlskipdepth = sys.maxint
 
     def __pnml_data (self, data):
         #data = data.strip(' \n\t') <- dangerous here, data can be split!!

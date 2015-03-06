@@ -52,7 +52,7 @@ class GenerateFormulas extends Base
         'File name for formulas output', 'formulas')
       ->addOption('quantity', null,
         InputOption::VALUE_REQUIRED,
-        'Quantity of properties to generate (at most)', 5)
+        'Quantity of properties to generate', 16)
       ->addOption('subcategory', null,
         InputOption::VALUE_REQUIRED,
         'The competition subcategory for which we will generate formulas', 'ReachabilityDeadlock')
@@ -138,7 +138,7 @@ EOT;
     else
       $this->model = $this->pt_model;
 
-    $this->checker = new CheckFormula();
+    $this->checker = new CheckFormula($this);
     $this->smt = "${path}/test.smt";
   }
 
@@ -151,7 +151,7 @@ EOT;
       $grammar = $this->build_grammar ($this->subcategory);
 
       if (file_exists($this->output))
-     {
+      {
         unlink($this->output);
       }
       $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
@@ -228,7 +228,10 @@ EOT;
     // return true if the formula should be filtered out; false if we should keep it
     #return false;
     $result = array(true, array(), "");
-    $result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
+
+    $result = $this->checker->perform_check($formula,$this->places,$this->transitions,$this->smt);
+    # updated by Cesar, march 6, 2015
+    #$result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
 
     if ($result[2] != "")
     {
@@ -400,13 +403,18 @@ EOT;
 
     case SUBCAT_REACHABILITY_BOUNDS :
       $g = new Grammar ($this, $boolean_formula);
-      $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $place_bound)));
 
-      $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
-      $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+      // original grammar, from the manual:
+      // $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $place_bound)));
+      // $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+      // $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+
+      // after remarks from Yann Thierry-Mieg:
+      $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $place_bound, $integer_constant)));
       break;
 
     case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :

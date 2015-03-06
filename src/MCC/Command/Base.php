@@ -32,7 +32,7 @@ abstract class Base extends Command
   protected $model_name;
   protected $parameter;
   protected $console_input;
-  protected $console_output;
+  public    $console_output; // we need it in CheckFormula, sorry !
   protected $progress;
 
   protected function configure()
