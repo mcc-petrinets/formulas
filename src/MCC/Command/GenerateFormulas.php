@@ -108,7 +108,7 @@ EOT;
         ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
         ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
         ($this->subcategory != SUBCAT_LTL_CARDINALITY))
-      $this->quantity    = 10*$this->nb_formula;
+      $this->quantity    = 15*$this->nb_formula;
     else
       $this->quantity    = $this->nb_formula;
     
@@ -145,6 +145,7 @@ EOT;
   protected function perform()
   {
     //$this->grammar_health_checks ();
+    $nb_loop = 1;
     do
     {
       $grammar = $this->build_grammar ($this->subcategory);
@@ -212,8 +213,8 @@ EOT;
           ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
           ($this->subcategory != SUBCAT_LTL_CARDINALITY))
       {
-        $found = $this->filter_out_file();
-//        $found = true;
+        $found = $this->filter_out_file((int)(2000/$nb_loop));
+        $nb_loop *= 2;
       }
       else
       {
@@ -237,7 +238,7 @@ EOT;
     return !$result[0];
   }
 
-  private function filter_out_file ()
+  private function filter_out_file ($limit)
   {
       if ($this->pt_model)
       {
@@ -245,7 +246,7 @@ EOT;
         $file = dirname($this->pt_file) . '/' . $this->output_name . '.xml';
         if ($file)
         {
-          $command = 'smc/smc.py --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
+          $command = 'smc/smc.py --max-states=' . $limit . ' --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
 //        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
           $output = array();
           exec($command, $output);
