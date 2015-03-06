@@ -52,7 +52,7 @@ class GenerateFormulas extends Base
         'File name for formulas output', 'formulas')
       ->addOption('quantity', null,
         InputOption::VALUE_REQUIRED,
-        'Quantity of properties to generate (at most)', 5)
+        'Quantity of properties to generate', 16)
       ->addOption('subcategory', null,
         InputOption::VALUE_REQUIRED,
         'The competition subcategory for which we will generate formulas', 'ReachabilityDeadlock')
@@ -138,7 +138,7 @@ EOT;
     else
       $this->model = $this->pt_model;
 
-    $this->checker = new CheckFormula();
+    $this->checker = new CheckFormula($this);
     $this->smt = "${path}/test.smt";
   }
 
@@ -228,7 +228,10 @@ EOT;
     // return true if the formula should be filtered out; false if we should keep it
     #return false;
     $result = array(true, array(), "");
-    $result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
+
+    $result = $this->checker->perform_check($formula,$this->places,$this->transitions,$this->smt);
+    # updated by Cesar, march 6, 2015
+    #$result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
 
     if ($result[2] != "")
     {

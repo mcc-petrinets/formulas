@@ -7,7 +7,12 @@ use \Symfony\Component\Console\Input\InputOption;
 
 class CheckFormula
 {
-  public function __construct() {}
+  private $__gen_formula_cmd = null;
+
+  public function __construct($ref)
+  {
+    $this->__gen_formula_cmd = $ref;
+  }
 
   public function perform_check($formula, $places, $transitions, $smt)
   {
@@ -18,7 +23,7 @@ class CheckFormula
   //     associée n'a aucun sens)
   //   * une chaîne de caractère représentant la formule booléenne déjà calculée
     $result = array(true, array(), "");
-//  $this->console_output->writeln("perform_check " . $smt);
+    //$this->__gen_formula_cmd->console_output->writeln("perform_check " . $smt);
     switch ((string) $formula->getName())
     {
     /* case 'invariant': */
@@ -177,7 +182,7 @@ class CheckFormula
 //    $this->console_output->writeln($result[2]);
       break;
     default:
-      $this->console_output->writeln(
+      $this->__gen_formula_cmd->console_output->writeln(
         "<warning>Error: unknown node {$formula->getName()}</warning>"
       );
     }
