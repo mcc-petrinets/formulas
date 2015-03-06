@@ -150,7 +150,7 @@ EOT;
       $grammar = $this->build_grammar ($this->subcategory);
 
       if (file_exists($this->output))
-     {
+      {
         unlink($this->output);
       }
       $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
@@ -399,13 +399,18 @@ EOT;
 
     case SUBCAT_REACHABILITY_BOUNDS :
       $g = new Grammar ($this, $boolean_formula);
-      $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
-      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $place_bound)));
 
-      $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
-      $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+      // original grammar, from the manual:
+      // $g->add_rule (new Rule ($boolean_formula,   array ($not,      $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($or,       $boolean_formula, $boolean_formula)));
+      // $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $integer_expression, $place_bound)));
+      // $g->add_rule (new Rule ($integer_expression, array ($integer_constant)));
+      // $g->add_rule (new Rule ($integer_expression, array ($place_bound)));
+
+      // after remarks from Yann Thierry-Mieg:
+      $g->add_rule (new Rule ($boolean_formula,   array ($and,      $boolean_formula, $boolean_formula)));
+      $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $place_bound, $integer_constant)));
       break;
 
     case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
