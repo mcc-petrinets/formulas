@@ -1185,7 +1185,6 @@ def main () :
         print "smc:", t
         i += 1
         if i >= 3 : break
-    return
     print "smc: laoding formula file '%s'" % args.formula_path
     formulas = Formula.read (net, args.formula_path)
     print "smc: done,", len (formulas), "formulas"
