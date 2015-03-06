@@ -246,7 +246,7 @@ EOT;
         $file = dirname($this->pt_file) . '/' . $this->output_name . '.xml';
         if ($file)
         {
-          $command = 'smc/smc.py --max-states=' . $limit . ' --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
+          $command = 'smc.py --max-states=' . $limit . ' --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
 //        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
           $output = array();
           exec($command, $output);
