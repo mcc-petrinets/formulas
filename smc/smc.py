@@ -72,9 +72,10 @@ class BoundedSearch :
         self.__state_space_built = False
 
         self.stats_nr_states = 0
+        self.stats_nr_states_fe = 0
         self.stats_nr_edges = 0
         self.stats_depth = 0
-        self.stats_stop_reason = "unknown reason"
+        self.stats_stop_reason = "'full state space'"
 
     def new_mark (self) :
         self.__new_mark += 1
@@ -103,8 +104,8 @@ class BoundedSearch :
         while (len (self.states) < self.max_states
                 and curr_depth < self.max_depth
                 and len (layer) >= 1) :
-            #print 'smc: build: start processing', len (layer), 'nodes at depth', curr_depth
-            #print 'smc: build: so far', len(self.states), 'nodes in the graph'
+            print 'smc: build: so far', len(self.states), 'nodes in the graph'
+            print 'smc: build: expanding', len (layer), 'nodes at depth', curr_depth
             for marking in layer :
                 #print 'build: expanding marking', repr (marking)
                 if (marking.fully_expanded) : continue
@@ -113,8 +114,10 @@ class BoundedSearch :
                     new_canon_marking = self.find_and_insert (new_marking)
                     #print 'smc: build: - adding edge to', repr (new_canon_marking), 'trans', repr (t)
                     self.states.add_edge (marking, new_canon_marking, trans=t)
-                    next_layer.add (new_canon_marking)
+                    if not new_canon_marking.fully_expanded : next_layer.add (new_canon_marking)
+                    #next_layer.add (new_canon_marking)
                 marking.fully_expanded = True
+                self.stats_nr_states_fe += 1
                 if len (self.states) >= self.max_states :
                     curr_depth -= 1 # avoids bad reporting of reason 
                     break
@@ -127,12 +130,13 @@ class BoundedSearch :
         self.stats_nr_edges = self.states.number_of_edges ()
         self.stats_depth = curr_depth
         if curr_depth >= self.max_depth :
-            self.stats_stop_reason = "depth"
+            self.stats_stop_reason = "'exceeded depth'"
         if len (self.states) >= self.max_states :
-            self.stats_stop_reason = "number of states"
+            self.stats_stop_reason = "'exceeded number of states'"
 
         print "smc: done,", \
             self.stats_nr_states, "states,", \
+            self.stats_nr_states - self.stats_nr_states_fe, "not fully expanded,", \
             self.stats_nr_edges, "edges,", \
             self.stats_depth, "complete steps deep"
         print "smc: state-space construction terminated due to", self.stats_stop_reason
@@ -225,17 +229,20 @@ class BoundedSearch :
         assert (formula.op == Formula.IS_FIREABLE)
         assert (formula.atom_identifiers != None)
 
+        nr_sat = 0
+
         for marking in self.states :
             found = False
-            for next_marking in self.states.successors (marking) :
-                if self.states[marking][next_marking]['trans'] in \
-                        formula.atom_identifiers :
+            for transition in formula.atom_identifiers :
+                if self.net.enables (marking, transition) :
                     found = True
                     break
             if found :
                 marking.formulas_sat.add (formula)
-            elif not marking.fully_expanded :
-                marking.formulas_undef.add (formula)
+                nr_sat += 1
+
+        print "smc:   %d states sat, %d unsat, 0 undef" % \
+                (nr_sat, len (self.states) - nr_sat)
 
     def __label_states_leq (self, formula) :
         print "smc: labelling formula:", formula
@@ -243,11 +250,17 @@ class BoundedSearch :
         assert (formula.sub1 != None)
         assert (formula.sub2 != None)
 
+        nr_sat = 0
+
         for marking in self.states :
             a = self.__label_states_eval_int (marking, formula.sub1)
             b = self.__label_states_eval_int (marking, formula.sub2)
             if a <= b :
                 marking.formulas_sat.add (formula)
+                nr_sat += 1
+
+        print "smc:   %d states sat, %d unsat, 0 undef" % \
+                (nr_sat, len (self.states) - nr_sat)
 
     def __label_states_eval_int (self, marking, formula) :
         if formula.op == Formula.TOKEN_COUNT :
@@ -353,11 +366,11 @@ class BoundedSearch :
         # f1 at s   successors                                  f at s
         # ========= =========================================== =======
         # SAT       s in a f1-SCC                               SAT
-        #           not in f1-SCC but there is s' with f1 SAT   SAT
-        #           for all s', f1 UNSAT and s fully exp.       UNSAT
+        #           not in f1-SCC but there is s' with f SAT    SAT
+        #           for all s', f UNSAT and s fully exp.        UNSAT
         #           else                                        UNDEF
         # UNSAT                                                 UNSAT
-        # UNDEF     for all s', f1 UNSAT and s fully exp.       UNSAT
+        # UNDEF     for all s', f UNSAT and s fully exp.        UNSAT
         #           else                                        UNDEF
         # ========= =========================================== =======
 
@@ -367,11 +380,19 @@ class BoundedSearch :
         self.__label_states_eg_mark_sat (formula.sub1, msat)
         self.__label_states_eg_mark_unsat (formula.sub1, munsat)
 
+        nr_sat = 0
+        nr_undef = 0
+
         for s in self.states :
             if s.m == msat :
                 s.formulas_sat.add (formula)
+                nr_sat += 1
             elif s.m != munsat :
                 s.formulas_undef.add (formula)
+                nr_undef += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_eg_mark_sat (self, f, msat) :
         work = []
@@ -437,15 +458,24 @@ class BoundedSearch :
 
         msat = self.new_mark ()
         munsat = self.new_mark ()
+        have_all_states = self.stats_nr_states_fe == self.stats_nr_states
 
         self.__label_states_eu_mark_sat (formula, msat)
-        self.__label_states_eu_mark_unsat (formula, munsat)
+        if not have_all_states : self.__label_states_eu_mark_unsat (formula, munsat)
+
+        nr_sat = 0
+        nr_undef = 0
 
         for s in self.states :
             if s.m == msat :
                 s.formulas_sat.add (formula)
-            elif s.m != munsat :
+                nr_sat += 1
+            elif not have_all_states and s.m != munsat :
                 s.formulas_undef.add (formula)
+                nr_undef += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_eu_mark_sat (self, f, msat) :
         work = []
@@ -1140,6 +1170,9 @@ def test5 () :
         assert (len (ll) == 1)
         print ll[0]
 
+def percent (i, n) :
+    return i * 100.0 / n
+
 def parse () :
     p = argparse.ArgumentParser (usage = __doc__, add_help=False)
     p.add_argument ("-h", "--help", action="store_true")
@@ -1226,14 +1259,21 @@ def main () :
 
     print "\nsmc: state-space:", \
         explo.stats_nr_states, "states,", \
+        explo.stats_nr_states - explo.stats_nr_states_fe, "not fully expanded,", \
         explo.stats_nr_edges, "edges,", \
         explo.stats_depth, "complete steps deep (explored fragment)"
     print "smc: state-space: limits: maximum depth:", explo.max_depth
     print "smc: state-space: limits: maximum nr. of states:", explo.max_states
-    print "smc: state-space: construction terminated due to exceeded: ", explo.stats_stop_reason
+    print "smc: state-space: construction terminated due to: ", explo.stats_stop_reason
     stats_all = stats_sat + stats_unsat + stats_undef
     assert (len (formulas) >= len (results))
     assert (stats_all == len (results))
+
+    print "smc: formulas: among the verified: %.1f%% SAT, %.1f%% UNSAT, %.1f%% ???" % \
+            (percent (stats_sat, stats_all), \
+            percent (stats_unsat, stats_all), \
+            percent (stats_undef, stats_all))
+
     print "smc: formulas: %d unverified, %d SAT, %d UNSAT, %d ???; total %d" % \
             (len (formulas) - stats_all, stats_sat, stats_unsat, stats_undef, len (formulas))
 
