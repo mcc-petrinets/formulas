@@ -9,9 +9,11 @@ use \Symfony\Component\Console\Input\InputOption;
 use \Symfony\Component\Console\Input\InputArgument;
 use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Output\OutputInterface;
+use \Symfony\Component\Console\Helper\ProgressHelper;
 use \MCC\Command\Base;
 use \MCC\Formula\EquivalentElements;
-use \MCC\Formula\CheckFormula;
+use \MCC\Formula\SmtFormulaFilter;
+use \MCC\Formula\FormulaUnfolder;
 
 const INT_MAX                                 = 9999999;
 
@@ -32,7 +34,6 @@ const SUBCAT_CTL_CARDINALITY                  = "CTLCardinality";
 
 class GenerateFormulas extends Base
 {
-
   protected function configure()
   {
     parent::configure();
@@ -49,7 +50,7 @@ class GenerateFormulas extends Base
         'Chain with unfolding and conversion to text')
       ->addOption('output', null,
         InputOption::VALUE_REQUIRED,
-        'File name for formulas output', 'formulas')
+        'File name for formulas output', 'internal_unique_name')
       ->addOption('quantity', null,
         InputOption::VALUE_REQUIRED,
         'Quantity of properties to generate', 16)
@@ -59,6 +60,9 @@ class GenerateFormulas extends Base
       ->addOption('depth', null,
         InputOption::VALUE_REQUIRED,
         'Unfold the grammar of the specified subcategory up to this depth and generate a random formula from this unfolded grammar (at most)', 6)
+      ->addOption('smc-max-states', null,
+        InputOption::VALUE_REQUIRED,
+        'Maximum number of states that the bounded model checker for filtering formulas should explore', 2000)
       ;
   }
 
@@ -66,13 +70,13 @@ class GenerateFormulas extends Base
   private $reference_model;
   public  $places;
   public  $transitions;
-  private $id;
   private $nb_formula;
   private $output_name;
   private $output;
   private $subcategory;
   private $quantity;
   private $max_depth;
+  private $smc_max_states;
   private $property_xml_template = <<<EOT
   <property>
     <id></id>
@@ -95,25 +99,16 @@ EOT;
       , SUBCAT_CTL_FIREABILITY_SIMPLE
       , SUBCAT_CTL_FIREABILITY
       , SUBCAT_CTL_CARDINALITY);
-  private $checker;
+  private $smt_formula_filter;
   private $smt;
 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
     $this->chain       = $input->getOption('chain');
     $this->subcategory = $input->getOption('subcategory');
-    $this->nb_formula  = intval($input->getOption('quantity'));
-    if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
-        ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
-        ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
-        ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
-        ($this->subcategory != SUBCAT_LTL_CARDINALITY))
-      $this->quantity    = 15*$this->nb_formula;
-    else
-      $this->quantity    = $this->nb_formula;
-    
+    $this->quantity    = intval($input->getOption('quantity'));
     $this->max_depth   = intval($input->getOption('depth'));
-    $this->id = 1;
+    $this->smc_max_states = intval($input->getOption('smc-max-states'));
 
     if ($input->getOption ('show-subcategories')) $this->show_subcategories ();
     if ($input->getOption ('show-grammar')) $this->show_grammar ();
@@ -124,6 +119,10 @@ EOT;
     else
       $path = dirname($this->pt_file);
     $this->output_name = $input->getOption('output');
+    if ($this->output_name == "internal_unique_name")
+    {
+      $this->output_name = $this->subcategory;
+    }
     $this->output      = "${path}/{$this->output_name}.xml";
 
     $this->reference_model = new EquivalentElements($this->sn_model, $this->pt_model);
@@ -138,187 +137,234 @@ EOT;
     else
       $this->model = $this->pt_model;
 
-    $this->checker = new CheckFormula($this);
-    $this->smt = "${path}/test.smt";
+    if ($this->sn_model) echo "mcc: generate: have COL model: $this->sn_file\n";
+    if ($this->pt_model) echo "mcc: generate: have PT  model: $this->pt_file\n";
+
+    $this->smt_formula_filter = new SmtFormulaFilter ($this->console_output, $this->places);
+
+    // adding the smc/ directory to the path
+    $smcdir = __DIR__ . "/../../../smc/";
+    putenv ("PATH=" . getenv ("PATH") . ":" . $smcdir);
   }
 
   protected function perform()
   {
     //$this->grammar_health_checks ();
-    $nb_loop = 1;
-    do
+
+    // build the grammar, set the number of formulas to generate
+    $grammar = $this->build_grammar ($this->subcategory);
+    $nr = $this->quantity * 20;
+
+    // progress bar
+    // 10% = generating the formulas
+    // 80% = bounded model checking (filtering out)
+    // 10% = writing the final xml file
+    //$this->progress->setRedrawFrequency (1);
+    //$this->progress->start ($this->console_output, 100);
+
+    // generate $nr formulas, store them in the array $formulas[]
+    $formulas = array();
+    for ($i = 0; $i < $nr; $i++)
     {
-      $grammar = $this->build_grammar ($this->subcategory);
+      $formula = $grammar->generate ($this->max_depth);
+      $formulas[] = $formula;
+    }
+    //$this->progress->setCurrent (5);
 
-      if (file_exists($this->output))
-      {
-        unlink($this->output);
-      }
-      $this->progress->setRedrawFrequency(max(1, $this->quantity / 100));
-      $this->progress->start($this->console_output, $this->quantity);
-      $result = array();
+    // filter out those of bad quality
+    echo "mcc: generate: filtering out formulas\n";
+    $filtered_formulas = $this->filter_out_formulas ($formulas);
+    echo "mcc: generate: after filtering out: got " . count ($filtered_formulas) . " formulas\n";
+    assert (count ($filtered_formulas) <= $this->quantity);
+    //$this->progress->setCurrent (95);
 
-      // produce $this->quantity formulas, store them in the array $result[]
-      for ($i = 0; $i < $this->quantity; $i++)
-      {
-        do
-        {
-          $formula = $grammar->generate ($this->max_depth);
-        }
-        while ($this->filter_out_formula ($formula));
-
-        $result[] = $formula;
-        $this->progress->advance();
-      }
-
-      // save all formulas into one xml file
-      $xml_tree = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
-      foreach ($result as $formula)
-      {
-        $property = $this->load_xml($this->property_xml_template);
-        $property->id = $this->model->net->attributes()['id'] .
-          "-{$this->subcategory}-" . $this->id;
-        $this->xml_adopt($property->formula, $formula);
-        $this->xml_adopt($xml_tree, $property);
-        $this->id++;
-      }
-      #echo $this->save_xml($xml_tree);
-      file_put_contents($this->output, $this->save_xml($xml_tree));
-      $this->progress->finish();
-
-      if ($this->chain)
-      {
-        foreach (array(
-          'formula:unfold',
-          'formula:to-text'
-        ) as $c)
-        {
-          $command = $this->getApplication()->find($c);
-          $arguments = array(
-              'command'   => $c,
-              'root'      => $this->root,
-              'model'     => $this->model_name,
-              'parameter' => $this->parameter,
-              '--output'  => $this->output_name,
-            );
-          $this->console_output->writeln($this->output_name);
-          $input = new ArrayInput($arguments);
-          $returnCode = $command->run($input, $this->console_output);
-        }
-      }
-      
-      if (($this->subcategory != SUBCAT_REACHABILITY_DEADLOCK) && 
-          ($this->subcategory != SUBCAT_REACHABILITY_BOUNDS) && 
-          ($this->subcategory != SUBCAT_REACHABILITY_COMPUTE_BOUNDS) && 
-          ($this->subcategory != SUBCAT_LTL_FIREABILITY) && 
-          ($this->subcategory != SUBCAT_LTL_CARDINALITY))
-      {
-        $found = $this->filter_out_file((int)(2000/$nb_loop));
-        $nb_loop *= 2;
-      }
-      else
-      {
-        $found = true;
-      }
-    } while ($found == false);
-  }
-
-  private function filter_out_formula ($formula)
-  {
-    // return true if the formula should be filtered out; false if we should keep it
-    #return false;
-    $result = array(true, array(), "");
-
-    $result = $this->checker->perform_check($formula,$this->places,$this->transitions,$this->smt);
-    # updated by Cesar, march 6, 2015
-    #$result = $this->checker->perform_check($formula->children()[0],$this->places,$this->transitions,$this->smt);
-
-    if ($result[2] != "")
+    // if we were unable to produce $this->quantity formulas, complete with
+    // new (possibly bad quality) formulas
+    if (count ($filtered_formulas) < $this->quantity)
     {
-      $result[0] = $result[0] && $this->checker->call_smt($result, $this->smt);
+      $msg = "WARNING: Unable to get {$this->quantity} hard formulas, got only ";
+      $msg .= count ($filtered_formulas);
+      $msg .= ". Completing with random (probably easy) formulas.";
+      $this->console_output->writeln ("\n<warning>$msg</warning>\n");
+    }
+    while (count ($filtered_formulas) < $this->quantity)
+    {
+      $formula = $grammar->generate ($this->max_depth);
+      $filtered_formulas[] = $formula;
     }
 
-    return !$result[0];
+    // save all formulas into one xml file
+    $this->save_formulas ($filtered_formulas, $this->output);
+    //$this->progress->setCurrent (100);
+    //$this->progress->finish();
+
+    // execute, if requested, the 'unfold' and 'to-text' commands
+    if ($this->chain)
+    {
+      foreach (array(
+        'formula:unfold',
+        'formula:to-text'
+      ) as $c)
+      {
+        $command = $this->getApplication()->find($c);
+        $arguments = array(
+            'command'   => $c,
+            'root'      => $this->root,
+            'model'     => $this->model_name,
+            'parameter' => $this->parameter,
+            '--output'  => $this->output_name,
+          );
+        $input = new ArrayInput($arguments);
+        $returnCode = $command->run($input, $this->console_output);
+      }
+    }
   }
 
-  private function filter_out_file ($limit)
+  private function save_formulas ($formulas, $path, $ids = null)
   {
-      if ($this->pt_model)
+	  echo "mcc: generate: writing " . count ($formulas) . " formulas to file '$path'\n";
+    $xml_tree = $this->load_xml('<property-set xmlns="http://mcc.lip6.fr/"/>');
+    for ($i = 0; $i < count ($formulas); $i++)
+    {
+      $f = $formulas[$i];
+      $property = $this->load_xml ($this->property_xml_template);
+      if ($ids != null)
       {
-        $model = $this->pt_file;
-        $file = dirname($this->pt_file) . '/' . $this->output_name . '.xml';
-        if ($file)
-        {
-          $command = 'smc.py --max-states=' . $limit . ' --mcc15-stop-after=' . $this->nb_formula . ' ' . $model . ' ' . $file . ' 2> /dev/null | grep -v smc | grep "?" | cut -d " " -f 7';
-//        $command = 'smc/smc.py --mcc15-stop-after=2 ' . $model . ' ' . $file;
-          $output = array();
-          exec($command, $output);
-
-          if (count($output) < $this->nb_formula)
-          {
-            $result = false;
-          }
-          else
-          {
-            $result = true;
-            $xml = $this->load_xml(file_get_contents($file));
-            if ($this->sn_model)
-            {
-              $file_col = dirname($this->sn_file) . '/' . $this->output_name . '.xml';
-              $xml_col = $this->load_xml(file_get_contents($file_col));
-            }
-            $to_suppress = array();
-            $n = 0;
-            $i = 0;
-            // Réécrire le fichier en gardant les propriétés intéressantes
-            foreach ($xml->property as $property)
-            {
-              if (($n < $this->nb_formula) && ((string) $property->id == $output[$n]))
-              {
-                $n++;
-              }
-              else
-              {
-                $to_suppress[] = $i;
-              }
-              $i++;
-            }
-            $n = 0;
-            foreach ($to_suppress as $i)
-            {
-              unset($xml->children()[$i - $n]);
-              if ($this->sn_model)
-              {
-                unset($xml_col->children()[$i - $n]);
-              }
-              $n++;
-            }
-            unlink($file);
-            file_put_contents($file, $this->save_xml($xml));
-            if ($this->sn_model)
-            {
-              unlink($file_col);
-              file_put_contents($file_col, $this->save_xml($xml_col));
-            }
-            $command = $this->getApplication()->find('formula:to-text');
-            $arguments = array(
-                'command'   => $command,
-                'root'      => $this->root,
-                'model'     => $this->model_name,
-                'parameter' => $this->parameter,
-                '--output'  => $this->output_name,
-              );
-            $this->console_output->writeln($this->output_name);
-            $input = new ArrayInput($arguments);
-            $returnCode = $command->run($input, $this->console_output);
-          }
-        }
-        else
-          $result = true;
+        $property->id = $ids[$i];
       }
       else
-        $result = true;
-      return $result;
+      {
+        $property->id = $this->model->net->attributes()['id'] . "-{$this->subcategory}-" . $i;
+      }
+      $this->xml_adopt($property->formula, $f);
+      $this->xml_adopt($xml_tree, $property);
+    }
+    #echo $this->save_xml($xml_tree);
+    if (file_exists($path)) unlink($path);
+    file_put_contents($path, $this->save_xml($xml_tree));
+  }
+
+  private function filter_out_formulas ($formulas)
+  {
+    // depending on the category of formulas, we use the SMT encoding
+    // or we will be able to call smc.py
+    switch ($this->subcategory)
+    {
+    case SUBCAT_REACHABILITY_DEADLOCK :
+    case SUBCAT_REACHABILITY_BOUNDS :
+    case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
+    case SUBCAT_LTL_FIREABILITY :
+    case SUBCAT_LTL_CARDINALITY :
+      return $this->filter_out_formulas_smt ($formulas);
+
+    case SUBCAT_REACHABILITY_FIREABILITY :
+    case SUBCAT_REACHABILITY_CARDINALITY :
+    case SUBCAT_LTL_FIREABILITY_SIMPLE :
+    case SUBCAT_CTL_FIREABILITY_SIMPLE :
+    case SUBCAT_CTL_FIREABILITY :
+    case SUBCAT_CTL_CARDINALITY :
+    case SUBCAT_REACHABILITY_FIREABILITY_SIMPLE :
+      return $this->filter_out_formulas_smc ($formulas);
+
+    default :
+      $msg = "Unknown category '$this->subcategory', internal error";
+      throw new \Exception ($msg);
+    }
+  }
+
+  private function filter_out_formulas_smt ($formulas)
+  {
+    echo "mcc: generate: using the SMT filter on " . count ($formulas) . " formulas\n";
+    $result = array ();
+    foreach ($formulas as $formula)
+    {
+      if ($this->smt_formula_filter->filter_out ($formula))
+      {
+        echo "mcc: generate:  discarding formula\n";
+        continue;
+      }
+
+      // the formula is hard, keeping it
+      $result[] = $formula;
+      if (count ($result) == $this->quantity) return $result;
+    }
+    return $result;
+  }
+
+  private function filter_out_formulas_smc ($formulas)
+  {
+    // if we are processing a colored model, we need to first unfold every
+    // formula to a PT equivalent and run smc in the PT equivalent net
+    if ($this->sn_model)
+    {
+      // we are processing a COL model
+      if ($this->pt_model)
+      {
+        // we have a PT equivalent
+        echo "mcc: generate: unfolding COL formulas to PT\n";
+        echo "mcc: generate: " . count ($formulas) . " formulas\n";
+        $unfolded_formulas = array ();
+        $unfolder = new FormulaUnfolder ($this->sn_model, $this->pt_model);
+        foreach ($formulas as $f)
+        {
+          $uf = clone $f;
+          $unfolder->unfold ($uf);
+          $unfolded_formulas[] = $uf;
+        }
+        echo "mcc: generate: formulas unfolded\n";
+      }
+      else
+      {
+        // we don't have a PT equivalent, we don't filter :(
+        echo "mcc: generate: we dont have a PT equivalent model, not filtering!!!!\n";
+        return array_slice ($formulas, 0, $this->quantity);
+      }
+    }
+    else
+    {
+      // we are processing a PT model, nothing to do
+      echo "mcc: generate: this is a PT model, no need to unfold\n";
+      assert ($this->pt_model != null);
+      $unfolded_formulas = $formulas;
+    }
+
+    // store all formulas into a temporary file
+	  $tmp_file_path = tempnam ("/tmp/", "formulas.xml.");
+    $ids = array ();
+    foreach ($unfolded_formulas as $f) $ids[] = count ($ids);
+    $this->save_formulas ($unfolded_formulas, $tmp_file_path, $ids);
+
+    // run smc with default limits and retrieve the ids of difficult formulae
+    $model = $this->pt_file;
+    $cmd  = "smc.py --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > /tmp/smc.out 2> /tmp/smc.err; ";
+    $cmd .= "grep -v '^smc:' /tmp/smc.out | grep '?' | cut -d ' ' -f 7; ";
+    $cmd .= "grep '^smc: build:' /tmp/smc.out 1>&2; ";
+    $cmd .= "grep '^smc: state-space:' /tmp/smc.out 1>&2; ";
+    $cmd .= "grep '^smc: formulas:' /tmp/smc.out 1>&2; ";
+
+    echo "mcc: generate: $cmd\n";
+    exec ($cmd, $output, $retval);
+    echo "mcc: generate: cmd returns with status $retval\n";
+    echo "mcc: generate: cmd output contains " . count ($output) . " lines\n";
+
+    // handle execution errors
+    if ($retval != 0)
+    {
+      $msg = "Error: smc.py model checker exited with status '$retval'.  Unable to filter out formulas. You might want to have a look to '/tmp/smc.out.'";
+      throw new \Exception ($msg);
+    }
+
+    // filter out the formulas
+    $result = array ();
+    foreach ($output as $idx)
+    {
+      #echo "mcc: generate: taking formula idx $idx\n";
+      $result[] = $formulas[$idx];
+    }
+
+    // remove temporary files and return
+    unlink ($tmp_file_path);
+    return $result;
   }
 
   private function copy($a)

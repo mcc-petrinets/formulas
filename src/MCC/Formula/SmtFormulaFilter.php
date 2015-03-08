@@ -5,16 +5,32 @@ use \Symfony\Component\Console\Input\InputInterface;
 use \Symfony\Component\Console\Output\OutputInterface;
 use \Symfony\Component\Console\Input\InputOption;
 
-class CheckFormula
+class SmtFormulaFilter
 {
-  private $__gen_formula_cmd = null;
+  private $console_output;
+  private $places;
 
-  public function __construct($ref)
+  public function __construct ($console_output, $places)
   {
-    $this->__gen_formula_cmd = $ref;
+    $this->console_output = $console_output;
+    $this->places = $places;
   }
 
-  public function perform_check($formula, $places, $transitions, $smt)
+  public function filter_out ($formula)
+  {
+    // returns true if the formula should be discarded (bad quality); false otherwise
+
+    echo "mcc: smt-filter: calling the filtering routine\n";
+
+    $result = $this->build_smt_encoding ($formula);
+    if ($result[2] != "")
+    {
+      $result[0] = $result[0] && $this->call_smt ($result);
+    }
+    return ! $result[0];
+  }
+
+  private function build_smt_encoding ($formula)
   {
   // Le résultat est un triplet :
   //   * un booléen qui indique si on doit garder la formule ou pas
@@ -23,43 +39,30 @@ class CheckFormula
   //     associée n'a aucun sens)
   //   * une chaîne de caractère représentant la formule booléenne déjà calculée
     $result = array(true, array(), "");
-    //$this->__gen_formula_cmd->console_output->writeln("perform_check " . $smt);
     switch ((string) $formula->getName())
     {
-    /* case 'invariant': */
-    /* case 'impossibility': */
-    /* case 'possibility': */
     case 'all-paths':
     case 'exists-path':
     case 'globally':
     case 'finally':
       $sub = $formula->children()[0];
-      $result = $this->perform_check($sub, $places, $transitions, $smt);
+      $result = $this->build_smt_encoding($sub);
       
       if ($result[2] != "")
       {
-        $result[0] = $result[0] && $this->call_smt($result, $smt);
+        $result[0] = $result[0] && $this->call_smt($result);
       }
 
       $result[1] = array();
       $result[2] = "";
       break;
     case 'next':
-      /* $sub = null; */
-      /* foreach ($formula->children() as $child) */
-      /* { */
-      /*   if ($child->getName() != 'if-no-successor' && */
-      /*       $child->getName() != 'steps') */
-      /*   { */
-      /*     $sub = $child; */
-      /*   } */
-      /* } */
       $sub = $formula->children()[0];
-      $result = $this->perform_check($sub, $places, $transitions, $smt);
+      $result = $this->build_smt_encoding($sub);
       
       if ($result[2] != "")
       {
-        $result[0] = $result[0] && $this->call_smt($result, $smt);
+        $result[0] = $result[0] && $this->call_smt($result);
       }
 
       $result[1] = array();
@@ -68,20 +71,20 @@ class CheckFormula
     case 'until':
       $before = $formula->before->children()[0];
       $reach  = $formula->reach->children()[0];
-      $result_b = $this->perform_check($before, $places, $transitions, $smt);
+      $result_b = $this->build_smt_encoding($before);
       
       if ($result_b[2] != "")
       {
-        $result_b[0] = $result_b[0] && $this->call_smt($result_b, $smt);
+        $result_b[0] = $result_b[0] && $this->call_smt($result_b);
       }
 
       if ($result_b[0])
       {
-        $result_r = $this->perform_check($reach, $places, $transitions, $smt);
+        $result_r = $this->build_smt_encoding($reach);
       
         if ($result_r[2] != "")
         {
-           $result_r[0] = $result_r[0] && $this->call_smt($result_r, $smt);
+           $result_r[0] = $result_r[0] && $this->call_smt($result_r);
         }
 
         $result[0] = $result_r[0];
@@ -96,78 +99,43 @@ class CheckFormula
     /* case 'true': */
     /* case 'false': */
     case 'deadlock':
-    /* case 'is-live': */
     case 'is-fireable':
       break;
-
-
-
-
     case 'negation':
       $sub = $formula->children()[0];
-      $result = $this->perform_check($sub, $places, $transitions, $smt);
+      $result = $this->build_smt_encoding($sub);
       if ($result[2] != '')
       {
           $result[2] = '(not ' . $result[2] . ')';
         }
       break;
     case 'conjunction':
-      $result = $this->collect_formula($formula, 'and', $places, $transitions, $smt);
+      $result = $this->collect_formula($formula, 'and');
       break;
     case 'disjunction':
-      $result = $this->collect_formula($formula, 'or', $places, $transitions, $smt);
+      $result = $this->collect_formula($formula, 'or');
       break;
-    /* case 'exclusive-disjunction': */
-    /*   $result = $this->collect_formula($formula, 'xor', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'implication': */
-    /*   $result = $this->collect_formula($formula, '=>', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'equivalence': */
-    /*   $result = $this->collect_formula($formula, '=', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'integer-eq': */
-    /*   $result = $this->collect_formula($formula, '=', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'integer-ne': */
-    /*   $result = $this->collect_formula($formula, 'distinct', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'integer-lt': */
-    /*   $result = $this->collect_formula($formula, '<', $places, $transitions, $smt); */
-    /*   break; */
     case 'integer-le':
-      $result = $this->collect_formula($formula, '<=', $places, $transitions, $smt);
+      $result = $this->collect_formula($formula, '<=');
       break;
-    /* case 'integer-gt': */
-    /*   $result = $this->collect_formula($formula, '>', $places, $transitions, $smt); */
-    /*   break; */
-    /* case 'integer-ge': */
-    /*   $result = $this->collect_formula($formula, '>=', $places, $transitions, $smt); */
-    /*   break; */
     case 'integer-constant':
       $value = (string) $formula;
       $result[2] = $value;
 //    $this->console_output->writeln($value);
       break;
     case 'integer-sum':
-      $result = $this->collect_formula($formula, '+', $places, $transitions, $smt);
+      $result = $this->collect_formula($formula, '+');
       break;
-    /* case 'integer-product': */
-    /*   $result = $this->collect_formula($formula, '*', $places, $transitions, $smt); */
-    /*   break; */
     case 'integer-difference':
-      $result = $this->collect_formula($formula, '-', $places, $transitions, $smt);
+      $result = $this->collect_formula($formula, '-');
       break;
-    /* case 'integer-division': */
-    /*   $result = $this->collect_formula($formula, 'div', $places, $transitions, $smt); */
-    /*   break; */
     case 'place-bound':
     case 'tokens-count':
       $res = array();
       foreach ($formula->place as $place)
       {
         $id = (string) $place;
-        $name = $places[$id]->name;
+        $name = $this->places[$id]->name;
         $res[] = $name;
         $result[1][$name] = 1;
       }
@@ -190,7 +158,7 @@ class CheckFormula
     return $result;
   }
 
-  protected function collect_formula($formula, $operator, $places, $transitions, $smt)
+  private function collect_formula($formula, $operator)
   {
 //  $this->console_output->writeln('CF ' . $operator);
     $result = array(true, array(), "");
@@ -198,7 +166,7 @@ class CheckFormula
     $found = false;
     foreach ($formula->children() as $sub)
     {
-      $res = $this->perform_check($sub, $places, $transitions, $smt);
+      $res = $this->build_smt_encoding($sub);
       if (! $res[0])
       {
         $result[0] = false;
@@ -225,19 +193,25 @@ class CheckFormula
     return $result;
   }
 
-  public function call_smt($result, $smt)
+  private function call_smt($result)
   {
     $decl = '';
     foreach ($result[1] as $var => $val)
     {
       $decl = '(declare-fun ' . $var . " () Int)\n" . $decl;
     }
-    $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert ' . $result[2] . ')' .  "\n(check-sat)";
+    $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert ' . $result[2] .  ')' .  "\n(check-sat)\n";
 //    $this->console_output->writeln("Vérification 1 : \n" . $to_verify);
-    file_put_contents($smt, $to_verify);
+
+	 $tmp_file_path = tempnam ("/tmp/", "mcc.formulacheck.smt.");
+	 echo "mcc: smt-filter: here is the program:\n";
+	 echo $to_verify;
+	 #echo "smt: saving to '$tmp_file_path'\n";
+    file_put_contents ($tmp_file_path, $to_verify);
     $output = array();
-    $command = 'z3 -smt2 ' . $smt;
+    $command = 'z3 -smt2 ' . $tmp_file_path;
     exec($command, $output);
+	 echo "mcc: smt-filter: answer: $output[0]\n";
     if ($output[0] != 'sat')
     {
 //      $this->console_output->writeln('unsat 1 ! : ' . $output[0]);
@@ -246,18 +220,24 @@ class CheckFormula
     else
     {
       $res = true;
-      $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert (not ' . $result[2] . "))\n(check-sat)";
+      $to_verify = "(set-logic QF_LIA)\n" . $decl . '(assert (not ' .  $result[2] . "))\n(check-sat)\n";
 //      $this->console_output->writeln("Vérification 2 : \n" . $to_verify);
-      file_put_contents($smt, $to_verify);
+	   echo "mcc: smt-filter: same call: another program:\n";
+	   echo $to_verify;
+      file_put_contents($tmp_file_path, $to_verify);
       $output = array();
-      $command = 'z3 -smt2 ' . $smt;
+      $command = 'z3 -smt2 ' . $tmp_file_path;
       exec($command, $output);
+	   echo "mcc: smt-filter: answer: $output[0]\n";
       if ($output[0] != 'sat')
       {
 //        $this->console_output->writeln('unsat 2 ! : ' . $output[0]);
         $res = false;
       }
     }
+
+	 unlink ($tmp_file_path);
+
     return $res;
   }
 }

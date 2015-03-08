@@ -167,10 +167,8 @@ abstract class Base extends Command
   {
     if ($new == null)
     {
-      $this->console_output->writeln(
-        "<error>Error: not enough operators to generate formula.</error>"
-      );
-      exit(1);
+      $msg = "Error: xml_adopt: not enough operators to generate formula, internal error.";
+      throw new \Exception ($msg);
     }
     $node = $root->addChild($new->getName(), (string) $new);
     foreach($new->attributes() as $attr => $value)

@@ -248,6 +248,4 @@ class EquivalentElements
       $this->utransitions[$id] = $utransition;
     }
   }
-
-
 }
