@@ -59,7 +59,7 @@ class GenerateFormulas extends Base
         'The competition subcategory for which we will generate formulas', 'ReachabilityDeadlock')
       ->addOption('depth', null,
         InputOption::VALUE_REQUIRED,
-        'Unfold the grammar of the specified subcategory up to this depth and generate a random formula from this unfolded grammar (at most)', 6)
+        'Unfold the grammar of the specified subcategory up to this depth and generate a random formula from this unfolded grammar (at most)', 7)
       ->addOption('smc-max-states', null,
         InputOption::VALUE_REQUIRED,
         'Maximum number of states that the bounded model checker for filtering formulas should explore', 2000)
@@ -316,7 +316,7 @@ EOT;
       else
       {
         // we don't have a PT equivalent, we don't filter :(
-        echo "mcc: generate: we dont have a PT equivalent model, not filtering!!!!\n";
+        echo "mcc: generate: we don't have a PT equivalent model, no filtering!!!!\n";
         return array_slice ($formulas, 0, $this->quantity);
       }
     }
