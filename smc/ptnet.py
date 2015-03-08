@@ -9,6 +9,9 @@ class Transition :
         self.pre = set ()
         self.cont = set ()
         self.post = set ()
+        self.weight_pre = {}
+        self.weight_cont = {}
+        self.weight_post = {}
         self.m = 0
         self.c = 0
 
@@ -17,36 +20,45 @@ class Transition :
 
     def __str__ (self) :
         return "'%s' Pre %s;  Cont %s;  Post %s" \
-                % (self.__repr__ (), self.pre, self.cont, self.post)
+                % (self.__repr__ (), self.weight_pre, self.weight_cont, self.weight_post)
 
-    def pre_add (self, p) :
+    def pre_add (self, p, w=1) :
         if p in self.pre : return
+        assert (w >= 1)
         self.pre.add (p)
-        p.post_add (self)
+        self.weight_pre[p] = w
+        p.post_add (self, w)
 
-    def cont_add (self, p) :
+    def cont_add (self, p, w=1) :
         if p in self.cont : return
+        assert (w >= 1)
         self.cont.add (p)
-        p.cont_add (self)
+        self.weight_cont[p] = w
+        p.cont_add (self, w)
 
-    def post_add (self, p) :
+    def post_add (self, p, w=1) :
         if p in self.post : return
+        assert (w >= 1)
         self.post.add (p)
-        p.pre_add (self)
+        self.weight_post[p] = w
+        p.pre_add (self, w)
 
     def pre_rem (self, p) :
         if p not in self.pre : return
         self.pre.remove (p)
+        del self.weight_pre[p]
         p.post_rem (self)
 
     def cont_rem (self, p) :
         if p not in self.cont : return
         self.cont.remove (p)
+        del self.weight_cont[p]
         p.cont_rem (self)
 
     def post_rem (self, p) :
         if p not in self.post : return
         self.post.remove (p)
+        del self.weight_post[p]
         p.pre_rem (self)
 
 class Place :
@@ -56,6 +68,9 @@ class Place :
         self.pre = set ()
         self.cont = set ()
         self.post = set ()
+        self.weight_pre = {}
+        self.weight_cont = {}
+        self.weight_post = {}
         self.m = 0
         self.c = 0
 
@@ -64,36 +79,46 @@ class Place :
 
     def __str__ (self) :
         return "'%s' Pre %s;  Cont %s;  Post %s" \
-                % (self.__repr__ (), self.pre, self.cont, self.post)
+                % (self.__repr__ (), self.weight_pre, self.weight_cont, self.weight_post)
+                #% (self.__repr__ (), self.pre, self.cont, self.post)
 
-    def pre_add (self, t) :
+    def pre_add (self, t, w=1) :
         if t in self.pre : return
+        assert (w >= 1)
         self.pre.add (t)
-        t.post_add (self)
+        self.weight_pre[t] = w
+        t.post_add (self, w)
 
-    def cont_add (self, t) :
+    def cont_add (self, t, w=1) :
         if t in self.cont : return
+        assert (w >= 1)
         self.cont.add (t)
-        t.cont_add (self)
+        self.weight_cont[t] = w
+        t.cont_add (self, w)
 
-    def post_add (self, t) :
+    def post_add (self, t, w=1) :
         if t in self.post : return
+        assert (w >= 1)
         self.post.add (t)
-        t.pre_add (self)
+        self.weight_post[t] = w
+        t.pre_add (self, w)
 
     def pre_rem (self, t) :
         if t not in self.pre : return
         self.pre.remove (t)
+        del self.weight_pre[t]
         t.post_rem (self)
 
     def cont_rem (self, t) :
         if t not in self.cont : return
         self.cont.remove (t)
+        del self.weight_cont[t]
         t.cont_rem (self)
 
     def post_rem (self, t) :
         if t not in self.post : return
         self.post.remove (t)
+        del self.weight_post[t]
         t.pre_rem (self)
 
 class Marking :
@@ -199,26 +224,36 @@ class Net :
         return t
 
     def enables (self, m, t) :
-        for p in t.pre | t.cont :
-            if not m[p] : return False
+        for p in t.pre :
+            if m[p] < t.weight_pre[p] : return False
+        for p in t.cont :
+            if m[p] < t.weight_cont[p] : return False
         return True
 
     def enabled (self, marking) :
         result = set ()
-        candidates = None
+        candidates = set ()
         m = self.new_mark ()
         for p in marking :
-            if candidates == None : candidates = p.post | p.cont
             candidates |= p.post | p.cont
             p.m = m
         for t in candidates :
             found = False
-            for p in t.pre | t.cont :
-                if p.m != m :
+            for p in t.pre :
+                assert ((p.m != m or marking[p] < t.weight_pre[p]) == (marking[p] < t.weight_pre[p]))
+                if marking[p] < t.weight_pre[p] :
+                    found = True
+                    break
+            if found :
+                continue
+            found = False
+            for p in t.cont :
+                if marking[p] < t.weight_cont[p] :
                     found = True
                     break
             if not found :
                 result.add (t)
+        assert result == self.enabled2 (marking)
         return result
 
     def enabled2 (self, marking) :
@@ -231,9 +266,9 @@ class Net :
         assert (self.enables (marking, t))
         new_marking = marking.copy ()
         for p in t.pre :
-            new_marking[p] -= 1
+            new_marking[p] -= t.weight_pre[p]
         for p in t.post :
-            new_marking[p] += 1
+            new_marking[p] += t.weight_post[p]
         return new_marking
 
     def fire_run (self, run, m=None) :
@@ -689,6 +724,8 @@ class Net :
         if len (self.__grmlq) : self.__grmlq[-1]['__data'] = data
 
     def __read_pnml (self, f) :
+        # documentation:
+        # http://www.pnml.org/papers/PNML-Tutorial.pdf
         par = xml.parsers.expat.ParserCreate ()
         par.StartElementHandler = self.__pnml_start
         par.EndElementHandler = self.__pnml_end
@@ -719,8 +756,12 @@ class Net :
         for d in self.__pnmlq :
             if d['type'] != 'arc' : continue
             if d['source'] not in idx or d['target'] not in idx :
-                raise Exception, 'arc with unknown source or target'
-            idx[d['source']].post_add (idx[d['target']])
+                raise Exception, 'Arc with id "%s" has unknown source or target' % d['id']
+            weight = 1
+            if 'weight' in d :
+                weight = int (d['weight'])
+                print "arc id '%s' with weight %d" % (d["id"], weight)
+            idx[d['source']].post_add (idx[d['target']], weight)
 
         del self.__pnmlitm
         del self.__pnmlq
@@ -732,13 +773,13 @@ class Net :
 
         if tag == 'net' :
             if len (self.__pnmlitm) != 0 :
-                raise Exception, 'missplaced "net" entity'
+                raise Exception, 'Missplaced XML tag "net"'
             self.__pnmlitm = {}
             self.__pnmlitm['type'] = 'net'
 
         elif tag in ['place', 'transition', 'arc'] :
             if len (self.__pnmlitm) == 0 :
-                raise Exception, 'missplaced "%s" entity' % tag
+                raise Exception, 'Missplaced XML tag "%s"' % tag
             #print 'new! ', repr (self.__pnmlitm)
             for k in ['name', 'm0'] :
                 if k in self.__pnmlitm :
@@ -757,9 +798,12 @@ class Net :
         elif tag == 'initialMarking' :
             self.__pnmlitm['data'] = 'm0'
             self.__pnmlitm['m0'] = ''
+        elif tag == 'inscription' :
+            self.__pnmlitm['data'] = 'weight'
+            self.__pnmlitm['weight'] = ''
 
         # bug if inscription is an arc weight !!!!
-        elif tag in ['toolspecific', 'graphics', 'inscription'] :
+        elif tag in ['toolspecific', 'graphics'] :
             self.__pnmlskipdepth = self.__pnmldepth
             return
         elif tag in ['page', 'pnml', 'text'] :

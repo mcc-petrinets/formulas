@@ -104,10 +104,10 @@ class BoundedSearch :
         while (len (self.states) < self.max_states
                 and curr_depth < self.max_depth
                 and len (layer) >= 1) :
-            print 'smc: build: so far', len(self.states), 'nodes in the graph'
-            print 'smc: build: expanding', len (layer), 'nodes at depth', curr_depth
+            print 'smc: build: so far', len(self.states), 'markings found'
+            print 'smc: build: expanding', len (layer), 'markings at depth', curr_depth
             for marking in layer :
-                #print 'build: expanding marking', repr (marking)
+                #print 'smc: build: expanding marking', repr (marking)
                 if (marking.fully_expanded) : continue
                 for t in self.net.enabled (marking) :
                     new_marking = self.net.fire (marking, t)
@@ -280,14 +280,22 @@ class BoundedSearch :
         assert (formula.op == Formula.NOT)
         assert (formula.sub1 != None)
 
+        nr_sat = 0
+        nr_undef = 0
+
         for marking in self.states :
             # if the subformula is UNDEF, then the NOT is also UNDEF
             if formula.sub1 in marking.formulas_undef :
                 marking.formulas_undef.add (formula)
+                nr_undef += 1
                 continue
             # otherwise we can decide the NOT
             if formula.sub1 not in marking.formulas_sat :
                 marking.formulas_sat.add (formula)
+                nr_sat += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef; not" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_or (self, formula) :
         print "smc: labelling formula:", formula
@@ -295,10 +303,14 @@ class BoundedSearch :
         assert (formula.sub1 != None)
         assert (formula.sub2 != None)
 
+        nr_sat = 0
+        nr_undef = 0
+
         for marking in self.states :
             # if at least one is SAT, then the OR is SAT
             if marking.is_sat (formula.sub1) or marking.is_sat (formula.sub2) :
                 marking.formulas_sat.add (formula)
+                nr_sat += 1
                 continue
 
             # if both are UNSAT, then the OR is UNSAT
@@ -307,6 +319,10 @@ class BoundedSearch :
 
             # otherwise the OR is UNDEF
             marking.formulas_undef.add (formula)
+            nr_undef += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef; or" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_and (self, formula) :
         print "smc: labelling formula:", formula
@@ -314,10 +330,14 @@ class BoundedSearch :
         assert (formula.sub1 != None)
         assert (formula.sub2 != None)
 
+        nr_sat = 0
+        nr_undef = 0
+
         for marking in self.states :
             # if both are SAT, then the AND is SAT
             if marking.is_sat (formula.sub1) and marking.is_sat (formula.sub2) :
                 marking.formulas_sat.add (formula)
+                nr_sat += 1
                 continue
 
             # if one is UNSAT, then the AND is UNSAT
@@ -326,11 +346,18 @@ class BoundedSearch :
 
             # otherwise the OR is UNDEF
             marking.formulas_undef.add (formula)
+            nr_undef += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef; and" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_ex (self, formula) :
         print "smc: labelling formula:", formula
         assert (formula.op == Formula.EX)
         assert (formula.sub1 != None)
+
+        nr_sat = 0
+        nr_undef = 0
 
         for marking in self.states :
             # formula is SAT iff there is some successor where sub1 is SAT
@@ -349,9 +376,14 @@ class BoundedSearch :
 
             if found_sat :
                 marking.formulas_sat.add (formula)
+                nr_sat += 1
                 continue
             if not marking.fully_expanded or found_undef :
                 marking.formulas_undef.add (formula)
+                nr_undef += 1
+
+        print "smc:   %d states sat, %d unsat, %d undef; EX" % \
+                (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_eg (self, formula) :
         print "smc: labelling formula:", formula
@@ -391,7 +423,7 @@ class BoundedSearch :
                 s.formulas_undef.add (formula)
                 nr_undef += 1
 
-        print "smc:   %d states sat, %d unsat, %d undef" % \
+        print "smc:   %d states sat, %d unsat, %d undef; EG" % \
                 (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_eg_mark_sat (self, f, msat) :
@@ -474,7 +506,7 @@ class BoundedSearch :
                 s.formulas_undef.add (formula)
                 nr_undef += 1
 
-        print "smc:   %d states sat, %d unsat, %d undef" % \
+        print "smc:   %d states sat, %d unsat, %d undef; EU" % \
                 (nr_sat, len (self.states) - nr_sat - nr_undef, nr_undef)
 
     def __label_states_eu_mark_sat (self, f, msat) :
@@ -730,12 +762,12 @@ class Formula :
         # True and f = f
         elif self.op == Formula.AND and \
                 self.sub1.op == Formula.TRUE :
-            self.copy_fields (self.sub2)
+            self.__copy_fields (self.sub2)
 
         # f and True = f
         elif self.op == Formula.AND and \
                 self.sub2.op == Formula.TRUE :
-            self.copy_fields (self.sub1)
+            self.__copy_fields (self.sub1)
 
         # (not f) and (not g) = not (f or g)
         elif self.op == Formula.AND and \
@@ -1179,6 +1211,7 @@ def parse () :
     p.add_argument ("--max-depth", type=int, default=-1)
     p.add_argument ("--max-states", type=int, default=2000)
     p.add_argument ("--mcc15-stop-after", type=int, default=-1)
+    p.add_argument ("--explore-only", action="store_true")
 
     p.add_argument ('net_path')
     p.add_argument ('formula_path')
@@ -1218,9 +1251,12 @@ def main () :
         print "smc:", t
         i += 1
         if i >= 3 : break
-    print "smc: laoding formula file '%s'" % args.formula_path
-    formulas = Formula.read (net, args.formula_path)
-    print "smc: done,", len (formulas), "formulas"
+    if args.explore_only :
+        formulas = [Formula (Formula.FALSE)]
+    else :
+        print "smc: laoding formula file '%s'" % args.formula_path
+        formulas = Formula.read (net, args.formula_path)
+        print "smc: done,", len (formulas), "formulas"
 
     explo = BoundedSearch (net)
     explo.max_depth = args.max_depth
@@ -1236,11 +1272,13 @@ def main () :
         print "smc: original:"
         print "smc:", formula
 
-        result = explo.verify (formula)
-
-        #explo.debug_print_states ([formula])
-        #explo.debug_print_states_sat (formula)
-        #explo.debug_print_states_undef (formula)
+        try :
+            ident = formula.ident
+            result = explo.verify (formula)
+            formula.ident = ident # could have been removed by rewriting
+        except KeyboardInterrupt :
+            print 'smc: interrupted by the user (cltr+c), doing an ordered termination'
+            break;
 
         print "smc: verification terminated with result:"
         print "smc:", result
@@ -1261,13 +1299,14 @@ def main () :
         explo.stats_nr_states, "states,", \
         explo.stats_nr_states - explo.stats_nr_states_fe, "not fully expanded,", \
         explo.stats_nr_edges, "edges,", \
-        explo.stats_depth, "complete steps deep (explored fragment)"
+        explo.stats_depth, "complete steps deep"
     print "smc: state-space: limits: maximum depth:", explo.max_depth
     print "smc: state-space: limits: maximum nr. of states:", explo.max_states
     print "smc: state-space: construction terminated due to: ", explo.stats_stop_reason
     stats_all = stats_sat + stats_unsat + stats_undef
     assert (len (formulas) >= len (results))
     assert (stats_all == len (results))
+    if stats_all == 0 : stats_all = 1
 
     print "smc: formulas: among the verified: %.1f%% SAT, %.1f%% UNSAT, %.1f%% ???" % \
             (percent (stats_sat, stats_all), \
@@ -1276,6 +1315,9 @@ def main () :
 
     print "smc: formulas: %d unverified, %d SAT, %d UNSAT, %d ???; total %d" % \
             (len (formulas) - stats_all, stats_sat, stats_unsat, stats_undef, len (formulas))
+
+    if explo.stats_nr_states == explo.stats_nr_states_fe and stats_undef > 0 :
+        print "smc: WARNING: explored the full state space but some was unable to decide some formulas; is this a bug?"
 
 if __name__ == '__main__' :
     #main ()
