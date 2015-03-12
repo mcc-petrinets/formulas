@@ -7,12 +7,14 @@ export PATH="${PATH}:${PWD}"
 
 # Download composer if it does not exist:
 command -v composer.phar || {
-  curl -S https://getcomposer.org/installer | php -d detect_unicode=0
+  #curl -S https://getcomposer.org/installer | php -d detect_unicode=0
+  wget -O - https://getcomposer.org/installer | php -d detect_unicode=0
 }
 
 # Download box if it does not exist:
 command -v box.phar || {
-  curl -S http://box-project.org/installer.php | php -d detect_unicode=0
+  #curl -S http://box-project.org/installer.php | php -d detect_unicode=0
+  wget -O - http://box-project.org/installer.php | php -d detect_unicode=0
 }
 
 box="$(command -v box.phar)"

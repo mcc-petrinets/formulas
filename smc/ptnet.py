@@ -190,6 +190,9 @@ class Net :
         self.sanity_check = sanity_check
         self.m = 1
 
+        self.__trans_lookup_table = None
+        self.__places_lookup_table = None
+
         self.author = ''
         self.title = ''
         self.date = ''
@@ -197,13 +200,25 @@ class Net :
         self.version = ''
 
     def trans_lookup (self, ident) :
-        for t in self.trans :
-            if t.ident == ident : return t
+
+        if self.__trans_lookup_table == None :
+            self.__trans_lookup_table = {}
+            for t in self.trans :
+                self.__trans_lookup_table[t.ident] = t
+
+        if ident in self.__trans_lookup_table :
+            return self.__trans_lookup_table[ident]
         return None
 
     def place_lookup (self, ident) :
-        for p in self.places :
-            if p.ident == ident : return p
+
+        if self.__places_lookup_table == None :
+            self.__places_lookup_table = {}
+            for t in self.places :
+                self.__places_lookup_table[t.ident] = t
+
+        if ident in self.__places_lookup_table :
+            return self.__places_lookup_table[ident]
         return None
 
     def new_mark (self) :
@@ -231,7 +246,7 @@ class Net :
         return True
 
     def enabled (self, marking) :
-        result = set ()
+        #result = set ()
         candidates = set ()
         m = self.new_mark ()
         for p in marking :
@@ -252,9 +267,10 @@ class Net :
                     found = True
                     break
             if not found :
-                result.add (t)
-        assert result == self.enabled2 (marking)
-        return result
+                yield t
+                #result.add (t)
+        #assert result == self.enabled2 (marking)
+        #return result
 
     def enabled2 (self, marking) :
         result = set ()
@@ -760,7 +776,7 @@ class Net :
             weight = 1
             if 'weight' in d :
                 weight = int (d['weight'])
-                print "arc id '%s' with weight %d" % (d["id"], weight)
+                #print "arc id '%s' with weight %d" % (d["id"], weight)
             idx[d['source']].post_add (idx[d['target']], weight)
 
         del self.__pnmlitm

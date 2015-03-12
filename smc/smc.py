@@ -109,15 +109,20 @@ class BoundedSearch :
             for marking in layer :
                 #print 'smc: build: expanding marking', repr (marking)
                 if (marking.fully_expanded) : continue
+                make_fully_expanded = True
                 for t in self.net.enabled (marking) :
+                    #print "smc: firing transition %s" % str (t)
                     new_marking = self.net.fire (marking, t)
                     new_canon_marking = self.find_and_insert (new_marking)
                     #print 'smc: build: - adding edge to', repr (new_canon_marking), 'trans', repr (t)
                     self.states.add_edge (marking, new_canon_marking, trans=t)
                     if not new_canon_marking.fully_expanded : next_layer.add (new_canon_marking)
-                    #next_layer.add (new_canon_marking)
-                marking.fully_expanded = True
-                self.stats_nr_states_fe += 1
+                    if len (self.states) > self.max_states :
+                        make_fully_expanded = False
+                        break
+                if make_fully_expanded :
+                    marking.fully_expanded = True
+                    self.stats_nr_states_fe += 1
                 if len (self.states) >= self.max_states :
                     curr_depth -= 1 # avoids bad reporting of reason 
                     break
@@ -852,7 +857,11 @@ class Formula :
             return "false"
         elif self.op == Formula.IS_FIREABLE :
             s = "is-firable("
-            s += ", ".join (repr (t) for t in self.atom_identifiers)
+            if len (self.atom_identifiers) > 5 :
+                s += ", ".join (repr (t) for t in self.atom_identifiers[:5])
+                s += ", ... %d more" % (len (self.atom_identifiers) - 5)
+            else :
+                s += ", ".join (repr (t) for t in self.atom_identifiers)
             return s + ")"
         elif self.op == Formula.LEQ :
             return "(" + str (self.sub1) + " <= " + str (self.sub2) + ")"
@@ -870,7 +879,11 @@ class Formula :
             return "(EG " + str (self.sub1) + ")"
         elif self.op == Formula.TOKEN_COUNT :
             s = "token-count("
-            s += ", ".join (repr (p) for p in self.atom_identifiers)
+            if len (self.atom_identifiers) > 5 :
+                s += ", ".join (repr (p) for p in self.atom_identifiers[:5])
+                s += ", ... %d more" % (len (self.atom_identifiers) - 5)
+            else :
+                s += ", ".join (repr (p) for p in self.atom_identifiers)
             return s + ")"
         elif self.op == Formula.INT_CONST :
             return str (self.atom_int)
@@ -900,6 +913,7 @@ class Formula :
         root = xmltree.getroot ()
         result = []
         for child in root :
+            #print "smc: parsing next property"
             result.append (Formula.__read_mcc15_parse_property (net, child))
         return result
 
@@ -950,22 +964,34 @@ class Formula :
         elif xmltree.tag == '{http://mcc.lip6.fr/}is-fireable' :
             f.op = Formula.IS_FIREABLE
             f.atom_identifiers = []
+            if len (xmltree) > 1000 :
+                print "smc: is-fireable XML tag with %d transition ids (!!)" % len (xmltree)
+            nr = 0
             for xmlsub in xmltree :
                 t = net.trans_lookup (xmlsub.text)
                 if t == None :
                     raise Exception, "'%s': transition id not found in this net" % xmlsub.text
                 f.atom_identifiers.append (t)
+                nr += 1
+                if nr % 10000 == 0 :
+                    print "smc: loaded %d transition ids" % nr
         elif xmltree.tag == '{http://mcc.lip6.fr/}integer-constant' :
             f.op = Formula.INT_CONST
             f.atom_int = int (xmltree.text)
         elif xmltree.tag == '{http://mcc.lip6.fr/}tokens-count' :
             f.op = Formula.TOKEN_COUNT
             f.atom_identifiers = []
+            if len (xmltree) > 1000 :
+                print "smc: tokens-count XML tag with %d transition ids (!!)" % len (xmltree)
+            nr = 0
             for xmlsub in xmltree :
                 p = net.place_lookup (xmlsub.text)
                 if p == None :
                     raise Exception, "'%s': place id not found in this net" % xmlsub.text
                 f.atom_identifiers.append (p)
+                nr += 1
+                if nr % 10000 == 0 :
+                    print "smc: loaded %d place ids" % nr
         else :
             raise Exception, "'%s': unable to handle XML tag, probably I cannot solve this formula" % xmltree.tag
         return f

@@ -48,6 +48,9 @@ function main ()
 	echo "Second run, with 1000 states, done"
 	date
 	echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+	echo "END !!!!"
+	date
 }
 
 main > output.txt 2>&1
