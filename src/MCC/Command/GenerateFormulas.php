@@ -63,6 +63,9 @@ class GenerateFormulas extends Base
       ->addOption('smc-max-states', null,
         InputOption::VALUE_REQUIRED,
         'Maximum number of states that the bounded model checker for filtering formulas should explore', 2000)
+      ->addOption('no-filtering', null,
+        InputOption::VALUE_NONE,
+        'Disable the SMT or bounded model checking filter')
       ;
   }
 
@@ -77,6 +80,7 @@ class GenerateFormulas extends Base
   private $quantity;
   private $max_depth;
   private $smc_max_states;
+  private $no_filtering;
   private $property_xml_template = <<<EOT
   <property>
     <id></id>
@@ -109,6 +113,7 @@ EOT;
     $this->quantity    = intval($input->getOption('quantity'));
     $this->max_depth   = intval($input->getOption('depth'));
     $this->smc_max_states = intval($input->getOption('smc-max-states'));
+    $this->no_filtering = $input->getOption('no-filtering');
 
     if ($input->getOption ('show-subcategories')) $this->show_subcategories ();
     if ($input->getOption ('show-grammar')) $this->show_grammar ();
@@ -163,6 +168,7 @@ EOT;
     //$this->progress->start ($this->console_output, 100);
 
     // generate $nr formulas, store them in the array $formulas[]
+    echo "mcc: generating $nr formulas\n";
     $formulas = array();
     for ($i = 0; $i < $nr; $i++)
     {
@@ -246,6 +252,17 @@ EOT;
 
   private function filter_out_formulas ($formulas)
   {
+    // skip doing anything if we don't have to filter
+    if ($this->no_filtering)
+    {
+      $result = array ();
+      foreach ($formulas as $f)
+      {
+        $result[] = $f;
+        if (count ($result) >= $this->quantity) return $result;
+      }
+    }
+
     // depending on the category of formulas, we use the SMT encoding
     // or we will be able to call smc.py
     switch ($this->subcategory)
