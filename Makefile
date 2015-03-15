@@ -1,4 +1,6 @@
 
+ROOT=inputs-known-2015/
+
 all :
 	echo "nothing to do :)"
 
@@ -15,3 +17,7 @@ generate_no_filtering :
 	./mcc formula:generate inputs-smallest --quantity 9 --chain --no-filtering --subcategory CTLFireabilitySimple
 	./mcc formula:generate inputs-smallest --quantity 9 --chain --no-filtering --subcategory CTLFireability
 	./mcc formula:generate inputs-smallest --quantity 9 --chain --no-filtering --subcategory CTLCardinality
+
+clean_formulas :
+	-find $(ROOT) | grep '.xml$$' | xargs rm -f
+	-find $(ROOT) | grep '.txt$$' | xargs rm -f

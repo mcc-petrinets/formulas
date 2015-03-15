@@ -201,6 +201,7 @@ EOT;
 
     // save all formulas into one xml file
     $this->save_formulas ($filtered_formulas, $this->output);
+	  echo "mcc: generate: wrote " . count ($filtered_formulas) . " formulas in '$this->output'\n";
     //$this->progress->setCurrent (100);
     //$this->progress->finish();
 
@@ -247,7 +248,8 @@ EOT;
     }
     #echo $this->save_xml($xml_tree);
     if (file_exists($path)) unlink($path);
-    file_put_contents($path, $this->save_xml($xml_tree));
+    //file_put_contents($path, $this->save_xml($xml_tree));
+    $this->save_xml_to_file ($xml_tree, $path);
   }
 
   private function filter_out_formulas ($formulas)
@@ -346,6 +348,7 @@ EOT;
     }
 
     // store all formulas into a temporary file
+	  //$tmp_file_path = tempnam ("/tmp/cesar/", "formulas.xml.");
 	  $tmp_file_path = tempnam ("/tmp/", "formulas.xml.");
     $ids = array ();
     foreach ($unfolded_formulas as $f) $ids[] = count ($ids);
@@ -353,7 +356,7 @@ EOT;
 
     // run smc with default limits and retrieve the ids of difficult formulae
     $model = $this->pt_file;
-    $cmd  = "smc.py --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > /tmp/smc.out 2> /tmp/smc.err; ";
+    $cmd  = "smc.py --use10 --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > /tmp/smc.out 2> /tmp/smc.err; ";
     $cmd .= "grep -v '^smc:' /tmp/smc.out | grep '?' | cut -d ' ' -f 7; ";
     $cmd .= "grep '^smc: build:' /tmp/smc.out 1>&2; ";
     $cmd .= "grep '^smc: state-space:' /tmp/smc.out 1>&2; ";
