@@ -3,7 +3,7 @@
 ROOT=inputs-1000states
 MAX=1000
 
-CATS="ReachabilityDeadlock-
+CATS="ReachabilityDeadlock
 ReachabilityFireabilitySimple
 ReachabilityFireability
 ReachabilityCardinality
