@@ -31,11 +31,8 @@ try :
     import os
     import sys
     import time
-    #import math
     import argparse
     import networkx
-    #import tempfile
-    #import subprocess
     import xml.etree.ElementTree
 except Exception, e:
     print 'ERROR!'
@@ -82,10 +79,11 @@ class BoundedSearch :
         return self.__new_mark
 
     def find_and_insert (self, marking) :
-        if marking in self.states :
+        try :
             return self.states.node[marking]['org']
-        self.states.add_node (marking, org=marking)
-        return marking
+        except KeyError :
+            self.states.add_node (marking, org=marking)
+            return marking
 
     def build_state_space (self) :
 
@@ -94,8 +92,8 @@ class BoundedSearch :
         assert (self.init_state == self.net.m0)
         curr_depth = 0
         self.find_and_insert (self.init_state)
-        layer = set ([self.init_state])
-        next_layer = set ()
+        layer = list ([self.init_state])
+        next_layer = list ()
 
         # bread-first search on the state space
         print "smc: constructing state space"
@@ -116,19 +114,19 @@ class BoundedSearch :
                     new_canon_marking = self.find_and_insert (new_marking)
                     #print 'smc: build: - adding edge to', repr (new_canon_marking), 'trans', repr (t)
                     self.states.add_edge (marking, new_canon_marking, trans=t)
-                    if not new_canon_marking.fully_expanded : next_layer.add (new_canon_marking)
-                    if len (self.states) > self.max_states :
+                    if not new_canon_marking.fully_expanded : next_layer.append (new_canon_marking)
+                    if len (self.states) >= self.max_states :
                         make_fully_expanded = False
                         break
                 if make_fully_expanded :
                     marking.fully_expanded = True
                     self.stats_nr_states_fe += 1
-                if len (self.states) >= self.max_states :
+                else :
                     curr_depth -= 1 # avoids bad reporting of reason 
                     break
             curr_depth += 1
             layer = next_layer
-            next_layer = set ()
+            next_layer = list ()
 
         self.__state_space_built = True
         self.stats_nr_states = self.states.number_of_nodes ()
@@ -435,6 +433,8 @@ class BoundedSearch :
         work = []
         subg = self.states.subgraph (s for s in self.states if s.is_sat (f))
         sccs = networkx.algorithms.strongly_connected_components (subg)
+        print "smc:   sat subgraph has %d states %d edges %d sccs" % \
+                (subg.number_of_nodes (), subg.number_of_edges (), len (sccs))
         for scc in sccs :
             found = False
             for s in scc :
@@ -909,11 +909,11 @@ class Formula :
 
     @staticmethod
     def __read_mcc15 (net, path) :
+        print "smc: loading XML in memory (ElementTree.parse)"
         xmltree = xml.etree.ElementTree.parse (path)
         root = xmltree.getroot ()
         result = []
         for child in root :
-            #print "smc: parsing next property"
             result.append (Formula.__read_mcc15_parse_property (net, child))
         return result
 
@@ -1026,7 +1026,7 @@ def test2 () :
     print 'aaaaaaaaaaaaaaaaa'
     m1 = n.m0
     m1.formulas_sat.add (11111)
-    m2 = m1.copy ()
+    m2 = m1.clone ()
     m2.formulas_sat.add (2222222)
     print hash (m1)
     print hash (m2)
@@ -1054,7 +1054,7 @@ def test2 () :
     print 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
     print 'initial marking'
     print n.m0
-    new = n.m0.copy ()
+    new = n.m0.clone ()
     print new
     print 'equal before modification'
     print new == n.m0
@@ -1070,7 +1070,7 @@ def test2 () :
     print new, n.m0
     print 'aaaaaaaaaaaaaaaaa'
     g.add_edge (n.m0, new)
-    neww = n.m0.copy ()
+    neww = n.m0.clone ()
     neww.formulas_sat.add (123)
     neww.fully_expanded (123)
     g.add_edge (new, neww)
@@ -1199,8 +1199,8 @@ def test4 () :
     m1 = ptnet.Marking ()
     m1['p'] = 123
     m1['q'] = 2
-    m2 = m1.copy ()
-    m3 = m1.copy ()
+    m2 = m1.clone ()
+    m3 = m1.clone ()
     m2['z'] = 12333
 
     g.add_node (m1, original=m1)
@@ -1263,7 +1263,8 @@ def main () :
     args = parse ()
     print "smc: command arguments", args
     net = ptnet.Net (True)
-    print "smc: loading net file '%s'" % args.net_path
+    size = os.path.getsize (args.net_path) / (1024 * 1024.0)
+    print "smc: loading net file '%s' (%.1fM)" % (args.net_path, size)
     try :
         f = open (args.net_path, 'r')
         net.read (f, fmt='pnml')
@@ -1280,7 +1281,8 @@ def main () :
     if args.explore_only :
         formulas = [Formula (Formula.FALSE)]
     else :
-        print "smc: laoding formula file '%s'" % args.formula_path
+        size = os.path.getsize (args.formula_path) / (1024 * 1024.0)
+        print "smc: laoding formula file '%s' (%.1fM)" % (args.formula_path, size)
         formulas = Formula.read (net, args.formula_path)
         print "smc: done,", len (formulas), "formulas"
 
@@ -1288,7 +1290,9 @@ def main () :
     explo.max_depth = args.max_depth
     explo.max_states = args.max_states
 
+    ptnet.Marking.frozen_eq = False
     explo.build_state_space ()
+    ptnet.Marking.frozen_eq = True
 
     results = []
     stats_sat, stats_unsat, stats_undef = 0, 0, 0

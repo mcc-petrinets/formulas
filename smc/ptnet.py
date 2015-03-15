@@ -73,6 +73,7 @@ class Place :
         self.weight_post = {}
         self.m = 0
         self.c = 0
+        self.marking_eq_mark = 0
 
     def __repr__ (self) :
         return str (self.name)
@@ -122,20 +123,29 @@ class Place :
         t.pre_rem (self)
 
 class Marking :
+    frozen_eq = False
     def __init__ (self) :
         self.__marking = {}
         self.formulas_sat = set ()
         self.formulas_undef = set ()
         self.fully_expanded = False
         self.m = 0
+        self.__hash = 0
 
     def __getitem__ (self, place) :
-        if place not in self.__marking : return 0
-        return self.__marking[place];
+        try :
+            return self.__marking[place];
+        except KeyError :
+            return 0
 
     def __setitem__ (self, place, value) :
+        #assert (self.__hash == hash (self))
+        self.__update_hash (place, value)
         self.__marking[place] = value
         if (value == 0) : del self.__marking[place]
+        #assert (self.__hash == hash (self))
+        for p in self.__marking :
+            assert (self.__marking[p] > 0)
         return value
 
     def __iter__ (self) :
@@ -157,19 +167,31 @@ class Marking :
         s += "\n===============\n"
         return s
 
+    def __update_hash (self, place, value) :
+        if place in self.__marking :
+            self.__hash -= id (place) + self.__marking[place]
+        if value != 0 :
+            self.__hash += id (place) + value
+            
     def __hash__ (self) :
-        i = 0
-        for k,v in self.__marking.items () :
-            i += id (k) + v
-        return i
+#        i = 0
+#        for k,v in self.__marking.items () :
+#            i += id (k) + v
+#        print "__hash__: i", i, "__hash", self.__hash
+#        assert (self.__hash == i)
+        return self.__hash
 
     def __eq__ (self, other) :
-        return  self.__marking == other.__marking
+        if Marking.frozen_eq :
+            return id (self) == id (other)
+        else :
+            return self.__marking == other.__marking
 
-    def copy (self) :
+    def clone (self) :
         new = Marking () 
         for place in self.__marking :
             new.__marking[place] = self.__marking[place]
+        new.__hash = self.__hash
         return new
 
     def is_sat (self, formula) :
@@ -280,7 +302,7 @@ class Net :
 
     def fire (self, marking, t) :
         assert (self.enables (marking, t))
-        new_marking = marking.copy ()
+        new_marking = marking.clone ()
         for p in t.pre :
             new_marking[p] -= t.weight_pre[p]
         for p in t.post :
@@ -288,7 +310,7 @@ class Net :
         return new_marking
 
     def fire_run (self, run, m=None) :
-        if m == None : m = self.m0.copy ()
+        if m == None : m = self.m0.clone ()
         for t in run :
 #            db ('at', list (m))
 #            db ('firing', t)
