@@ -433,9 +433,10 @@ class BoundedSearch :
         work = []
         subg = self.states.subgraph (s for s in self.states if s.is_sat (f))
         sccs = networkx.algorithms.strongly_connected_components (subg)
-        print "smc:   sat subgraph has %d states %d edges %d sccs" % \
-                (subg.number_of_nodes (), subg.number_of_edges (), len (sccs))
-        for scc in sccs :
+        print "smc:   sat subgraph has %d states %d edges" % \
+                (subg.number_of_nodes (), subg.number_of_edges ())
+        for scc in [x for x in sccs if len (x) >= 2] :
+            print "smc:  scc of size", len (scc)
             found = False
             for s in scc :
                 if not s.is_sat (f) :
