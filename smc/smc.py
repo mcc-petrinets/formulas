@@ -89,6 +89,9 @@ class BoundedSearch :
 
         if self.__state_space_built : return
 
+        # enable structural marking equality, rather than just checking the pointer id()
+        ptnet.Marking.frozen_eq = False
+
         assert (self.init_state == self.net.m0)
         curr_depth = 0
         self.find_and_insert (self.init_state)
@@ -144,10 +147,11 @@ class BoundedSearch :
             self.stats_depth, "complete steps deep"
         print "smc: state-space construction terminated due to", self.stats_stop_reason
 
+        # disable structural equality checking
+        ptnet.Marking.frozen_eq = True
+
         #for s in self.states :
         #    assert (s.fully_expanded or len (self.states.successors (s)) == 0)
-
-        #self.debug_print_states ()
 
     def debug_print_states (self, formulas = None) :
         for s in self.states :
@@ -551,14 +555,19 @@ class BoundedSearch :
 
     def verify (self, formula) :
 
+        print "smc: original:"
+        print "smc:", formula
+
         # rewrite the formula so it only uses the first 8 operators:
         # NOT, OR, EX, EU, EG, and atomic propositions (3)
+        ident = formula.ident
         formula.rewrite ()
         print "smc: after rewriting:"
         print "smc:", formula
 
         # simplify the formula
         formula.simplify ()
+        formula.ident = ident # could have been removed
         print "smc: after simplifying:"
         print "smc:", formula
 
@@ -1239,6 +1248,7 @@ def parse () :
     p.add_argument ("--max-states", type=int, default=2000)
     p.add_argument ("--mcc15-stop-after", type=int, default=-1)
     p.add_argument ("--explore-only", action="store_true")
+    p.add_argument ("--use10", action="store_true")
 
     p.add_argument ('net_path')
     p.add_argument ('formula_path')
@@ -1287,26 +1297,38 @@ def main () :
         formulas = Formula.read (net, args.formula_path)
         print "smc: done,", len (formulas), "formulas"
 
+    have10 = (args.max_states >= 100) and args.use10
+    explo10 = BoundedSearch (net)
+    explo10.max_depth = sys.maxint
+    explo10.max_states = 10
+    if have10 :
+        explo10.build_state_space ()
+
     explo = BoundedSearch (net)
     explo.max_depth = args.max_depth
     explo.max_states = args.max_states
-
-    ptnet.Marking.frozen_eq = False
     explo.build_state_space ()
-    ptnet.Marking.frozen_eq = True
 
     results = []
     stats_sat, stats_unsat, stats_undef = 0, 0, 0
     for formula in formulas :
         print "smc:", "=" * 75
         print "smc: processing formula '%s'" % formula.ident
-        print "smc: original:"
-        print "smc:", formula
 
         try :
-            ident = formula.ident
-            result = explo.verify (formula)
-            formula.ident = ident # could have been removed by rewriting
+            # try to solve the formula on only 10 states (very fast)
+            result = BoundedSearch.RESULT_UNDEF
+            if have10 :
+                print "smc: first pass on 10 states"
+                result = explo10.verify (formula)
+                if result == BoundedSearch.RESULT_UNDEF :
+                    print "smc: unable to decide with 10 states"
+                    print "smc:", "-" * 20
+
+            # if we don't manage to solve it, try on more states (slower)
+            if result == BoundedSearch.RESULT_UNDEF :
+                result = explo.verify (formula)
+
         except KeyboardInterrupt :
             print 'smc: interrupted by the user (cltr+c), doing an ordered termination'
             break;
