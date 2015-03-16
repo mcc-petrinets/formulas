@@ -64,7 +64,7 @@ class BoundedSearch :
         self.max_depth = 3
         self.max_states = 9000
         self.states = networkx.DiGraph ()
-        self.init_state = net.m0
+        self.init_state = net.m0.clone ()
         self.__new_mark = 0
         self.__state_space_built = False
 
@@ -99,6 +99,7 @@ class BoundedSearch :
         next_layer = list ()
 
         # bread-first search on the state space
+        print "smc: -----"
         print "smc: constructing state space"
         print "smc: limits: maximum depth:", self.max_depth
         print "smc: limits: maximum nr. of states:", self.max_states
@@ -140,7 +141,7 @@ class BoundedSearch :
         if len (self.states) >= self.max_states :
             self.stats_stop_reason = "'exceeded number of states'"
 
-        print "smc: done,", \
+        print "smc: build: done,", \
             self.stats_nr_states, "states,", \
             self.stats_nr_states - self.stats_nr_states_fe, "not fully expanded,", \
             self.stats_nr_edges, "edges,", \
