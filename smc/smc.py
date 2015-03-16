@@ -31,6 +31,7 @@ try :
     import os
     import sys
     import time
+    import resource
     import argparse
     import networkx
     import xml.etree.ElementTree
@@ -1242,6 +1243,29 @@ def test5 () :
 def percent (i, n) :
     return i * 100.0 / n
 
+def resource_usage () :
+    rusage = resource.getrusage (resource.RUSAGE_SELF)
+    m = rusage.ru_maxrss
+    t = time.time () - __init_t
+
+    tu = 's'
+    if t >= 60 :
+        tu = 'm'
+        t /= 60.0
+        if t >= 60 :
+            tu = 'h'
+            t /= 60.0
+
+    mu = 'K'
+    if m >= 1024 :
+        mu = 'M'
+        m /= 1024
+        if m >= 1024 :
+            mu = 'G'
+            m /= 1024
+
+    print "smc: resources: wall time %.1f%s maxrss %d%s" % (t, tu, m, mu)
+
 def parse () :
     p = argparse.ArgumentParser (usage = __doc__, add_help=False)
     p.add_argument ("-h", "--help", action="store_true")
@@ -1369,7 +1393,7 @@ def main () :
 
     print "smc: formulas: %d unverified, %d SAT, %d UNSAT, %d ???; total %d" % \
             (len (formulas) - stats_all, stats_sat, stats_unsat, stats_undef, len (formulas))
-
+    resource_usage ()
     if explo.stats_nr_states == explo.stats_nr_states_fe and stats_undef > 0 :
         print "smc: WARNING: explored the full state space but some was unable to decide some formulas; is this a bug?"
 
