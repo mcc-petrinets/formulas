@@ -355,12 +355,14 @@ EOT;
     $this->save_formulas ($unfolded_formulas, $tmp_file_path, $ids);
 
     // run smc with default limits and retrieve the ids of difficult formulae
+    $smcout = "/tmp/smc.out.$this->smc_max_states";
     $model = $this->pt_file;
-    $cmd  = "smc.py --use10 --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > /tmp/smc.out 2> /tmp/smc.err; ";
-    $cmd .= "grep -v '^smc:' /tmp/smc.out | grep '?' | cut -d ' ' -f 7; ";
-    $cmd .= "grep '^smc: build:' /tmp/smc.out 1>&2; ";
-    $cmd .= "grep '^smc: state-space:' /tmp/smc.out 1>&2; ";
-    $cmd .= "grep '^smc: formulas:' /tmp/smc.out 1>&2; ";
+    $cmd  = "smc.py --use10 --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > $smcout 2> /tmp/smc.err; ";
+    $cmd .= "grep -v '^smc:' $smcout | grep '?' | cut -d ' ' -f 7; ";
+    $cmd .= "grep '^smc: build:' $smcout 1>&2; ";
+    $cmd .= "grep '^smc: state-space:' $smcout 1>&2; ";
+    $cmd .= "grep '^smc: formulas:' $smcout 1>&2; ";
+    $cmd .= "grep '^smc: resources:' $smcout 1>&2; ";
 
     echo "mcc: generate: $cmd\n";
     exec ($cmd, $output, $retval);
