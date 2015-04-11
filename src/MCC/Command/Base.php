@@ -165,11 +165,11 @@ abstract class Base extends Command
   protected function save_xml_to_file($xml, $path)
   {
     // this is like the function before but saving to a file rather than to a string
-    $dom = new \DOMDocument('1.0');
+
+    $dom = dom_import_simplexml($xml)->ownerDocument;
     $dom->formatOutput = true;
-    $dom->loadXML($xml->asXml());
     $dom->preserveWhiteSpace = false;
-    $dom->save($path);
+    $dom->save ($path);
   }
 
   // http://stackoverflow.com/questions/4778865/php-simplexml-addchild-with-another-simplexmlelement

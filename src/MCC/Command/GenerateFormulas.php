@@ -159,13 +159,12 @@ EOT;
     // build the grammar, set the number of formulas to generate
     $grammar = $this->build_grammar ($this->subcategory);
     $nr = $this->quantity * 20;
-
-    // progress bar
-    // 10% = generating the formulas
-    // 80% = bounded model checking (filtering out)
-    // 10% = writing the final xml file
-    //$this->progress->setRedrawFrequency (1);
-    //$this->progress->start ($this->console_output, 100);
+    if ($this->model_name == "TokenRing")
+    {
+      // hack to avoid memory overflow in this model ...
+      $nr = $this->quantity * 7;
+      echo "mcc: HACK on 'TokenRing', reduced number of intermmediate formulas\n";
+    }
 
     // generate $nr formulas, store them in the array $formulas[]
     echo "mcc: generating $nr formulas\n";
@@ -175,14 +174,12 @@ EOT;
       $formula = $grammar->generate ($this->max_depth);
       $formulas[] = $formula;
     }
-    //$this->progress->setCurrent (5);
 
     // filter out those of bad quality
     echo "mcc: generate: filtering out formulas\n";
     $filtered_formulas = $this->filter_out_formulas ($formulas);
     echo "mcc: generate: after filtering out: got " . count ($filtered_formulas) . " formulas\n";
     assert (count ($filtered_formulas) <= $this->quantity);
-    //$this->progress->setCurrent (95);
 
     // if we were unable to produce $this->quantity formulas, complete with
     // new (possibly bad quality) formulas
@@ -202,8 +199,6 @@ EOT;
     // save all formulas into one xml file
     $this->save_formulas ($filtered_formulas, $this->output);
 	  echo "mcc: generate: wrote " . count ($filtered_formulas) . " formulas in '$this->output'\n";
-    //$this->progress->setCurrent (100);
-    //$this->progress->finish();
 
     // execute, if requested, the 'unfold' and 'to-text' commands
     if ($this->chain)
