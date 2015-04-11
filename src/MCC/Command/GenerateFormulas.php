@@ -250,7 +250,8 @@ EOT;
   private function filter_out_formulas ($formulas)
   {
     // skip doing anything if we don't have to filter
-    if ($this->no_filtering)
+    if (($this->no_filtering) || 
+        ($this->subcategory == SUBCAT_REACHABILITY_COMPUTE_BOUNDS))
     {
       $result = array ();
       foreach ($formulas as $f)
@@ -266,7 +267,6 @@ EOT;
     {
     case SUBCAT_REACHABILITY_DEADLOCK :
     case SUBCAT_REACHABILITY_BOUNDS :
-    case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
     case SUBCAT_LTL_FIREABILITY :
     case SUBCAT_LTL_CARDINALITY :
       return $this->filter_out_formulas_smt ($formulas);
