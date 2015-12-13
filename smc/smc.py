@@ -1146,7 +1146,8 @@ def test3 () :
     exit1.post_add (idle1)
     exit1.post_add (sem)
 
-    net.write (sys.stdout, 'dot')
+    net.write (sys.stdout, 'pep')
+    return 0
 
     # testing the CTL model checking algorithms
     f1 = Formula (Formula.IS_FIREABLE)          # is_firable (enter0)
@@ -1399,6 +1400,8 @@ def main () :
 
 if __name__ == '__main__' :
     #main ()
+    test3 ()
+    sys.exit (0)
     try :
         main ()
         pass

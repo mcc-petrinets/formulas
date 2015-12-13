@@ -379,7 +379,7 @@ class Net :
         tab = {'first' : 'element'}
         for p in self.places :
             if m != 0 and p.m != m : continue
-            m1 = 'M%d' % p.m0 if p.m0 > 0 else ''
+            m1 = 'M%d' % self.m0[p] if self.m0[p] > 0 else ''
             f.write ('%d"%s"9@9%s\n' % (len (tab), repr (p), m1))
             tab[p] = len (tab)
         f.write ('TR\n')
