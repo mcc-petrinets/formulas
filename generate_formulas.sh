@@ -4,15 +4,12 @@ ROOT=inputs-1000states
 MAX=1000
 
 CATS="ReachabilityDeadlock
-ReachabilityFireabilitySimple
 ReachabilityFireability
 ReachabilityCardinality
 ReachabilityBounds
 ReachabilityComputeBounds
-LTLFireabilitySimple
 LTLFireability
 LTLCardinality
-CTLFireabilitySimple
 CTLFireability
 CTLCardinality"
 
