@@ -4,6 +4,7 @@
 \usepackage{babel}
 
 \usepackage[svgnames]{xcolor}
+\usepackage{amsfonts}
 \usepackage{a4wide}
 \usepackage{graphicx}
 \usepackage{url}
@@ -38,6 +39,7 @@
 \setlength{\grammarindent}{11em}
 \synctex=1
 
+\newcommand\eqdef            {\mathrel{:=}}
 \newcommand\tup[1]           {\langle#1\rangle}
 \newcommand\set[1]           {{\{ #1 \mathclose \}}}
 \newcommand\eg               {e.g.\@\xspace}
@@ -171,7 +173,7 @@
 \Huge
 The Property Language Manual \\[10pt]
 \Large
-Model Checking Contest @ Petri Nets 2015
+Model Checking Contest @ Petri Nets 2016
 
 \vspace{3cm}
 \large
@@ -180,12 +182,16 @@ The \mcc{} formula team, \\
 \href{mailto:cesar.rodriguez@lipn.fr}{César Rodríguez},
 \href{mailto:loig.jezequel@irccyn.ec-nantes.fr}{Loïg Jezequel},
 \href{mailto:emmanuel.paviot-adet@lip6.fr}{Emmanuel Paviot-Adet}
+\vspace{2cm}
+\\
+FIXME -- Update Section 3 with a new XML Schema accounting for bound formulas
+\\
 
 \vfill
 ~
 \hfill
 \scriptsize
-v\@. Feb\@. 11, 2015
+v\@. Dec\@. 31, 2015
 \normalsize
 
 \clearpage
@@ -197,7 +203,7 @@ v\@. Feb\@. 11, 2015
 \subsection{Scope}
 
 This document is intended as a guide for the developers of
-the tools participating in the \mccl{}, edition 2015.
+the tools participating in the \mccl{}, edition 2016.
 It specifically contains:
 
 \begin{itemize}
@@ -205,9 +211,9 @@ It specifically contains:
   The definition of the property language used in the contest this year.
 \item
   The definition of the language subset presented in each category of the
-  contest (new!).
-\item
-  Guidance on how to parse the XML files containing the properties.
+  contest.
+%\item
+%  Guidance on how to parse the XML files containing the properties.
 \end{itemize}
 
 \subsection{Categories of the contest}
@@ -224,7 +230,7 @@ categories of verification goals:
 
 To maximize tool participation, we have further divided each category into
 several subcategories, where only restricted kinds of formulas will be
-found. Overall, we propose 12 subcategories:
+found. Overall, we propose 9 subcategories:
 
 \begin{center}
 \begin{tabular}{ll}
@@ -232,17 +238,13 @@ found. Overall, we propose 12 subcategories:
 Subcategory                       & Description \\
 \midrule
 ReachabilityDeadlock           & Existence of deadlock states \\
-ReachabilityFireabilitySimple  & Firability of transitions \\
 ReachabilityFireability        & Boolean combinations of propositions checking firability of transitions \\
 ReachabilityCardinality        & Boolean combinations of propositions comparing the number of tokens in places\\
-ReachabilityBounds             & Boolean combinations of propositions comparing the bounds of places \\
 ReachabilityComputeBounds      & Computing the bounds of places \\
 \midrule
-LTLFireabilitySimple           & LTL properties with only one linear-time operator and no boolean operator \\
 LTLFireability                 & Full LTL with atomic propositions checking firability of transitions \\
 LTLCardinality                 & Full LTL with atomic propositions comparing the number of tokens in places \\
 \midrule
-CTLFireabilitySimple           & CTL properties with only one temporal operator and no boolean operator \\
 CTLFireability                 & Full CTL with atomic propositions checking firability of transitions \\
 CTLCardinality                 & Full CTL with atomic propositions comparing the number of tokens in places \\
 \bottomrule
@@ -250,21 +252,20 @@ CTLCardinality                 & Full CTL with atomic propositions comparing the
 \end{center}
 
 Each subcategory designates the
-name of a XML file providing, for every benchmark, a set of formulæ for
+name of an XML file providing, for every benchmark, a set of formulæ for
 tools competing in this subcategory to solve.
-
-The 12 subcategories are this year the same as the ones proposed the last
-year.
-However, the class of formulas (\ie, the specific fragment of the
-BNF grammar presented in \cref{s:bnf}) contained in each of them has
-varied from last year.
-
-% FIXME
-% parler du lien entre fichiers xml et tool submission kit (i.e. pour
-% chaque modele il y aura chaque fichier de formules)
+%
+The 9 subcategories proposed this year were already proposed last
+year.\footnote{With respect to previous year we have removed three
+subcategories, all those named \textit{*Simple}, see instructions from the
+MCC'15.}
+%FIXME
+%However, the class of formulas (\ie, the specific fragment of the
+%BNF grammar presented in \cref{s:bnf}) contained in each of them has
+%varied from last year.
 
 Most of the formulas presented to tools have been randomly generated.
-Only very few of them were written by hand.
+%Only very few of them were written by hand.
 Unfortunately, most of the benchmarks submitted to the contest came without
 example verification properties.
 Writing them by hand is a very time consuming task (there are currently more
@@ -272,11 +273,13 @@ than 250 models!).
 This is a very unfortunate situation but we have not found any way to
 overcome it.
 
+\iffalse
 \subsection{Goals and evolution of the property language}
 
 The property language for the \mccl{} is designed to maximize
 the tools participating in the competition.
-It is based on XML and allows to write structural, reachability, CTL, LTL formul{\ae}.
+It is based on XML and allows to write structural, reachability, CTL, LTL
+formulas.
 It is tightly related to Petri nets, that are the modeling formalism of the
 \mcc{}.
 
@@ -289,6 +292,7 @@ extensively simplified with respect to the previous edition of the \mcc{}.
 We kept compatibility in mind.
 Any tool that participated in the previous edition of the contests should
 only require minimal changes to accept the new version of the language.
+\fi
 
 \subsection{Outline}
 
@@ -304,8 +308,8 @@ This document presents the specification language in, conceptually, two steps.
   actually be passed to the tools (\cref{s:rng}).
 \end{itemize}
 
-\Cref{s:parsing} provides some help on how to automatically generate code
-in various languages to parse the XML files containing the formulas.
+%\Cref{s:parsing} provides some help on how to automatically generate code
+%in various languages to parse the XML files containing the formulas.
 
 \section{The BNF grammar of the property language}
 \label{s:bnf}
@@ -316,7 +320,7 @@ property language:
 
 \begin{grammar}
 <formula> ::= <boolean-formula>
-\alt <integer-formula>
+\alt <bound-formula>
 
 <boolean-formula> ::= \ctla <boolean-formula>
 \alt \ctle <boolean-formula>
@@ -333,24 +337,23 @@ property language:
 \alt \atomisfire{$t_1, \ldots, t_n$}
 \alt <integer-expression> \atomleq <integer-expression>
 
-<integer-formula> ::= <integer-expression>
-
 <integer-expression> ::=
      <integer-expression> \exprplus <integer-expression>
 \alt <integer-expression> \exprminus <integer-expression>
 \alt \textit{Integer constant}
-\alt \atomplacebnd{$p_1, \ldots, p_n$}
 \alt \atomtokenscnt{$p_1, \ldots, p_n$}
+
+<bound-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
 
 \end{grammar}
 
-The property language considers two kinds of formul\ae{}:
-boolean formul\ae{},
-evaluating to a boolean value, and integer formul\ae{},
-which evaluate to a natural number.
+The property language considers two kinds of formulas:
+\textit{Boolean formulas},
+evaluating to a Boolean value, and \textit{bound formulas},
+which evaluate to an interval $[a,b] \subseteq \N$ over the natural numbers.
 Only the subcategory
-\textit{ReachabilityComputeBounds} employs integer formul\ae{}, all other
-subcategories use only boolean formul\ae{}.
+\textit{ReachabilityComputeBounds} employs \textit{bound formulas}, all other
+subcategories use only \textit{Boolean formulas}.
 
 Operators \ctla and \ctle are the standard CTL operators.
 Operators
@@ -360,7 +363,7 @@ Operators
 \ltlu
 are the standard LTL operators.
 We define that the \ltlx operator evaluate to false if no successor state
-exists.  A boolean formula can also contain boolean combinations of boolean
+exists.  A \textit{Boolean formula} can also contain Boolean combinations of Boolean
 formulas.
 Atomic propositions are either
 \begin{itemize}
@@ -376,17 +379,30 @@ Atomic propositions are either
 
 Integer expressions can contain additions and subtractions of
 \emph{Integer constants}, always taken from the set $\set{1, 2, 3}$, and
-the following operators:
+the following operator:
 \begin{itemize}
-\item
-  \atomplacebnd{$p_1, \ldots, p_n$}, which returns the exact or estimated
-  maximum number of tokens that any reachable marking can put in all $n$
-  places at the same time.
 \item
   \atomtokenscnt{$p_1, \ldots, p_n$}, which returns, for the current
   marking, the exact number of tokens contained in the set
   $\set{p_1, \ldots, p_n}$ of places.
 \end{itemize}
+
+\textit{Bound formulas} are formed only by atoms \atomplacebnd{$\cdot$}, whose semantics
+is defined as follows:
+\begin{itemize}
+\item
+  %Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
+  The atom \atomplacebnd{$p_1, \ldots, p_n$} evaluates to some interval
+  $[a,b] \subseteq \N$ over the natural numbers,
+  where $a \in \N$ and $b \in \N \cup \set \infty$, if
+  the interval satisfies the following.
+  Let $c$ be the maximum number of tokens that any reachable marking can put in all $n$
+  places $p_1, p_2, \ldots, p_n$ at the same time.
+  Then~$c$ must be contained in the closed interval $[a,b]$.
+\end{itemize}
+The interval $[a,b]$ is therefore an exact (if $a = b = c$) or imprecise
+(if $a \ne b$) overapproximation of the upper bound of the specified places.
+
 Note that, in fact, in the current edition of the \mcc{} no subcategory of the
 contest will contain formulas using additions and subtractions of integer
 expressions. These operators remain here only for future use.
@@ -415,20 +431,6 @@ for every benchmark:
 
 <boolean-formula> ::= \ctle \ltlf \atomdead
 %\alt A G $\lnot$ deadlock
-
-\end{grammar}
-
-\subsection{Subcategory \textit{ReachabilityFireabilitySimple}}
-
-Tools participating in this subcategory will only find two kinds of
-formul\ae{} to solve for every benchmark:
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula> 
-
-<boolean-formula> ::= \ctle \ltlf \atomisfire{$t_1, \ldots, t_n$}
-\alt \ctla \ltlg \atomisfire{$t_1, \ldots, t_n$}
 
 \end{grammar}
 
@@ -469,51 +471,19 @@ uniquely contain integer inequalities:
 
 Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
 
-\subsection{Subcategory \textit{ReachabilityBounds}}
-
-\begin{grammar}
-
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::=  \logicnot <boolean-formula>
-\alt <boolean-formula> \logicand <boolean-formula>
-\alt <boolean-formula> \logicor  <boolean-formula>
-\alt <atom>
-
-<atom> ::= <integer-expression> \atomleq <integer-expression>
-
-<integer-expression> ::= \textit{Integer constant}
-\alt \atomplacebnd{$p_1, \ldots, p_n$}
-
-\end{grammar}
-
 \subsection{Subcategory \textit{ReachabilityComputeBounds}}
 
-Observe that this is the only subcategory where formulas evaluate to an
-integer number rather than a boolean value.
+Observe that this is the only subcategory where formulas evaluate to something
+else than a Boolean value, in particular to an interval $[a, b] \subseteq \N$
+over the natural numbers. See the beginning of this section for the semantics
+of the atom \atomplacebnd{$\cdot$}.
 
 \begin{grammar}
-<formula> ::= <integer-formula>
+<formula> ::= <bound-formula>
 
-<integer-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
+<bound-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
 \end{grammar}
 
-
-\subsection{Subcategory \textit{LTLFireabilitySimple}}
-
-\begin{grammar}
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= \ctla <path-formula>
-
-<path-formula> ::=
-     \ltlg <atom>
-\alt \ltlf <atom>
-\alt \ltlx <atom>
-\alt <atom> \ltlu <atom>
-
-<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
-\end{grammar}
 
 \subsection{Subcategories \textit{LTLFireability} and \textit{LTLCardinality}}
 
@@ -553,23 +523,6 @@ integer inequalities:
 \alt \atomtokenscnt{$p_1, \ldots, p_n$}
 \end{grammar}
 
-
-\subsection{Subcategory \textit{CTLFireabilitySimple}}
-
-\begin{grammar}
-<formula> ::= <boolean-formula>
-
-<boolean-formula> ::= \ctla <path-formula>
-\alt \ctle <path-formula>
-
-<path-formula> ::=
-     \ltlg <atom>
-\alt \ltlf <atom>
-\alt \ltlx <atom>
-\alt <atom> \ltlu <atom>
-
-<atom> ::= \atomisfire{$t_1, \ldots, t_n$}
-\end{grammar}
 
 \subsection{Subcategories \emph{CTLFireability} and \emph{CTLCardinality}}
 
@@ -1006,7 +959,7 @@ the formula XML files are the \texttt{id}'s present in the PNML model.
       }
 \end{lstlisting}
 
-
+\iffalse
 \section{Parsing the XML formula files}
 \label{s:parsing}
 
@@ -1088,6 +1041,81 @@ The python script generateDS (\url{http://www.rexx.com/~dkuhlman/generateDS.html
 There seems to be also tools for C\# developers: \\
 \url{http://stackoverflow.com/questions/386155/comparison-of-xsd-codegenerators-c}.
 We did not test them, but are interested by feedback if you use one.
+\fi
+
+\section{Rules Concerning the ReachabilityComputeBounds category}
+
+
+Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
+%and let $N_n \eqdef \set{0, 1, \ldots, n-1, n}$ be the set including the first
+%$n+1$ integers.
+
+Assume that for a given verification task in the category
+ReachabilityComputeBounds we have $n \in N$ answers from $n$ different tools.
+Let $p_1, \ldots, p_l$ be the concerned net places and let $B$ be the upper
+bound in the number of tokens present in the $l$ places.
+Let
+\[
+[a_1, b_1], \ldots, [a_n, b_n]
+\]
+be the $n$ answers obtained for this verification task.
+
+Define function $c \colon \N \to \set{0, \ldots, n}$ as follows.
+For any $x \in N$, we set $c(x)$ to be the number of tools that returned an
+interval containing $x$. Formally:
+\[
+c(x) \eqdef |\set{i \in \set{1, \ldots, n} \colon x \in [a_i,b_i]}|
+\]
+Observe that the intersection of all intervals is non-empty iff
+there exists some $x \in \N$ such that $c(x) = n$.
+Let $y \in N$ be the maximum of the function $c$, that is,
+$y \eqdef \max\set{c(x) \in \N \colon x \in \N}$.
+Define now the \emph{master set} $S \subseteq N$ as follows:
+\[
+S \eqdef \set{x \in \N \colon c(x) = y}.
+\]
+That is, $S$ is the set of naturals on which the maximum number of tools agree
+to locate the actual upper bound~$B$.
+The master set is the best guess that we have to evaluate the $n$ tools and
+distribute scores. Observe that $S$ can be finite or infinite.
+
+Every tool which participated in this verification task is evaluated on three
+different aspects:
+\begin{enumerate}
+\item
+  How \emph{correct} its answer was.
+\item
+  How \emph{precise} its answer was.
+\item
+  How \emph{fast} the tool produced an answer.
+\end{enumerate}
+The final score is a weighted sum of three sub-scores evaluating these aspects.
+FIXME.
+Let $i \in \set{1, \ldots, n}$ be one of the tools. 
+
+\textbf{Correction of the result}. The sub-score for $i$ is computed as:
+\begin{itemize}
+\item
+  If $S$ is finite, then the sub-score is the
+  \textit{percentage of inclusion} of $S$ in $[a_i, b_i]$
+  i.e.\ how much of $S$ is included in $[a_i,b_i]$.
+\item
+  If $S$ is infinite, then the sub-score is 0\% or 100\%, depending on whether
+  the $S$ is entirely included in $[a_i,b_i]$ or not.
+\end{itemize}
+
+\textbf{Precision of the result}. The sub-score for $i$ is computed as:
+\begin{itemize}
+\item
+  If $[a_i,b_i]$ is finite, then the sub-score is the
+  \textit{percentage of coverage} of $[a_i, b_i]$ in $S$,
+  i.e.\ how much of $[a_i,b_i]$ is included in~$S$.
+\item
+  If $[a_i,b_i]$ is infinite, then the sub-score is 0\% or 100\%, depending on
+  whether the $[a_i,b_i]$ is entirely included in $S$ or not.
+\end{itemize}
+
+\textbf{Time to compute the result}. FIXME.
 
 \end{document}
 
