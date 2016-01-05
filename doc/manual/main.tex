@@ -223,24 +223,26 @@ categories of verification goals:
 
 \begin{enumerate}
 \item State Space generation
+\item Upper bound analysis
 \item Reachability analysis
 \item LTL analysis
 \item CTL analysis
 \end{enumerate}
 
-To maximize tool participation, we have further divided each category into
-several subcategories, where only restricted kinds of formulas will be
-found. Overall, we propose 9 subcategories:
+To maximize tool participation, we have further divided the last 4
+categories into 8 subcategories, where only restricted kinds of formulas
+will be found:
 
 \begin{center}
 \begin{tabular}{ll}
 \toprule
 Subcategory                       & Description \\
 \midrule
+UpperBounds                    & Computing an overapproximation of the upper bound of a set of places \\
+\midrule
 ReachabilityDeadlock           & Existence of deadlock states \\
 ReachabilityFireability        & Boolean combinations of propositions checking firability of transitions \\
 ReachabilityCardinality        & Boolean combinations of propositions comparing the number of tokens in places\\
-ReachabilityComputeBounds      & Computing the bounds of places \\
 \midrule
 LTLFireability                 & Full LTL with atomic propositions checking firability of transitions \\
 LTLCardinality                 & Full LTL with atomic propositions comparing the number of tokens in places \\
@@ -255,10 +257,11 @@ Each subcategory designates the
 name of an XML file providing, for every benchmark, a set of formulæ for
 tools competing in this subcategory to solve.
 %
-The 9 subcategories proposed this year were already proposed last
+Most of the 8 subcategories proposed this year were already proposed last
 year.\footnote{With respect to previous year we have removed three
 subcategories, all those named \textit{*Simple}, see instructions from the
-MCC'15.}
+MCC'15. We have also unified into the category UpperBounds the subcategories
+where upper bounds of places needed to be computed.}
 %FIXME
 %However, the class of formulas (\ie, the specific fragment of the
 %BNF grammar presented in \cref{s:bnf}) contained in each of them has
@@ -352,7 +355,7 @@ The property language considers two kinds of formulas:
 evaluating to a Boolean value, and \textit{bound formulas},
 which evaluate to an interval $[a,b] \subseteq \N$ over the natural numbers.
 Only the subcategory
-\textit{ReachabilityComputeBounds} employs \textit{bound formulas}, all other
+\textit{UpperBounds} employs \textit{bound formulas}, all other
 subcategories use only \textit{Boolean formulas}.
 
 Operators \ctla and \ctle are the standard CTL operators.
@@ -420,6 +423,20 @@ with.
 \Cref{s:rng} presents the correspondence between the above BNF grammar
 and the syntax of the XML files that will actually be passed to the tools.
 
+\subsection{Subcategory \textit{UpperBounds}}
+
+Observe that this is the only subcategory where formulas evaluate to something
+else than a Boolean value, in particular to an interval $[a, b] \subseteq \N$
+over the natural numbers. See the beginning of this section for the semantics
+of the atom \atomplacebnd{$\cdot$}.
+
+\begin{grammar}
+<formula> ::= <bound-formula>
+
+<bound-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
+\end{grammar}
+
+
 \subsection{Subcategory \textit{ReachabilityDeadlock}}
 
 Tools participating in this subcategory will only find one formula to solve
@@ -470,19 +487,6 @@ uniquely contain integer inequalities:
 \end{grammar}
 
 Recall that the \textit{Integer constant} will be a number in $\set{1,2,3}$.
-
-\subsection{Subcategory \textit{ReachabilityComputeBounds}}
-
-Observe that this is the only subcategory where formulas evaluate to something
-else than a Boolean value, in particular to an interval $[a, b] \subseteq \N$
-over the natural numbers. See the beginning of this section for the semantics
-of the atom \atomplacebnd{$\cdot$}.
-
-\begin{grammar}
-<formula> ::= <bound-formula>
-
-<bound-formula> ::= \atomplacebnd{$p_1, \ldots, p_n$}
-\end{grammar}
 
 
 \subsection{Subcategories \textit{LTLFireability} and \textit{LTLCardinality}}
@@ -912,7 +916,7 @@ These are usual arithmetic operators for integers.
 \end{grammar}
 \end{multicols}
 
-\subsubsection{Token-counting integer operators}
+\subsubsection{Token-counting integer operators FIXME}
 
 \begin{multicols}{2}
 \begin{lstlisting}
@@ -1043,7 +1047,7 @@ There seems to be also tools for C\# developers: \\
 We did not test them, but are interested by feedback if you use one.
 \fi
 
-\section{Rules Concerning the ReachabilityComputeBounds category}
+\section{Rules Concerning the UpperBounds category}
 
 
 Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
@@ -1051,7 +1055,7 @@ Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
 %$n+1$ integers.
 
 Assume that for a given verification task in the category
-ReachabilityComputeBounds we have $n \in N$ answers from $n$ different tools.
+UpperBounds we have $n \in \N$ answers from $n$ different tools.
 Let $p_1, \ldots, p_l$ be the concerned net places and let $B$ be the upper
 bound in the number of tokens present in the $l$ places.
 Let
@@ -1068,9 +1072,9 @@ c(x) \eqdef |\set{i \in \set{1, \ldots, n} \colon x \in [a_i,b_i]}|
 \]
 Observe that the intersection of all intervals is non-empty iff
 there exists some $x \in \N$ such that $c(x) = n$.
-Let $y \in N$ be the maximum of the function $c$, that is,
+Let $y \in \N$ be the maximum of the function $c$, that is,
 $y \eqdef \max\set{c(x) \in \N \colon x \in \N}$.
-Define now the \emph{master set} $S \subseteq N$ as follows:
+Define now the \emph{master set} $S \subseteq \N$ as follows:
 \[
 S \eqdef \set{x \in \N \colon c(x) = y}.
 \]
