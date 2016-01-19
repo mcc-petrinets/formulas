@@ -22,7 +22,7 @@ const SUBCAT_REACHABILITY_FIREABILITY_SIMPLE  = "ReachabilityFireabilitySimple";
 const SUBCAT_REACHABILITY_FIREABILITY         = "ReachabilityFireability";
 const SUBCAT_REACHABILITY_CARDINALITY         = "ReachabilityCardinality";
 const SUBCAT_REACHABILITY_BOUNDS              = "ReachabilityBounds";
-const SUBCAT_REACHABILITY_COMPUTE_BOUNDS      = "ReachabilityComputeBounds";
+const SUBCAT_UPPER_BOUNDS                     = "UpperBounds"; //simply a renaming of ReachabilityComputeBounds
 
 const SUBCAT_LTL_FIREABILITY_SIMPLE           = "LTLFireabilitySimple";
 const SUBCAT_LTL_FIREABILITY                  = "LTLFireability";
@@ -94,7 +94,7 @@ EOT;
       , SUBCAT_REACHABILITY_FIREABILITY
       , SUBCAT_REACHABILITY_CARDINALITY
       , SUBCAT_REACHABILITY_BOUNDS
-      , SUBCAT_REACHABILITY_COMPUTE_BOUNDS
+      , SUBCAT_UPPER_BOUNDS
 
       , SUBCAT_LTL_FIREABILITY_SIMPLE
       , SUBCAT_LTL_FIREABILITY
@@ -251,7 +251,7 @@ EOT;
   {
     // skip doing anything if we don't have to filter
     if (($this->no_filtering) || 
-        ($this->subcategory == SUBCAT_REACHABILITY_COMPUTE_BOUNDS))
+        ($this->subcategory == SUBCAT_UPPER_BOUNDS))
     {
       $result = array ();
       foreach ($formulas as $f)
@@ -417,7 +417,7 @@ EOT;
 
     // non-terminal symbols used in any grammar
     $boolean_formula    = new Symbol ("boolean-formula");
-    $integer_formula    = new Symbol ("integer-formula");
+    $bound_formula    = new Symbol ("integer-formula"); //used to be called integer formula
     $state_formula      = new Symbol ("state-formula");
     $path_formula       = new Symbol ("path-formula");
     $atom               = new Symbol ("atom");
@@ -480,9 +480,9 @@ EOT;
       $g->add_rule (new Rule ($boolean_formula,   array ($leq,      $place_bound, $integer_constant)));
       break;
 
-    case SUBCAT_REACHABILITY_COMPUTE_BOUNDS :
-      $g = new Grammar ($this, $integer_formula);
-      $g->add_rule (new Rule ($integer_formula, array ($place_bound)));
+    case SUBCAT_UPPER_BOUNDS :
+      $g = new Grammar ($this, $bound_formula);
+      $g->add_rule (new Rule ($bound_formula, array ($place_bound)));
       break;
 
     case SUBCAT_LTL_FIREABILITY_SIMPLE :
@@ -630,7 +630,7 @@ EOT;
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_FIREABILITY);
     $g = $this->build_grammar (SUBCAT_REACHABILITY_CARDINALITY);
     //$g = $this->build_grammar (SUBCAT_REACHABILITY_BOUNDS);
-    //$g = $this->build_grammar (SUBCAT_REACHABILITY_COMPUTE_BOUNDS);
+    //$g = $this->build_grammar (SUBCAT_UPPER_BOUNDS);
 
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY_SIMPLE);
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY);
