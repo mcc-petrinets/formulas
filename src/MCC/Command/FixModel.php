@@ -153,13 +153,68 @@ class FixModel extends Base
       $model->net->name->text = "{$model->net->attributes()['id']}";
     }
     $this->progress->advance();
-    //
+
+    // Check that all places have different id and different name
+    $ids = array ();
+    $names = array ();
+    foreach ($model->net->page->place as $place)
+    {
+      $id = (string) $place->attributes()['id'];
+      $name = (string) $place->name->text;
+      //echo "id '$id' name '$name'\n";
+
+      if (isset ($ids[$id]))
+      {
+        $s = "Found two places with the same id: '$id'.\n";
+        fwrite($this->log, $s);
+        echo $s;
+        exit (0);
+      }
+      if (isset ($names[$name]))
+      {
+        $s = "Found two places with the same name: '$name'.\n";
+        fwrite($this->log, $s);
+        echo $s;
+        exit (0);
+      }
+      $ids[$id] = 1;
+      $names[$name] = 1;
+    }
+
+    // Same for all transitions, making sure that ids are also disjoint from
+    // those of places
+    $names = array ();
+    foreach ($model->net->page->transition as $transition)
+    {
+      $id = (string) $transition->attributes()['id'];
+      $name = (string) $transition->name->text;
+      //echo "id '$id' name '$name'\n";
+
+      if (isset ($ids[$id]))
+      {
+        $s = "Found two transitions/places with the same id: '$id'.\n";
+        fwrite($this->log, $s);
+        echo $s;
+        exit (0);
+      }
+      if (isset ($names[$name]))
+      {
+        $s = "Found two transitions with the same name: '$name'.\n";
+        fwrite($this->log, $s);
+        echo $s;
+        exit (0);
+      }
+      $ids[$id] = 1;
+      $names[$name] = 1;
+    }
+
     $replacements = array();
     // Now, fix place ids and names;
     foreach ($model->net->page->place as $place)
     {
       $id = (string) $place->attributes()['id'];
       $name = (string) $place->name->text;
+
       if (($id == NULL) && ($name == NULL))
       {
         fwrite($this->log, "Missing both place id and name.\n");
@@ -185,7 +240,8 @@ class FixModel extends Base
         $replacements[$id] = $new;
         $place->attributes()['id'] = $new;
       }
-      $this->progress->advance();
+      // cesar
+      //$this->progress->advance();
     }
     // The same for transitions:
     foreach ($model->net->page->transition as $transition)
