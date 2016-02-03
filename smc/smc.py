@@ -23,6 +23,14 @@ And OPTIONS is zero or more of the following options
    Stop verifying formulas from the formula file FORMULA after having found
    N formulas for which the tool was unable to decide
 
+ --explore-only
+   Ignore the FORMULA file (you will still have to provide an argument) and
+   rather use the formula "false".
+
+ --use10
+   Try to solve formulas using a bounded state space with only 10 states, prior
+   to solving them using the regular bounded state space.
+
  --help
    Prints this message
 '''
@@ -1400,8 +1408,8 @@ def main () :
 
 if __name__ == '__main__' :
     #main ()
-    test3 ()
-    sys.exit (0)
+    #test3 ()
+    #sys.exit (0)
     try :
         main ()
         pass

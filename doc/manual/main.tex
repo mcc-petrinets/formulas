@@ -720,12 +720,12 @@ the BNF grammar (on the right).
 \begin{lstlisting}
   formula =
       boolean-formula
-    | integer-formula
+    | bound-formula
 \end{lstlisting}
 \columnbreak
 \begin{grammar}
 <formula> ::= <boolean-formula>
-\alt <integer-formula>
+\alt <bound-formula>
 \end{grammar}
 \end{multicols}
 
@@ -866,23 +866,23 @@ given is fireable from the current state.
 \end{multicols}
 
 
-\mysubsection{Integer formul{\ae}}
+\mysubsection{Integer expressions}
 
-An integer formula is an integer expression.
-The tool must return the integer, that is the result of the expression.
+%% An integer formula is an integer expression.
+%% The tool must return the integer, that is the result of the expression.
 
-\begin{multicols}{2}
-\begin{lstlisting}
-  integer-formula =
-      integer-expression
+%% \begin{multicols}{2}
+%% \begin{lstlisting}
+%%   integer-formula =
+%%       integer-expression
 
-  integer-expression = ...
-\end{lstlisting}
-\columnbreak
-\begin{grammar}
-<integer-formula> ::= <integer-expression>
-\end{grammar}
-\end{multicols}
+%%   integer-expression = ...
+%% \end{lstlisting}
+%% \columnbreak
+%% \begin{grammar}
+%% <integer-formula> ::= <integer-expression>
+%% \end{grammar}
+%% \end{multicols}
 
 \subsubsection{Arithmetic operators}
 
@@ -892,18 +892,18 @@ These are usual arithmetic operators for integers.
 \begin{lstlisting}
   integer-expression =
       ...
-  | element integer-constant {
-      xsd:integer
-    }
-  | element integer-sum {
-      integer-expression,
-      integer-expression+
-    }
-  | element integer-difference {
-      integer-expression,
-      integer-expression
-    }
-  | ...
+    | element integer-constant {
+        xsd:integer
+      }
+    | element integer-sum {
+        integer-expression,
+        integer-expression+
+      }
+    | element integer-difference {
+        integer-expression,
+        integer-expression
+      }
+    | ...
 \end{lstlisting}
 \columnbreak
 \setlength{\grammarindent}{6em}
@@ -916,34 +916,54 @@ These are usual arithmetic operators for integers.
 \end{grammar}
 \end{multicols}
 
-\subsubsection{Token-counting integer operators FIXME}
+\subsubsection{Token-counting integer operator}
 
 \begin{multicols}{2}
 \begin{lstlisting}
   integer-expression =
       ...
-  | element place-bound {
-      place+
-    }
-  | element tokens-count {
-      place+
+    | element tokens-count {
+        place+
+      }
     | ...
 \end{lstlisting}
 \columnbreak
 \begin{grammar}
 <integer-expression> ::=
-     \atomplacebnd{$p_1, \ldots, p_n$}
-\alt \atomtokenscnt{$p_1, \ldots, p_n$}
+     \atomtokenscnt{$p_1, \ldots, p_n$}
 \alt \ldots
 \end{grammar}
 \end{multicols}
 
 Recall that
 \begin{itemize}
-  \item \lstinline!place-bound! returns the exact of estimated bound of a set of places;
-    for several places, it means the maximum number of tokens in all these places at the same
-    time;
   \item \lstinline!tokens-count! returns the exact number of tokens in a set of places.
+\end{itemize}
+
+\mysubsection{Bound formulæ}
+
+\begin{multicols}{2}
+\begin{lstlisting}
+  bound-formula = 
+      element place-bound {
+        place+
+      }
+\end{lstlisting}
+\columnbreak
+\begin{grammar}
+<bound-formula> ::=
+     \atomplacebnd{$p_1, \ldots, p_n$}
+\end{grammar}
+\end{multicols}
+
+Recall that
+\begin{itemize}
+\item for a set of places, \lstinline!place-bound! returns some interval
+  $[a,b] \subseteq \N$ over the natural numbers,
+  where $a \in \N$ and $b \in \N \cup \set \infty$, if
+  the interval satisfies the following.
+  Let $c$ be the maximum number of tokens that any reachable marking can put in all places of the set.
+  Then~$c$ must be contained in the closed interval $[a,b]$.
 \end{itemize}
 
 \mysubsection{Places and transitions}

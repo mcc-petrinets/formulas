@@ -6,8 +6,7 @@ MAX=1000
 CATS="ReachabilityDeadlock
 ReachabilityFireability
 ReachabilityCardinality
-ReachabilityBounds
-ReachabilityComputeBounds
+UpperBounds
 LTLFireability
 LTLCardinality
 CTLFireability
