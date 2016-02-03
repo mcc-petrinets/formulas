@@ -183,9 +183,6 @@ The \mcc{} formula team, \\
 \href{mailto:loig.jezequel@irccyn.ec-nantes.fr}{Loïg Jezequel},
 \href{mailto:emmanuel.paviot-adet@lip6.fr}{Emmanuel Paviot-Adet}
 \vspace{2cm}
-\\
-FIXME -- Update Section 3 with a new XML Schema accounting for bound formulas
-\\
 
 \vfill
 ~
@@ -1067,79 +1064,78 @@ There seems to be also tools for C\# developers: \\
 We did not test them, but are interested by feedback if you use one.
 \fi
 
-\mysection{Rules Concerning the UpperBounds category}
-
-
-Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
-%and let $N_n \eqdef \set{0, 1, \ldots, n-1, n}$ be the set including the first
-%$n+1$ integers.
-
-Assume that for a given verification task in the category
-UpperBounds we have $n \in \N$ answers from $n$ different tools.
-Let $p_1, \ldots, p_l$ be the concerned net places and let $B$ be the upper
-bound in the number of tokens present in the $l$ places.
-Let
-\[
-[a_1, b_1], \ldots, [a_n, b_n]
-\]
-be the $n$ answers obtained for this verification task.
-
-Define function $c \colon \N \to \set{0, \ldots, n}$ as follows.
-For any $x \in N$, we set $c(x)$ to be the number of tools that returned an
-interval containing $x$. Formally:
-\[
-c(x) \eqdef |\set{i \in \set{1, \ldots, n} \colon x \in [a_i,b_i]}|
-\]
-Observe that the intersection of all intervals is non-empty iff
-there exists some $x \in \N$ such that $c(x) = n$.
-Let $y \in \N$ be the maximum of the function $c$, that is,
-$y \eqdef \max\set{c(x) \in \N \colon x \in \N}$.
-Define now the \emph{master set} $S \subseteq \N$ as follows:
-\[
-S \eqdef \set{x \in \N \colon c(x) = y}.
-\]
-That is, $S$ is the set of naturals on which the maximum number of tools agree
-to locate the actual upper bound~$B$.
-The master set is the best guess that we have to evaluate the $n$ tools and
-distribute scores. Observe that $S$ can be finite or infinite.
-
-Every tool which participated in this verification task is evaluated on three
-different aspects:
-\begin{enumerate}
-\item
-  How \emph{correct} its answer was.
-\item
-  How \emph{precise} its answer was.
-\item
-  How \emph{fast} the tool produced an answer.
-\end{enumerate}
-The final score is a weighted sum of three sub-scores evaluating these aspects.
-FIXME.
-Let $i \in \set{1, \ldots, n}$ be one of the tools. 
-
-\textbf{Correction of the result}. The sub-score for $i$ is computed as:
-\begin{itemize}
-\item
-  If $S$ is finite, then the sub-score is the
-  \textit{percentage of inclusion} of $S$ in $[a_i, b_i]$
-  i.e.\ how much of $S$ is included in $[a_i,b_i]$.
-\item
-  If $S$ is infinite, then the sub-score is 0\% or 100\%, depending on whether
-  the $S$ is entirely included in $[a_i,b_i]$ or not.
-\end{itemize}
-
-\textbf{Precision of the result}. The sub-score for $i$ is computed as:
-\begin{itemize}
-\item
-  If $[a_i,b_i]$ is finite, then the sub-score is the
-  \textit{percentage of coverage} of $[a_i, b_i]$ in $S$,
-  i.e.\ how much of $[a_i,b_i]$ is included in~$S$.
-\item
-  If $[a_i,b_i]$ is infinite, then the sub-score is 0\% or 100\%, depending on
-  whether the $[a_i,b_i]$ is entirely included in $S$ or not.
-\end{itemize}
-
-\textbf{Time to compute the result}. FIXME.
+% \mysection{Rules Concerning the UpperBounds category}
+% 
+% Let $\N \eqdef \set{0, 1, 2, \ldots}$ be the set of natural numbers.
+% %and let $N_n \eqdef \set{0, 1, \ldots, n-1, n}$ be the set including the first
+% %$n+1$ integers.
+% 
+% Assume that for a given verification task in the category
+% UpperBounds we have $n \in \N$ answers from $n$ different tools.
+% Let $p_1, \ldots, p_l$ be the concerned net places and let $B$ be the upper
+% bound in the number of tokens present in the $l$ places.
+% Let
+% \[
+% [a_1, b_1], \ldots, [a_n, b_n]
+% \]
+% be the $n$ answers obtained for this verification task.
+% 
+% Define function $c \colon \N \to \set{0, \ldots, n}$ as follows.
+% For any $x \in N$, we set $c(x)$ to be the number of tools that returned an
+% interval containing $x$. Formally:
+% \[
+% c(x) \eqdef |\set{i \in \set{1, \ldots, n} \colon x \in [a_i,b_i]}|
+% \]
+% Observe that the intersection of all intervals is non-empty iff
+% there exists some $x \in \N$ such that $c(x) = n$.
+% Let $y \in \N$ be the maximum of the function $c$, that is,
+% $y \eqdef \max\set{c(x) \in \N \colon x \in \N}$.
+% Define now the \emph{master set} $S \subseteq \N$ as follows:
+% \[
+% S \eqdef \set{x \in \N \colon c(x) = y}.
+% \]
+% That is, $S$ is the set of naturals on which the maximum number of tools agree
+% to locate the actual upper bound~$B$.
+% The master set is the best guess that we have to evaluate the $n$ tools and
+% distribute scores. Observe that $S$ can be finite or infinite.
+% 
+% Every tool which participated in this verification task is evaluated on three
+% different aspects:
+% \begin{enumerate}
+% \item
+%   How \emph{correct} its answer was.
+% \item
+%   How \emph{precise} its answer was.
+% \item
+%   How \emph{fast} the tool produced an answer.
+% \end{enumerate}
+% The final score is a weighted sum of three sub-scores evaluating these aspects.
+% FIXME.
+% Let $i \in \set{1, \ldots, n}$ be one of the tools. 
+% 
+% \textbf{Correction of the result}. The sub-score for $i$ is computed as:
+% \begin{itemize}
+% \item
+%   If $S$ is finite, then the sub-score is the
+%   \textit{percentage of inclusion} of $S$ in $[a_i, b_i]$
+%   i.e.\ how much of $S$ is included in $[a_i,b_i]$.
+% \item
+%   If $S$ is infinite, then the sub-score is 0\% or 100\%, depending on whether
+%   the $S$ is entirely included in $[a_i,b_i]$ or not.
+% \end{itemize}
+% 
+% \textbf{Precision of the result}. The sub-score for $i$ is computed as:
+% \begin{itemize}
+% \item
+%   If $[a_i,b_i]$ is finite, then the sub-score is the
+%   \textit{percentage of coverage} of $[a_i, b_i]$ in $S$,
+%   i.e.\ how much of $[a_i,b_i]$ is included in~$S$.
+% \item
+%   If $[a_i,b_i]$ is infinite, then the sub-score is 0\% or 100\%, depending on
+%   whether the $[a_i,b_i]$ is entirely included in $S$ or not.
+% \end{itemize}
+% 
+% \textbf{Time to compute the result}. FIXME.
 
 \end{document}
 
