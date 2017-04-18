@@ -1,5 +1,22 @@
+Formula generation, how to
+--------------------------
 
-Formula generation, reminders
+1. Build the formula generator ``mcc`` using the ``create-phar.sh`` script
+2. Put all the directories (or ``.tgz`` archives) containing the models in a folder ``models``
+3. Modify the ``generate_formulas.sh`` script, setting the value of the ``ROOT`` variable as the path to your ``models`` folder
+4. Use ``generate_formulas.sh``, which will generate the formulas
+5. The file ``output-1000states.txt`` contains information on what happened during the generation, check it
+
+
+Requirements
+------------   
+
+- Php for the ``mcc`` tool
+- Python with the argparse and networkx packages for the ``smc`` tool used for filtering out formulas
+
+
+
+Formula generation, hold reminders
 -----------------------------
 
 - First, execute the ``model:fix`` command to normalize the
