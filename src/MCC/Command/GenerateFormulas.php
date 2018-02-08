@@ -320,7 +320,9 @@ EOT;
       }
       else
       {
-        $property->id = $this->model->net->attributes()['id'] . "-{$this->subcategory}-" . $i;
+          $num_digits = ceil (log10 (count ($formulas)));
+          $iname = str_pad ($i, $num_digits, '0', STR_PAD_LEFT);     
+          $property->id = $this->model->net->attributes()['id'] . "-{$this->subcategory}-" . $iname;
       }
       $this->xml_adopt($property->formula, $f);
       $this->xml_adopt($xml_tree, $property);
