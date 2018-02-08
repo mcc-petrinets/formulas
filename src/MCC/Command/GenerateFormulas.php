@@ -105,7 +105,8 @@ EOT;
       , SUBCAT_CTL_CARDINALITY);
   private $smt_formula_filter;
   private $smt;
-
+  private $pt_output;
+  
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
     $this->chain       = $input->getOption('chain');
@@ -129,7 +130,13 @@ EOT;
       $this->output_name = $this->subcategory;
     }
     $this->output      = "${path}/{$this->output_name}.xml";
-
+    // Deal with unfolding of formulas for colored models
+    if ($this->pt_model && $this->sn_model)
+    {
+      $path = dirname($this->pt_file);
+      $this->pt_output = "${path}/{$this->output_name}.xml";
+    }
+    
     $this->reference_model = new EquivalentElements($this->sn_model, $this->pt_model);
     $this->places = $this->sn_model
       ? $this->reference_model->cplaces
@@ -163,7 +170,7 @@ EOT;
     {
       // hack to avoid memory overflow in this model ...
       $nr = $this->quantity * 7;
-      echo "mcc: HACK on 'TokenRing', reduced number of intermmediate formulas\n";
+      echo "mcc: HACK on 'TokenRing', reduced number of intermediate formulas\n";
     }
 
     // generate $nr formulas, store them in the array $formulas[]
@@ -177,7 +184,7 @@ EOT;
 
     // filter out those of bad quality
     echo "mcc: generate: filtering out formulas\n";
-    $filtered_formulas = $this->filter_out_formulas ($formulas);
+    $filtered_formulas = $this->filter_out_formulas ($formulas, $this->quantity, true);
     echo "mcc: generate: after filtering out: got " . count ($filtered_formulas) . " formulas\n";
     assert (count ($filtered_formulas) <= $this->quantity);
 
@@ -198,13 +205,90 @@ EOT;
 
     // save all formulas into one xml file
     $this->save_formulas ($filtered_formulas, $this->output);
-	  echo "mcc: generate: wrote " . count ($filtered_formulas) . " formulas in '$this->output'\n";
+	echo "mcc: generate: wrote " . count ($filtered_formulas) . " formulas in '$this->output'\n";
 
+    // unfolding of half the formulas and generation of the same number of non-unfolded formulas
+    if ($this->sn_model && $this->pt_model)
+      {
+
+        // unfold half of the formulas  
+        echo "mcc: generate: unfolding half COL formulas to PT\n";
+        $pt_formulas = array();
+        $unfolder = new FormulaUnfolder ($this->sn_model, $this->pt_model);
+        for ($i = 0; $i < $this->quantity / 2; $i++) {
+            $uf = clone $filtered_formulas[$i];
+            $unfolder->unfold ($uf);
+            $pt_formulas[] = $uf;
+        }
+
+        // generate new formulas
+        echo "mcc: generate: generating new formulas to complete PT\n";
+
+        // switch to pt_model
+        $this->places = $this->reference_model->uplaces;
+        $this->transitions = $this->reference_model->utransitions;
+        $this->model = $this->pt_model;
+        $num_formulas_needed = $this->quantity - $this->quantity / 2;
+        
+        // build the grammar, set the number of formulas to generate
+        $pt_grammar = $this->build_grammar ($this->subcategory);
+        $pt_nr = $num_formulas_needed * 20;
+        if ($this->model_name == "TokenRing")
+        {
+            // hack to avoid memory overflow in this model ...
+            $pt_nr = $num_formulas_needed * 7;
+            echo "mcc: HACK on 'TokenRing', reduced number of intermediate formulas\n";
+        }
+
+        // generate $pt_nr formulas, store them in the array $new_pt_formulas[]
+        echo "mcc: generating $pt_nr formulas\n";
+        $new_pt_formulas = array();
+        for ($i = 0; $i < $pt_nr; $i++)
+        {
+            $formula = $pt_grammar->generate ($this->max_depth);
+            $new_pt_formulas[] = $formula;
+        }
+
+        // filter out those of bad quality
+        echo "mcc: generate: filtering out formulas\n";
+        $filtered_pt_formulas = $this->filter_out_formulas ($new_pt_formulas, $num_formulas_needed, false);
+        echo "mcc: generate: after filtering out: got " . count ($filtered_pt_formulas) . " formulas\n";
+        assert (count ($filtered_pt_formulas) <= $num_formulas_needed);
+
+        // if we were unable to produce $this->quantity formulas, complete with
+        // new (possibly bad quality) formulas
+        if (count ($filtered_pt_formulas) < $num_formulas_needed)
+        {
+            $msg = "WARNING: Unable to get {$num_formulas_needed} hard formulas, got only ";
+            $msg .= count ($filtered_pt_formulas);
+            $msg .= ". Completing with random (probably easy) formulas.";
+            $this->console_output->writeln ("\n<warning>$msg</warning>\n");
+        }
+        while (count ($filtered_pt_formulas) < $num_formulas_needed)
+        {
+            $formula = $pt_grammar->generate ($this->max_depth);
+            $filtered_pt_formulas[] = $formula;
+        }
+
+        assert (count ($filtered_pt_formulas) + count ($pt_formulas) >= $this->quantity);
+
+        // add the new formulas to the array $pt_formulas
+        $pos = 0;
+        while (count ($pt_formulas) < $this->quantity)
+        {
+            $pt_formulas[] = $filtered_pt_formulas[$pos];
+            $pos++;
+        }
+            
+        $this->save_formulas ($pt_formulas, $this->pt_output);
+	    echo "mcc: generate: wrote " . count ($filtered_formulas) . " formulas in '$this->pt_output'\n";
+    }
+      
     // execute, if requested, the 'unfold' and 'to-text' commands
     if ($this->chain)
     {
       foreach (array(
-        'formula:unfold',
+          //'formula:unfold',
         'formula:to-text'
       ) as $c)
       {
@@ -247,7 +331,7 @@ EOT;
     $this->save_xml_to_file ($xml_tree, $path);
   }
 
-  private function filter_out_formulas ($formulas)
+  private function filter_out_formulas ($formulas, $number, $unfold)
   {
     // skip doing anything if we don't have to filter
     if (($this->no_filtering) || 
@@ -257,7 +341,7 @@ EOT;
       foreach ($formulas as $f)
       {
         $result[] = $f;
-        if (count ($result) >= $this->quantity) return $result;
+        if (count ($result) >= $number) return $result;
       }
     }
 
@@ -269,7 +353,7 @@ EOT;
     case SUBCAT_REACHABILITY_BOUNDS :
     case SUBCAT_LTL_FIREABILITY :
     case SUBCAT_LTL_CARDINALITY :
-      return $this->filter_out_formulas_smt ($formulas);
+        return $this->filter_out_formulas_smt ($formulas, $number);
 
     case SUBCAT_REACHABILITY_FIREABILITY :
     case SUBCAT_REACHABILITY_CARDINALITY :
@@ -278,7 +362,7 @@ EOT;
     case SUBCAT_CTL_FIREABILITY :
     case SUBCAT_CTL_CARDINALITY :
     case SUBCAT_REACHABILITY_FIREABILITY_SIMPLE :
-      return $this->filter_out_formulas_smc ($formulas);
+        return $this->filter_out_formulas_smc ($formulas, $number, $unfold);
 
     default :
       $msg = "Unknown category '$this->subcategory', internal error";
@@ -286,7 +370,7 @@ EOT;
     }
   }
 
-  private function filter_out_formulas_smt ($formulas)
+  private function filter_out_formulas_smt ($formulas, $number)
   {
     echo "mcc: generate: using the SMT filter on " . count ($formulas) . " formulas\n";
     $result = array ();
@@ -300,16 +384,16 @@ EOT;
 
       // the formula is hard, keeping it
       $result[] = $formula;
-      if (count ($result) == $this->quantity) return $result;
+      if (count ($result) == $number) return $result;
     }
     return $result;
   }
 
-  private function filter_out_formulas_smc ($formulas)
+  private function filter_out_formulas_smc ($formulas, $number, $unfold)
   {
     // if we are processing a colored model, we need to first unfold every
     // formula to a PT equivalent and run smc in the PT equivalent net
-    if ($this->sn_model)
+    if ($this->sn_model && $unfold)
     {
       // we are processing a COL model
       if ($this->pt_model)
@@ -331,7 +415,7 @@ EOT;
       {
         // we don't have a PT equivalent, we don't filter :(
         echo "mcc: generate: we don't have a PT equivalent model, no filtering!!!!\n";
-        return array_slice ($formulas, 0, $this->quantity);
+        return array_slice ($formulas, 0, $number);
       }
     }
     else
@@ -352,7 +436,7 @@ EOT;
     // run smc with default limits and retrieve the ids of difficult formulae
     $smcout = "/tmp/smc.out.$this->smc_max_states";
     $model = $this->pt_file;
-    $cmd  = "smc.py --use10 --max-states=$this->smc_max_states --mcc15-stop-after=$this->quantity '$model' '$tmp_file_path' > $smcout 2> /tmp/smc.err; ";
+    $cmd  = "smc.py --use10 --max-states=$this->smc_max_states --mcc15-stop-after=$number '$model' '$tmp_file_path' > $smcout 2> /tmp/smc.err; ";
     $cmd .= "grep -v '^smc:' $smcout | grep '?' | cut -d ' ' -f 7; ";
     $cmd .= "grep '^smc: build:' $smcout 1>&2; ";
     $cmd .= "grep '^smc: state-space:' $smcout 1>&2; ";
