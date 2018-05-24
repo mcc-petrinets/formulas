@@ -106,7 +106,97 @@ EOT;
   private $smt_formula_filter;
   private $smt;
   private $pt_output;
-  
+ 
+   public function filter_out ($formula)
+  {
+    // returns true if the formula should be discarded (bad quality); false otherwise
+
+    echo "mcc: smt-filter: calling the filtering routine\n";
+
+    $result = $this->build_smt_encoding ($formula);
+    if ($result[2] != "")
+    {
+      $result[0] = $result[0] && $this->call_smt ($result);
+    }
+    return ! $result[0];
+  }
+
+  // EPA
+  private function build_spot_encoding ($formula)
+  {
+  // Le résultat est une chaîne de caractères compréhensible par SPOT
+    $result="";
+    switch ((string) $formula->getName())
+    {
+    case 'all-paths':
+      $sub = $formula->children()[0];
+      $result = $this->build_spot_encoding($sub);
+      break;
+    case 'globally':
+      $sub = $formula->children()[0];
+      $result = "G(".$this->build_spot_encoding($sub).")";
+      break;
+    case 'finally':
+      $sub = $formula->children()[0];
+      $result = "F(".$this->build_spot_encoding($sub).")";
+      break;
+    case 'next':
+      $sub = $formula->children()[0];
+      $result = "X(".$this->build_spot_encoding($sub).")";
+      break;
+    case 'until':
+      $before = $formula->before->children()[0];
+      $reach  = $formula->reach->children()[0];
+      $result = "(".$this->build_spot_encoding($before).")"." U (".$this->build_spot_encoding($reach).")";
+      break;
+    /* case 'true': 
+       case 'false': 
+       case 'deadlock':
+       case 'is-fireable':
+      break; */
+    case 'negation':
+      $sub = $formula->children()[0];
+      $result = "!(".$this->build_spot_encoding($sub).")";
+      break;
+    case 'conjunction':
+      $first=true;
+      foreach ($formula->children() as $sub)
+        if ($first)
+        {
+          $result = $this->build_spot_encoding($sub);
+          $first=false;
+        }
+        else
+          $result = $result." & ".$this->build_spot_encoding($sub);
+      break;
+    case 'disjunction':
+      $first=true;
+      foreach ($formula->children() as $sub)
+        if ($first)
+        {
+          $result = $this->build_spot_encoding($sub);
+          $first=false;
+        }
+        else
+          $result = $result." | ".$this->build_spot_encoding($sub);
+      break;
+    case 'integer-le':
+    case 'integer-constant':
+    case 'integer-sum':
+    case 'integer-difference':
+    case 'place-bound':
+    case 'tokens-count':
+    case 'is-fireable':
+      $result = "a";
+      break;
+    default:
+      echo "<warning>Error: unknown node {$formula->getName()}</warning>";
+    }
+
+    return $result;
+  }
+  // Fin EPA
+ 
   protected function pre_perform(InputInterface $input, OutputInterface $output)
   {
     $this->chain       = $input->getOption('chain');
@@ -158,29 +248,99 @@ EOT;
     $smcdir = __DIR__ . "/../../../smc/";
     putenv ("PATH=" . getenv ("PATH") . ":" . $smcdir);
   }
+  
+  protected function add_formula($formula, &$formulas, &$cat, $nbcat, $numcat, $maxcat)
+  {
+    if ($cat[$numcat] < $maxcat)
+    {
+      $formulas[$cat[$numcat]*$nbcat+$numcat] = $formula;
+      $cat[$numcat]++;
+      return true;
+    }
+    echo "raté....................\n";
+    return false;
+  }
 
   protected function perform()
   {
     //$this->grammar_health_checks ();
 
+    // Le nb catégories utilisées dans la hiérarchie Manna & Pnueli
+    $nbcat = 5; // T et O ne sont représentées cat il n'y a pas de conjonction et disjonction
+
     // build the grammar, set the number of formulas to generate
     $grammar = $this->build_grammar ($this->subcategory);
-    $nr = $this->quantity * 20;
+//    $nr = $this->quantity * 20;
+    $nr = $this->quantity * $nbcat*4;
     if ($this->model_name == "TokenRing")
     {
       // hack to avoid memory overflow in this model ...
-      $nr = $this->quantity * 7;
+//      $nr = $this->quantity * 7;
+      $nr = $this->quantity * $nbcat*2;
       echo "mcc: HACK on 'TokenRing', reduced number of intermediate formulas\n";
     }
-
+    
     // generate $nr formulas, store them in the array $formulas[]
     echo "mcc: generating $nr formulas\n";
+
+    $maxcat = floor($nr / $nbcat);  // pour LTL
+    $reste = $nr - $nbcat*$maxcat;  // pour LTL
+    $cat = array(0, 0, 0, 0, 0, 0, 0);  // pour LTL
+
     $formulas = array();
     for ($i = 0; $i < $nr; $i++)
     {
-      $formula = $grammar->generate ($this->max_depth);
-      $formulas[] = $formula;
+      //EPA
+      if (	($this->subcategory==SUBCAT_LTL_FIREABILITY_SIMPLE) ||
+      		($this->subcategory==SUBCAT_LTL_FIREABILITY) ||
+      		($this->subcategory==SUBCAT_LTL_CARDINALITY)
+      	 )
+      	 {
+      	 	$inserted = false;
+			while (!$inserted)
+			{
+              $formula = $grammar->generate ($this->max_depth);
+      	 	  echo "Il faut travailler là !!!!!!!!!!!!!!!!!!! Max = $maxcat reste = $reste\n";
+      	 	  $versionSPOT=$this->build_spot_encoding($formula);
+      	 	  $command="ltlfilt --format='%h' -f '".$versionSPOT."'";
+      	 	  echo "Commande : ".$command."\n";
+      	 	  $answer=exec($command);
+      	 	  echo "Réponse de SPOT : ".$answer."\n";
+      	 	  switch ($answer)
+      	 	  {
+//      	   	  case "T": $cat[0]++; break;
+      	 	    case "R": 
+      	 	      $inserted = $this->add_formula($formula, $formulas, $cat, $nbcat, 0, $maxcat);
+      	 	      break;
+      	 	    case "P":
+      	 	      $inserted = $this->add_formula($formula, $formulas, $cat, $nbcat, 1, $maxcat);
+      	 	      break;
+//      	 	  case "O": $cat[3]++; break;
+      	 	    case "S": 
+      	 	      $inserted = $this->add_formula($formula, $formulas, $cat, $nbcat, 2, $maxcat);
+      	 	      break;
+      	 	    case "G": 
+      	 	      $inserted = $this->add_formula($formula, $formulas, $cat, $nbcat, 3, $maxcat);
+      	 	      break;
+      	 	    case "B": 
+      	 	      $inserted = $this->add_formula($formula, $formulas, $cat, $nbcat, 4, $maxcat);
+      	 	      break;
+      	 	    default: echo "Catégorie inconnue : ".$answer."\n";
+      	 	  }
+      	 	}
+      	 }
+		 else
+		 {
+           $formula = $grammar->generate ($this->max_depth);
+           $formulas[] = $formula;
+         }
     }
+     if (($this->subcategory==SUBCAT_LTL_FIREABILITY_SIMPLE) ||
+     	 ($this->subcategory==SUBCAT_LTL_FIREABILITY) ||
+     	 ($this->subcategory==SUBCAT_LTL_CARDINALITY)
+        )
+   	   for ($i = 0; $i < $nbcat; $i++)
+   	     echo "cat ".$i." : ".$cat[$i]."\n";
 
     // filter out those of bad quality
     echo "mcc: generate: filtering out formulas\n";
@@ -720,7 +880,7 @@ EOT;
 
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY_SIMPLE);
     //$g = $this->build_grammar (SUBCAT_LTL_FIREABILITY);
-    //$g = $this->build_grammar (SUBCAT_LTL_CARDINALITY);
+    //$g = $this->build_grammar (SUBCAT_ge_CARDINALITY);
 
     //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY_SIMPLE);
     //$g = $this->build_grammar (SUBCAT_CTL_FIREABILITY);
