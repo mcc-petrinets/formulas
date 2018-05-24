@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Command-line tools installed by Spot 2.5</title>
+<!-- 2018-01-20 Sat 14:21 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="List of all the command-line tools installed by Spot {{{SPOTVERSION}}}"
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Command-line tools installed by Spot 2.5</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Conventions</a></li>
+<li><a href="#sec-2">Documentation common to multiple tools</a></li>
+<li><a href="#sec-3">Command-line tools</a></li>
+<li><a href="#sec-4">Man pages</a></li>
+<li><a href="#sec-5">Advanced use-cases</a></li>
+<li><a href="#sec-6">Citing</a></li>
+</ul>
+</div>
+</div>
+<p>
+This document introduces command-line tools that are installed with
+the Spot library.  We give some examples to highlight possible
+use-cases but shall not attempt to cover all features exhaustively
+(please check the man pages for further inspiration).
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Conventions</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+For technical reasons related to the way we generate these pages, we
+use the following convention when rendering shell commands.  The
+commands issued to the shell are formatted like this with a cyan line
+on the left:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="helloworld"><span class="org-builtin">echo</span> Hello World
+</pre>
+</div>
+
+<p>
+And the output of such a command is formatted as follows, with a
+magenta line on the left:
+</p>
+
+<pre class="example">
+Hello World
+</pre>
+
+<p>
+Parts of these documents (e.g., lists of options) are actually the
+results of shell commands and will be presented as above, even if the
+corresponding commands are hidden.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Documentation common to multiple tools</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li><a href="ioltl.html">common input and output options for LTL/PSL formulas</a>
+</li>
+<li><a href="oaut.html">common output options for automata</a>
+</li>
+<li><a href="hoa.html">input and output support for the HOA format</a>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Command-line tools</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><a href="randltl.html"><code>randltl</code></a> Generate random LTL/PSL formulas.
+</li>
+<li><a href="ltlfilt.html"><code>ltlfilt</code></a> Filter, convert, and transform LTL/PSL formulas.
+</li>
+<li><a href="genltl.html"><code>genltl</code></a> Generate LTL formulas from scalable patterns.
+</li>
+<li><a href="ltl2tgba.html"><code>ltl2tgba</code></a> Translate LTL/PSL formulas into Büchi automata.
+</li>
+<li><a href="ltl2tgta.html"><code>ltl2tgta</code></a> Translate LTL/PSL formulas into Testing automata.
+</li>
+<li><a href="ltlcross.html"><code>ltlcross</code></a> Cross-compare LTL/PSL-to-automata translators.
+</li>
+<li><a href="ltlgrind.html"><code>ltlgrind</code></a> List formulas similar to but simpler than a given LTL/PSL
+formula.
+</li>
+<li><a href="ltldo.html"><code>ltldo</code></a> Run LTL/PSL formulas through other tools using common <a href="ioltl.html">input</a>
+  and <a href="oaut.html">output</a> interfaces.
+</li>
+<li><a href="ltlsynt.html"><code>ltlsynt</code></a> Synthesize AIGER circuits from LTL/PSL specifications.
+</li>
+<li><a href="dstar2tgba.html"><code>dstar2tgba</code></a> Convert &omega;-automata with any acceptance into
+variants of Büchi automata.
+</li>
+<li><a href="randaut.html"><code>randaut</code></a> Generate random &omega;-automata.
+</li>
+<li><a href="genaut.html"><code>genaut</code></a> Generate ω-automata from scalable patterns.
+</li>
+<li><a href="autfilt.html"><code>autfilt</code></a> Filter, convert, and transform &omega;-automata.
+</li>
+<li><a href="autcross.html"><code>autcross</code></a> Cross-compare tools that process automata.
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">Man pages</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+In addition to the above illustrated documentation, Spot also installs
+man pages for all these tools.  These man pages are mostly generated
+automatically from the <code>--help</code> output of each tool, and often
+completed with additional text (like examples or bibliography).  For
+convenience, you can browse their HTML versions:
+</p>
+
+<p>
+<a href="./man/autcross.1.html"><code>autcross</code></a>(1),
+<a href="./man/autfilt.1.html"><code>autfilt</code></a>(1),
+<a href="./man/dstar2tgba.1.html"><code>dstar2tgba</code></a>(1),
+<a href="./man/genaut.1.html"><code>genaut</code></a>(1),
+<a href="./man/genltl.1.html"><code>genltl</code></a>(1),
+<a href="./man/ltl2tgba.1.html"><code>ltl2tgba</code></a>(1),
+<a href="./man/ltl2tgta.1.html"><code>ltl2tgta</code></a>(1),
+<a href="./man/ltlcross.1.html"><code>ltlcross</code></a>(1),
+<a href="./man/ltldo.1.html"><code>ltldo</code></a>(1),
+<a href="./man/ltlfilt.1.html"><code>ltlfilt</code></a>(1),
+<a href="./man/ltlgrind.1.html"><code>ltlgrind</code></a>(1),
+<a href="./man/ltlsynt.1.html"><code>ltlsynt</code></a>(1),
+<a href="./man/randaut.1.html"><code>randaut</code></a>(1),
+<a href="./man/randltl.1.html"><code>randltl</code></a>(1),
+<a href="./man/spot-x.7.html"><code>spot-x</code></a>(7),
+<a href="./man/spot.7.html"><code>spot</code></a>(7).
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5">Advanced use-cases</h2>
+<div class="outline-text-2" id="text-5">
+<ul class="org-ul">
+<li><a href="csv.html">Reading and writing CSV files</a>
+</li>
+<li><a href="satmin.html">SAT-based minimization of Deterministic ω-Automata</a>
+</li>
+<li><a href="hierarchy.html">Exploring the temporal hierarchy of Manna &amp; Pnueli</a>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6">Citing</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+If some of these tools have played a significant role in a work that
+lead to some academic publication, please consider citing Spot.  Our
+<a href="citing.html">citing page</a> has a list of papers you could cite.
+</p>
+
+<p>
+Additionally, the man pages of these tools also contains additional
+references about the algorithms or data sources used.
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

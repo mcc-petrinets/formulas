@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+#+TITLE: =ltlsynt=
+#+DESCRIPTION: Spot command-line tool for synthesizing AIGER circuits from LTL/PSL formulas.
+#+SETUPFILE: setup.org
+#+HTML_LINK_UP: tools.html
+
+* Basic usage
+
+This tool synthesizes [[http://fmv.jku.at/aiger/][AIGER]] circuits from LTL/PSL
+formulas.  =ltlsynt= is typically called with the following three options:
+
+- =--input=: a comma-separated list of input signal names
+- =--output=: a comma-separated list of output signal names
+- =--formula= or =--file=: the LTL/PSL specification.
+
+The following example illustrates the synthesis of an =AND= gate.  We call the two
+inputs =a= and =b=, and the output =c=.  We want the relationship between the
+inputs and the output to always hold, so we prefix the propositional formula
+with a =G= operator:
+
+#+BEGIN_SRC sh :results verbatim :exports both
+ltlsynt --input=a,b --output=c --formula 'G (a & b <=> c)'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+REALIZABLE
+aag 3 2 0 1 1
+2
+4
+6
+6 2 4
+i0 a
+i1 b
+o0 c
+#+end_example
+
+The output is composed of two sections.  The first one is a single line
+containing either REALIZABLE or UNREALIZABLE, and the second one is an AIGER
+circuit that satisfies the specification (or nothing if it is unrealizable).
+In this example, the generated circuit contains, as expected, a single =AND=
+gate linking the two inputs to the output.
+
+The following example is unrealizable, because =a= is an input, so no circuit
+can guarantee that it will be true eventually.
+
+#+BEGIN_SRC sh :results verbatim :exports both
+ltlsynt --input=a --output=b -f 'F a'
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+UNREALIZABLE
+#+end_example
+
+* TLSF
+
+=ltlsynt= was made with the [[http://syntcomp.org/][SYNTCOMP]] competition in
+mind, and more specifically the TLSF track of this competition.  TLSF is a
+high-level specification language created for the purpose of this competition.
+Fortunately, the SYNTCOMP organizers also provide a tool called =syfco= which
+can translate a TLSF specification to an LTL formula.
+
+The following four steps show you how a TLSF specification called spec.tlsf can
+be synthesized using =syfco= and =ltlsynt=:
+
+#+BEGIN_SRC sh
+LTL=$(syfco FILE -f ltlxba -m fully)
+IN=$(syfco FILE -f ltlxba -m fully)
+OUT=$(syfco FILE -f ltlxba -m fully)
+ltlsynt --formula="$LTL" --input="$IN" --output="$OUT"
+#+END_SRC
+
+* Algorithm
+
+The tool reduces the synthesis problem to a parity game, and solves the parity
+game using Zielonka's recursive algorithm.  The full reduction from LTL to
+parity game is described in a paper yet to be written and published.
+
+You can control the parity game solving step in two ways:
+- By choosing a different algorithm using the =--algo= option. The default is
+=rec= for Zielonka's recursive algorithm, and as of now the only other
+available option is =qp= for Calude et al.'s quasi-polynomial time algorithm.
+- By asking =ltlsynt= not to solve the game and print it instead (in the
+PGSolver format) using the =--print-pg= option, and leaving you the choice of
+an external solver such as PGSolver.

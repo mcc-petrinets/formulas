@@ -1,0 +1,1263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Exploring the temporal hierarchy of Manna &amp; Pnueli</title>
+<!-- 2018-01-20 Sat 14:20 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Spot command-line tools for exploring the temporal hierarchy of Manna &amp; Pnueli"
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="tools.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Exploring the temporal hierarchy of Manna &amp; Pnueli</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Description of the classes</a></li>
+<li><a href="#sec-2">Deciding class membership</a></li>
+<li><a href="#sec-3">Deciding classes membership syntactically</a></li>
+<li><a href="#sec-4">What to do with each class?</a>
+<ul>
+<li><a href="#sec-4-1">Obligation</a></li>
+<li><a href="#sec-4-2">Guarantee</a></li>
+<li><a href="#safety">Safety</a></li>
+<li><a href="#sec-4-4">Recurrence</a></li>
+<li><a href="#sec-4-5">Persistence</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>
+<i>A hierarchy of temporal properties</i> was defined by Manna &amp; Pnueli in
+their <a href="ftp://www-cs.stanford.edu/cs/theory/amir/hierarchy.ps">PODC'90 paper</a>.
+</p>
+
+<p>
+This hierarchy relates "properties" (i.e., omega-regular languages) to
+structural properties of the automata that can recognize them.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Description of the classes</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The hierarchy is built from the classes pictured in the following
+diagram, where each class includes everything below it. For instance,
+the <i>recurrence</i> class includes the <i>obligation</i> class which also
+includes the <i>safety</i> and <i>guarantee</i> classes, as well as the unnamed
+intersection of <i>safety</i> and <i>guarantee</i> (<code>B</code> in the picture).
+</p>
+
+
+<div class="figure">
+<p><img src="hierarchy.svg" alt="hierarchy.svg" />
+</p>
+</div>
+
+<p>
+Forget about the LTL properties and about the red letters displayed in
+this picture for a moment.
+</p>
+
+<ul class="org-ul">
+<li>The <i>reactivity</i> class represents all possible omega-regular
+languages, i.e., all languages that can be recognized by a
+non-deterministic Büchi automaton.
+</li>
+
+<li>The <i>recurrence</i> subclass contains all properties that can be
+recognized by a deterministic Büchi automaton.
+</li>
+
+<li>The dual class, <i>persistence</i> properties, are those that can be
+recognized by a weak Büchi automaton (i.e., in each SCC either all
+states are accepting, or all states are rejecting).
+</li>
+
+<li>The intersection of <i>recurrence</i> and <i>persistence</i> classes form the
+<i>obligation</i> properties: any of those can be recognized by a weak
+and deterministic Büchi automaton.
+</li>
+
+<li><i>Guarantee</i> properties are a subclass of <i>obligation</i> properties
+that can be recognized by terminal Büchi automata (i.e., upon
+reaching an accepting state, any suffix will be accepted).
+</li>
+
+<li><i>Safety</i> properties are the dual of <i>Guarantee</i> properties: they can
+be recognized by ω-automata that accept all their runs (i.e., the
+acceptance condition is "true").  Note that since these automata are
+not necessary complete, it is still possible for some words not to
+be accepted.  If we interpret the ω-automata with "true" acceptance
+as finite automata with all states marked as final, we obtain
+monitors, i.e., finite automata that recognize all finite prefixes
+that can be extended into valid ω-words.
+</li>
+
+<li>Finally, at the very bottom is an unnamed class that contains
+<i>Safety</i> properties that are also <i>Guarantee</i> properties: those are
+properties that can be represented by monitors in which the only
+cycles are self-loops labeled by true.
+</li>
+</ul>
+
+<p>
+The "LTL normal forms" displayed in the above figure help to visualize
+the type of LTL formulas contained in each of these class.  But note
+that (1) this hierarchy applies to all omega-regular properties, not
+just LTL-defined properties, and (2) the LTL expression displayed in
+the figure are actually normal forms in the sense that if an
+LTL-defined property belongs to the given class, then there exists an
+equivalent LTL property under the stated form, were \(p\), \(q\), \(p_i\)
+and \(q_i\) are subexpressions that may use only Boolean operators, the
+next operator (\(\mathsf{X}\)), and past-LTL operators (which are not
+supported by Spot).  The combination of these allowed operators only
+makes it possible to express constraints on finite prefixes.
+</p>
+
+<p>
+<i>Obligations</i> can be thought of as Boolean combinations of <i>safety</i>
+and <i>guarentee</i> properties, while <i>reactivity</i> properties are Boolean
+combinations of <i>recurrence</i> and <i>persistence</i> properties.  The
+negation of a <i>safety</i> property is a <i>guarantee</i> property (and
+vice-versa), and the same duality hold for <i>persistence</i> and
+<i>recurrence</i> properties.
+</p>
+
+<p>
+The red letters in each of these seven classes are keys used in
+Spot to denote the classes.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Deciding class membership</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The <code>--format=%h</code> option can be used to display the "class key" of the
+most precise class to which a formula belongs.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'a U b'</span> --format=%h
+</pre>
+</div>
+<pre class="example">
+G
+</pre>
+
+<p>
+If you find hard to remember the class name corresponding to the class
+keys, you can request verbose output with <code>%[v]h</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'a U b'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+<pre class="example">
+guarantee
+</pre>
+
+<p>
+But actually any <i>guarantee</i> property is also an <i>obligation</i>, a
+<i>recurrence</i>, a <i>persistence</i>, and a <i>reactivity</i> property.  You can
+get the complete list of classes using <code>%[w]h</code> or <code>%[vw]h</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'a U b'</span> --format=<span class="org-string">'%[w]h = %[vw]h'</span>
+</pre>
+</div>
+<pre class="example">
+GOPRT = guarantee obligation persistence recurrence reactivity
+</pre>
+
+<p>
+This <code>--format</code> option is also supported by <code>randltl</code>, <code>genltl</code>, and
+<code>ltlgrind</code>.  So for instance if you want to classify the 55 LTL
+patterns of <a href="http://patterns.projects.cs.ksu.edu/documentation/patterns/ltl.shtml">Dwyers et al. (FMSP'98)</a> using this hierarchy, try:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">genltl --dac-patterns --format=<span class="org-string">'%[v]h'</span> | sort | uniq -c
+</pre>
+</div>
+
+<pre class="example">
+ 1 guarantee
+ 2 obligation
+ 1 persistence
+ 2 reactivity
+12 recurrence
+37 safety
+</pre>
+
+<p>
+In this output, the most precise class is given for each formula, and
+the count of formulas for each subclass is given.  We have to remember
+that the recurrence class also includes obligation, safety, and
+guarantee properties.  In this list, there are no formulas that belong
+to the intersection of the <i>guarantee</i> and <i>safety</i> classes (it would
+have been listed as <code>guarantee safety</code>).
+</p>
+
+<p>
+From this list, only 3 formulas are not recurrence properties (i.e.,
+not recognized by deterministic Büchi automata): one of them is a
+persistence formula, the other two cannot be classified better than in
+the <i>reactivity</i> class.  Let's pretend we are interested in those
+three non-recurrence formulas, we can use <code>ltlfilt -v --recurrence</code> to
+remove all recurrence properties from the <code>genltl --dac-pattern</code>
+output:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">genltl --dac-patterns |
+  ltlfilt -v --recurrence --format=<span class="org-string">'%[v]h, %f'</span>
+</pre>
+</div>
+
+<pre class="example">
+persistence, G!p0 | F(p0 &amp; (!p1 W p2))
+reactivity, G(p0 -&gt; ((p1 -&gt; (!p2 U (!p2 &amp; p3 &amp; X(!p2 U p4)))) U (p2 | G(p1 -&gt; (p3 &amp; XFp4)))))
+reactivity, G(p0 -&gt; ((p1 -&gt; (!p2 U (!p2 &amp; p3 &amp; !p4 &amp; X((!p2 &amp; !p4) U p5)))) U (p2 | G(p1 -&gt; (p3 &amp; !p4 &amp; X(!p4 U p5))))))
+</pre>
+
+<p>
+Similar filtering options exist for other classes.  Since these tests
+are automata-based, they work with PSL formulas as well. For instance,
+here is how to generate 10 random recurrence PSL formulas that are
+not LTL formulas, and that are not obligations:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">randltl --psl -n -1 a b |
+   ltlfilt -v --ltl |
+   ltlfilt -v --obligation |
+   ltlfilt --recurrence -n10
+</pre>
+</div>
+<pre class="example">
+((Fb W 0) | (1 U !a)) W ({b[*]}[]-&gt; 0)
+GF({[*]}&lt;&gt;-&gt; !a)
+{[*]}[]-&gt; X(b M F!Gb)
+G!({a[*2]}&lt;&gt;-&gt; (b &amp; F(0 R a)))
+FX({[*]} -&gt; GFb)
+G({b[*][:*1]} xor (Fb U Fa)) W b
+(b R a) &amp; (({1 | [*0]} -&gt; (1 U a)) W 0)
+G({[*]}[]-&gt; Fa)
+{[*]}[]-&gt; F(1 U b)
+0 R !({!a | a[*]}[]-&gt; GXa)
+</pre>
+
+<p>
+Note that the order of the <code>ltlfilt</code> filters could be changed provided
+the <code>-n10</code> stays at the end.  For instance we could first keep all
+recurrence before removing obligations and then removing LTL formulas.
+The order given above actually starts with the easier checks first and
+keep the most complex tests at the end of the pipeline so they are
+applied to fewer formulas.  Testing whether a formula is an LTL
+formula is very cheap, testing if a formula is an obligation is harder
+(it may involves a translation to automata and a poweset
+construction), and testing whether a formula is a recurrence is the
+most costly procedure (it involves a translation as well, plus
+conversion to deterministic Rabin automata, and an attempt to convert
+the automaton back to deterministic Büchi).  As a rule of thumb,
+testing classes that are lower in the hierarchy is cheaper.
+</p>
+
+<p>
+Since option <code>-o</code> (for specifying output file) also honors <code>%</code>-escape
+sequences, we can use it with <code>%h</code> to split a list of formulas in 7
+possible files.  Here is a generation of 200 random LTL formulas
+binned into aptly named files:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">randltl -n 200 a b -o random-%h.ltl
+wc -l random-?.ltl
+</pre>
+</div>
+
+<pre class="example">
+ 45 random-B.ltl
+ 49 random-G.ltl
+ 12 random-O.ltl
+ 21 random-P.ltl
+ 18 random-R.ltl
+ 46 random-S.ltl
+  9 random-T.ltl
+200 total
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Deciding classes membership syntactically</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+LTL formulas can also be classified into related classes which we
+shall call <i>syntactic-safety</i>, <i>syntactic-guarantee</i>, etc.  See <a href="https://spot.lrde.epita.fr/tl.pdf">tl.pdf</a>
+for the grammar of each syntactic class.  Any LTL-definable property
+of class C can be defined by an LTL formulas in class syntactic-C, but
+an LTL formula can describe a property of class C even if that formula
+is not in class syntactic-C (we just know that some equivalent formula
+is in class syntactic-C).
+</p>
+
+<p>
+<code>ltlfilt</code> has options like <code>--syntactic-guarantee</code>,
+<code>--syntactic-persistence</code>, etc. to match formulas from this classes.
+</p>
+
+<p>
+Here is how to generate 10 random LTL formulas that describe safety
+properties but that are not in the syntactic-safety class:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">randltl -n-1 a b |
+  ltlfilt -v --syntactic-safety |
+  ltlfilt --safety -n10
+</pre>
+</div>
+
+<pre class="example">
+F!(!b &lt;-&gt; FGb)
+!Fb xor G((b xor (Xa M b)) U b)
+a W F(a -&gt; b)
+((0 R Xa) R a) -&gt; Fa
+X(Xb &amp; (!Ga R Ga))
+(1 U b) | F(Fb W (a &lt;-&gt; FXa))
+(a M 1) | (!a W a)
+(G!a W ((b M 1) -&gt; Fa)) -&gt; !a
+!a -&gt; ((a xor !GFa) W 0)
+b M Gb
+</pre>
+
+<p>
+Since all those formulas describe safety properties, an exercise would
+be to suggest equivalent formulas that are in the syntactic-safety
+fragment.  For instance <code>b M Gb</code> can be rewritten as just <code>Gb</code>, which
+belongs to this fragment.  In this particular case, <code>ltlfilt
+--simplify</code> recognizes this:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt --simplify -f <span class="org-string">'b M Gb'</span>
+</pre>
+</div>
+<pre class="example">
+Gb
+</pre>
+
+<p>
+However in the general case Spot is not able to provide the equivalent
+formula from the appropriate syntactic class.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">What to do with each class?</h2>
+<div class="outline-text-2" id="text-4">
+</div><div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1">Obligation</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+Spot implements algorithms from Löding (<a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.24.6718"><i>Efficient minimization of
+deterministic weak ω-automata</i>, IPL 2001</a>) and Dax et al. (<a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.83.2081"><i>Mechanizing
+the powerset constructions for restricted classes of ω-automata</i>,
+ATVA'07</a>) in order to detect obligation properties, and produce minimal
+weak deterministic automata for them.
+</p>
+
+<p>
+When running <code>ltl2tgba -D</code> on a formula that represents an
+obligation property, you are guaranteed to obtain a minimal (in the
+number of states) deterministic weak Büchi automaton that recognizes
+it.  Note that since the <i>obligation</i> class includes the <i>safety</i> and
+<i>guarantee</i> classes, minimal deterministic automata will also be
+produced for those classes.  Dax et al.'s determinization of obligation
+properties combined with Löding's minimization renders obsolete
+older algorithms (and tools) that produced minimal deterministic
+automata but only for the subclasses of <i>safety</i> or <i>guarantee</i>.
+</p>
+
+<p>
+If <code>ltl2tgba</code> is run without <code>-D</code> (but still with the default <code>--high</code>
+optimization level), the minimal weak deterministic automaton will
+only be output if it is smaller than the non-deterministic automaton
+the translator could produce before determinization and minimization.
+</p>
+
+<p>
+For instance <code>Fa R b</code> is an obligation:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'Fa R b'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+
+<pre class="example">
+obligation
+</pre>
+
+<p>
+If we translate it without <code>-D</code> we get a 3-state non-deterministic
+automaton (here we use <code>autfilt --highlight-nondet</code> to show where the
+non-determinism occurs):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-oblig-1">ltl2tgba <span class="org-string">'Fa R b'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-oblig-1.svg" alt="hier-oblig-1.svg" />
+</p>
+</div>
+
+<p>
+Note that the above automaton uses transition-based acceptance, but
+since it is an obligation, using transition-based acceptance will not
+improve anything, so we might as well require a Büchi automaton with
+<code>-B</code> or just state-based acceptance with <code>-S</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-oblig-1b">ltl2tgba -B <span class="org-string">'Fa R b'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-oblig-1b.svg" alt="hier-oblig-1b.svg" />
+</p>
+</div>
+
+
+<p>
+With <code>ltl2tgba -D</code> we get a (minimal) deterministic weak Büchi
+automaton instead.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-oblig-2">ltl2tgba -D <span class="org-string">'Fa R b'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-oblig-2.svg" alt="hier-oblig-2.svg" />
+</p>
+</div>
+
+
+<p>
+When we called <code>ltl2tgba</code>, without the option <code>-D</code>, the two automata
+(non-deterministic and deterministic) were constructed, but the
+deterministic one was discarded because it was bigger.  Using <code>-D</code>
+forces the deterministic automaton to be used regardless of its size.
+</p>
+
+<p>
+The detection and minimization of obligation properties is also used
+by <code>autfilt</code> when simplifying deterministic automata (they need to be
+deterministic so that <code>autfilt</code> can easily compute their complement).
+</p>
+
+<p>
+For instance, let us use <code>ltl2dstar</code> to construct a Streett automaton
+for the obligation property <code>a &lt;-&gt; GXa</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-oblig-3">ltldo <span class="org-string">'ltl2dstar --automata=streett'</span> -f <span class="org-string">'a &lt;-&gt; GXa'</span> -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-oblig-3.svg" alt="hier-oblig-3.svg" />
+</p>
+</div>
+
+<p>
+We can now minimize this automaton with:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-oblig-4">ltldo <span class="org-string">'ltl2dstar --automata=streett'</span> -f <span class="org-string">'a &lt;-&gt; GXa'</span> | autfilt -D -C -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-oblig-4.svg" alt="hier-oblig-4.svg" />
+</p>
+</div>
+
+<p>
+Here we have used option <code>-C</code> to keep the automaton complete, so that
+the comparison with <code>ltl2dstar</code> is fair, since <code>ltl2dstar</code> always
+output complete automata.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2">Guarantee</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+<i>Guarantee</i> properties can be translated into terminal automata.
+There is nothing particular in Spot about <i>guarantee</i> properties, they
+are all handled like <i>obligations</i>.
+</p>
+
+<p>
+Again, using <code>-D</code> will always produce (minimal) deterministic Büchi
+automata, even if they are larger than the non-deterministic version.
+The output should be a terminal automaton in either case,
+</p>
+
+<p>
+An example is <code>a U Xb</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'a U Xb'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+
+<pre class="example">
+guarantee
+</pre>
+
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-guarantee-1">ltl2tgba <span class="org-string">'a U Xb'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-guarantee-1.svg" alt="hier-guarantee-1.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-guarantee-2">ltl2tgba -D <span class="org-string">'a U Xb'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-guarantee-2.svg" alt="hier-guarantee-2.svg" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-safety" class="outline-3">
+<h3 id="safety"><a id="sec-4-3" name="sec-4-3"></a>Safety</h3>
+<div class="outline-text-3" id="text-safety">
+
+<p>
+<i>Safety</i> properties also form a subclass of <i>obligation</i> properties,
+and again there is no code specific to them in the translation.
+However, the <i>safety</i> class corresponds to what can be represented
+faithfully by monitors, i.e., automata that accept all their infinite
+runs.
+</p>
+
+<p>
+For most safety formulas, the acceptance output by <code>ltl2tgba</code> will
+already be <code>t</code> (meaning that all runs are accepting).  However since
+the translator does not do anything particular about safety formulas,
+it is possible to find some pathological formulas for which the
+translator outputs a non-deterministic Büchi automaton where not all
+run are accepting.
+</p>
+
+<p>
+Here is an example:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'(a W Gb) M b'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+
+<pre class="example">
+safety
+</pre>
+
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-safety-1">ltl2tgba <span class="org-string">'(a W Gb) M b'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-safety-1.svg" alt="hier-safety-1.svg" />
+</p>
+</div>
+
+<p>
+Actually, marking all states of this automaton as accepting would not
+be wrong, the translator simply does not know it.
+</p>
+
+<p>
+Using <code>-D</code> will fix that: it then produces a deterministic automaton
+that is guaranteed to be minimal, and where all runs are accepting.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-safety-2">ltl2tgba -D <span class="org-string">'(a W Gb) M b'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-safety-2.svg" alt="hier-safety-2.svg" />
+</p>
+</div>
+
+
+<p>
+If you are working with safety formula, and know you want to work with
+monitors, you can use the <code>-M</code> option of <code>ltl2tgba</code>.  In this case
+this will output the same automaton, but using the universal
+acceptance (i.e. <code>t</code>).  You can interpret this output as a monitor
+(i.e., a finite automaton that accepts all prefixes that can be
+extended into valid ω-words).
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-safety-1m">ltl2tgba -M <span class="org-string">'(a W Gb) M b'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-safety-1m.svg" alt="hier-safety-1m.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-safety-2m">ltl2tgba -M -D <span class="org-string">'(a W Gb) M b'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-safety-2m.svg" alt="hier-safety-2m.svg" />
+</p>
+</div>
+
+
+<p>
+Note that the <code>-M</code> option can be used with formulas that are not
+safety properties.  In this case, the output monitor will recognize a
+language larger than that of the property.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4-4" class="outline-3">
+<h3 id="sec-4-4">Recurrence</h3>
+<div class="outline-text-3" id="text-4-4">
+<p>
+<i>Recurrence</i> properties can be represented by deterministic Büchi
+automata.
+</p>
+
+<p>
+For the subclass of <i>obligation</i> properties, using <code>-D</code> is a sure way
+to obain a deterministic automaton (and even a minimal one), but for
+the <i>recurrence</i> properties that are not <i>obligations</i> the translator
+does not make any special effort to produce deterministic automata,
+even with <code>-D</code> (this might change in the future).
+</p>
+
+<p>
+All properties that are not in the <i>persistence</i> class (this includes
+the <i>recurrence</i> properties that are not <i>obligations</i>) can benefit
+from transition-based acceptance.  In other words using
+transition-based acceptance will often produce shorter automata.
+</p>
+
+<p>
+The typical example is <code>GFa</code>, which can be translated into a 1-state
+transition-based Büchi automaton:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'GFa'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+
+<pre class="example">
+recurrence
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-1">ltl2tgba <span class="org-string">'GFa'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-recurrence-1.svg" alt="hier-recurrence-1.svg" />
+</p>
+</div>
+
+<p>
+Using state-based acceptance, at least two states are required.  For instance:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-2">ltl2tgba -S <span class="org-string">'GFa'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-recurrence-2.svg" alt="hier-recurrence-2.svg" />
+</p>
+</div>
+
+
+<p>
+Here is an example of a formula for which <code>ltl2tgba</code> does not produce a
+deterministic automaton, even with <code>-D</code>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'G(Gb | Fa)'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+
+<pre class="example">
+recurrence
+</pre>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-3">ltl2tgba -D <span class="org-string">'G(Gb | Fa)'</span> | autfilt --highlight-nondet -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-recurrence-3.svg" alt="hier-recurrence-3.svg" />
+</p>
+</div>
+
+<p>
+One way to obtain a deterministic Büchi automaton (it has to exist, since this is
+a <i>recurrence</i> property), is to chain a few algorithms implemented in Spot:
+</p>
+
+<ol class="org-ol">
+<li>Determinize the non-deterministic automaton to obtain a
+deterministic automaton with parity acceptance: this is done by
+using <code>ltl2tgba -G -D</code>, with option <code>-G</code> indicating that any
+acceptance condition may be used.
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-4">ltl2tgba -G -D <span class="org-string">'G(Gb | Fa)'</span> -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-recurrence-4.svg" alt="hier-recurrence-4.svg" />
+</p>
+</div>
+</li>
+
+<li>Transform the parity acceptance into Rabin acceptance: this is
+done with <code>autfilt --generalized-rabin</code>.  Because of the type of
+parity acceptance used, the result will actually be Rabin and not
+generalized Rabin.
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-5">ltl2tgba -G -D <span class="org-string">'G(Gb | Fa)'</span> |
+  autfilt --generalized-rabin -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-recurrence-5.svg" alt="hier-recurrence-5.svg" />
+</p>
+</div>
+
+<p>
+(The only change here is in the acceptance condition.)
+</p>
+</li>
+
+<li>In step 4 we are going to convert the automaton to state-based
+Büchi, and this sometimes works better if the input Rabin automaton
+also uses state-based acceptance.  So let us add <code>-S</code> to the
+previous command:
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-6">ltl2tgba -G -D <span class="org-string">'G(Gb | Fa)'</span> |
+  autfilt -S --generalized-rabin -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-recurrence-6.svg" alt="hier-recurrence-6.svg" />
+</p>
+</div>
+</li>
+
+<li>Finally, convert the resulting automaton to BA, using <code>autfilt
+    -B</code>.  Spot can convert automata with any acceptance condition to
+BA, but when the input is a deterministic Rabin automaton, it uses
+a dedicated algorithm that preserves determinism whenever possible
+(and we know it is possible, because we are working on a
+recurrence formula).  Adding <code>-D</code> here to suggest that we are
+trying to obtain a deterministic automaton does not hurt, as it
+will enable simplifications as a side-effect (without <code>-D</code> we
+simply get a larger deterministic automaton).
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-7">ltl2tgba -G -D <span class="org-string">'G(Gb | Fa)'</span> |
+  autfilt -S --generalized-rabin |
+  autfilt -B -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-recurrence-7.svg" alt="hier-recurrence-7.svg" />
+</p>
+</div>
+</li>
+</ol>
+
+<p>
+Here we are lucky that the deterministic Büchi automaton is even
+smaller than the original non-deterministic version.  As said earlier,
+passing <code>-S</code> to the first <code>autfilt</code> was optional, but in this case it
+helps producing a smaller automaton.  Here is what we get without it:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-recurrence-8">ltl2tgba -G -D <span class="org-string">'G(Gb | Fa)'</span> |
+  autfilt --generalized-rabin |
+  autfilt -B -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-recurrence-8.svg" alt="hier-recurrence-8.svg" />
+</p>
+</div>
+
+<p>
+It is likely that <code>ltl2tgba</code> will implement all this processing chain
+in the future.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4-5" class="outline-3">
+<h3 id="sec-4-5">Persistence</h3>
+<div class="outline-text-3" id="text-4-5">
+<p>
+Since <i>persistence</i> properties are outside of the <i>recurrence</i> class,
+they cannot be represented by deterministic Büchi automata.  The typical
+persistence formula is <code>FGa</code>, and using <code>-D</code> on this is hopeless.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-1">ltl2tgba -D FGa -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-1.svg" alt="hier-persistence-1.svg" />
+</p>
+</div>
+
+
+<p>
+However since the <b>negation</b> of <code>FGa</code> is a <i>recurrence</i>, this negation
+can be represented by a deterministic Büchi automaton, which means
+that <code>FGa</code> could be represented by a deterministic co-Büchi automaton.
+<code>ltl2tgba</code> does not generate co-Büchi acceptance, but we can do the
+complementation ourselves:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-2">ltlfilt --negate -f FGa |
+  ltl2tgba -D |
+  autfilt --complement -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-2.svg" alt="hier-persistence-2.svg" />
+</p>
+</div>
+
+<p>
+Note that in this example, we know that <code>GFa</code> is trivial enough that
+<code>ltl2tgba -D GFa</code> will generate a deterministic automaton.  In the
+general case we might have to determinize the automaton as we did in
+the previous section (we will do it again below).
+</p>
+
+<p>
+<i>Persistence</i> properties can be represented by weak Büchi automata.  The
+translator is aware of that, so when it detects that the input formula
+is a syntactic-persistence, it simplifies its translation slightly to
+ensure that the output will use at most one acceptance set.  (It is
+possible to define a persistence properties using an LTL formula that
+is not a syntactic-persistance, this optimization is simply not
+applied.)
+</p>
+
+<p>
+If the input is a weak property that is not syntactically weak, the
+output will not necessarily be weak.  One costly way to obtain a weak
+automaton for a formula \(\varphi\) would be to first compute a
+deterministic Büchi automaton of the recurrence \(\lnot\varphi\) then
+complement the acceptance of the resulting automaton, yielding a
+deterministic co-Büchi automaton, and then transform that into a Büchi
+automaton.
+</p>
+
+<p>
+Let's do that on the persistence formula <code>F(G!a | G(b U a))</code>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'F(G!a | G(b U a))'</span> --format=<span class="org-string">'%[v]h'</span>
+</pre>
+</div>
+<pre class="example">
+persistence
+</pre>
+
+<p>
+Unfortunately the default output of the translation is not weak:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-3">ltl2tgba <span class="org-string">'F(G!a | G(b U a))'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-3.svg" alt="hier-persistence-3.svg" />
+</p>
+</div>
+
+<p>
+Furthermore it appears that <code>ltl2tgba</code> does generate a deterministic
+Büchi automaton for the complement, instead we get a non-deterministic
+generalized Büchi automaton:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-4">ltlfilt --negate -f <span class="org-string">'F(G!a | G(b U a))'</span> |
+  ltl2tgba -D |
+  autfilt --highlight-nondet=5 -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-4.svg" alt="hier-persistence-4.svg" />
+</p>
+</div>
+
+<p>
+So let us use the same tricks as in the previous section,
+determinizing this automaton into a Rabin automaton, and then back to
+deterministic Büchi:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-5">ltlfilt --negate -f <span class="org-string">'F(G!a | G(b U a))'</span> |
+  ltl2tgba -G -D |
+  autfilt --generalized-rabin |
+  autfilt --tgba -D -d.a
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-5.svg" alt="hier-persistence-5.svg" />
+</p>
+</div>
+
+<p>
+This is a deterministic Büchi automaton for the negation of our formula.
+Now we can complement it to obtain a deterministic co-Büchi automaton for <code>F(G!a | G(b U a))</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-6">ltlfilt --negate -f <span class="org-string">'F(G!a | G(b U a))'</span> |
+  ltl2tgba -G -D |
+  autfilt --generalized-rabin |
+  autfilt --tgba -D |
+  autfilt --complement -d.ab
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="hier-persistence-6.svg" alt="hier-persistence-6.svg" />
+</p>
+</div>
+
+<p>
+And finally we convert the result back to Büchi:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="hier-persistence-7">ltlfilt --negate -f <span class="org-string">'F(G!a | G(b U a))'</span> |
+  ltl2tgba -G -D |
+  autfilt --generalized-rabin |
+  autfilt --tgba -D |
+  autfilt --complement -B -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="hier-persistence-7.svg" alt="hier-persistence-7.svg" />
+</p>
+</div>
+
+<p>
+That is indeed, a weak automaton.
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

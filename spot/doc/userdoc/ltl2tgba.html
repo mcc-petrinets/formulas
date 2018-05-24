@@ -1,0 +1,1169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title><code>ltl2tgba</code></title>
+<!-- 2018-01-20 Sat 14:21 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Spot command-line tool for translating LTL into Transition-based Generalized Büchi Automata."
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="tools.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title"><code>ltl2tgba</code></h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">TGBA and BA</a></li>
+<li><a href="#sec-2">Spin output</a></li>
+<li><a href="#sec-3">Do you favor deterministic or small automata?</a></li>
+<li><a href="#generic">Deterministic automata with <code>--generic --deterministic</code></a></li>
+<li><a href="#sec-5">Deterministic automata with <code>--parity --deterministic</code></a></li>
+<li><a href="#sec-6">Translating multiple formulas for statistics</a></li>
+<li><a href="#monitors">Building Monitors</a></li>
+</ul>
+</div>
+</div>
+<p>
+This tool translates LTL or PSL formulas into different types of
+automata.
+</p>
+
+<p>
+The inner algorithm produces Transition-based Generalized Büchi
+Automata, hence the name of the tools, but <code>ltl2tgba</code> has grown and
+now offers several options to adjust the type of automaton output.
+Those options will be covered in more detail below, but here is
+a quick summary:
+</p>
+
+<ul class="org-ul">
+<li><code>--tgba</code> (the default) outputs Transition-based Generalized Büchi
+Automata
+</li>
+<li><code>--ba</code> (or <code>-B</code>) outputs state-based Büchi automata
+</li>
+<li><code>--monitor</code> (or <code>-M</code>) outputs monitors
+</li>
+<li><code>--generic --deterministic</code> (or <code>-DG</code>) will do whatever it takes to
+produce a deterministic automaton, and may output generalized Büchi,
+or parity acceptance.
+</li>
+<li><code>--parity --deterministic</code> (or <code>-DP</code>) will produce a deterministic
+automaton with parity acceptance.
+</li>
+</ul>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">TGBA and BA</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Formulas to translate may be specified using <a href="ioltl.html">common input options for
+LTL/PSL formulas</a>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba -f <span class="org-string">'Fa &amp; GFb'</span>
+</pre>
+</div>
+
+<pre class="example">
+HOA: v1
+name: "Fa &amp; GFb"
+States: 2
+Start: 0
+AP: 2 "a" "b"
+acc-name: Buchi
+Acceptance: 1 Inf(0)
+properties: trans-labels explicit-labels trans-acc complete
+properties: deterministic stutter-invariant
+--BODY--
+State: 0
+[!0] 0
+[0] 1
+State: 1
+[!1] 1
+[1] 1 {0}
+--END--
+</pre>
+
+<p>
+Actually, because <code>ltl2tgba</code> is often used with a single formula
+passed on the command line, the <code>-f</code> option can be omitted and any
+command-line parameter that is not the argument of some option will be
+assumed to be a formula to translate (this differs from <a href="ltlfilt.html"><code>ltlfilt</code></a>,
+where such parameters are assumed to be filenames).
+</p>
+
+<p>
+<code>ltl2tgba</code> honors the <a href="oaut.html">common options for selecting the output format</a>.
+The default output format, as shown above, is the <a href="hoa.html">HOA</a> format, as this
+can easily be piped to other tools.
+</p>
+
+<p>
+To convert the automaton into a picture, or into vectorial format, use
+<code>--dot</code> or <code>-d</code> to request <a href="http://www.graphviz.org/">GraphViz output</a> and process the result with
+<code>dot</code> or <code>dotty</code>.  Typically, you could get a <code>pdf</code> of this TGBA using
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba <span class="org-string">"Fa &amp; GFb"</span> -d | dot -Tpdf &gt; tgba.pdf
+</pre>
+</div>
+<p>
+The result would look like this (note that in this documentation
+we use some <a href="oaut.html#default-dot">environment variables</a> to produce a more colorful
+output by default)
+</p>
+
+<div class="figure">
+<p><img src="dotex.svg" alt="dotex.svg" />
+</p>
+</div>
+
+<p>
+Characters like ⓿, ❶, etc. denotes the acceptance sets a transition
+belongs to.  In this case, there is only one acceptance set, called
+<code>0</code>, containing a single transition.  You may have many transitions in
+the same acceptance set, and a transition may also belong to multiple
+acceptance sets.  An infinite path through this automaton is accepting
+iff it visit each acceptance set infinitely often.  Therefore, in the
+above example, any accepted path will <i>necessarily</i> leave the initial
+state after a finite amount of steps, and then it will verify the
+property <code>b</code> infinitely often.  It is also possible that an automaton
+do not use any acceptance set at all, in which any run is accepting.
+</p>
+
+<p>
+Here is a TGBA with multiple acceptance sets (we omit the call to
+<code>dot</code> to render the output of <code>ltl2tgba</code> from now on):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="dotex2">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="dotex2.svg" alt="dotex2.svg" />
+</p>
+</div>
+
+<p>
+The above TGBA has two acceptance sets: ⓿ and ❶.  The position of
+these acceptance sets ensures that atomic propositions <code>a</code> and <code>b</code> must
+be true infinitely often.
+</p>
+
+<p>
+A Büchi automaton for the previous formula can be obtained with the
+<code>-B</code> option:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="dotex2ba">ltl2tgba -B <span class="org-string">'GFa &amp; GFb'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="dotex2ba.svg" alt="dotex2ba.svg" />
+</p>
+</div>
+
+<p>
+Although accepting states in the Büchi automaton are (traditionally)
+pictured with double-lines, internally this automaton is still handled
+as a TGBA with a single acceptance set such that the transitions
+leaving the state are either all accepting, or all non-accepting.  You
+can see this underlying TGBA if you pass the <code>--dot=t</code> option (the <code>t</code>
+requests the use of transition-based acceptance as it is done
+internally):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba --dot=t -B <span class="org-string">'GFa &amp; GFb'</span>
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="dotex2ba-t.svg" alt="dotex2ba-t.svg" />
+</p>
+</div>
+
+<p>
+Using option <code>-S</code> instead of option <code>-B</code> you can obtain generalized
+Büchi automata with state-based acceptance.  Here is the same formula
+as above, for comparison.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="dotex2gba">ltl2tgba -S <span class="org-string">'GFa &amp; GFb'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="dotex2gba.svg" alt="dotex2gba.svg" />
+</p>
+</div>
+
+<p>
+Note that <code>ltl2tgba</code> is not very good at generating state-based
+generalized Büchi automata (GBA): all it does is generating a
+transition-based one internally, and then pushing acceptance sets onto
+states.  On this example, the resulting GBA produced by <code>-S</code> is larger
+than the BA produced by <code>-B</code>.
+</p>
+
+<p>
+As already discussed on the page about <a href="oaut.html">common output options</a>, various
+options controls the output format of <code>ltl2tgba</code>:
+</p>
+
+<pre class="example">
+-8, --utf8                 enable UTF-8 characters in output (ignored with
+                           --lbtt or --spin)
+    --check[=PROP]         test for the additional property PROP and output
+                           the result in the HOA format (implies -H).  PROP
+                           may be any prefix of 'all' (default),
+                           'unambiguous', 'stutter-invariant', or
+                           'strength'.
+-d, --dot[=1|a|A|b|B|c|C(COLOR)|e|f(FONT)|h|k|n|N|o|r|R|s|t|v|y|+INT|&lt;INT|#]
+                           GraphViz's format.  Add letters for (1) force
+                           numbered states, (a) show acceptance condition,
+                           (A) hide acceptance condition, (b) acceptance sets
+                           as bullets, (B) bullets except for
+                           Büchi/co-Büchi automata, (c) force circular
+                           nodes, (C) color nodes with COLOR, (d) show
+                           origins when known, (e) force elliptic nodes,
+                           (f(FONT)) use FONT, (h) horizontal layout, (k) use
+                           state labels when possible, (n) show name, (N)
+                           hide name, (o) ordered transitions, (r) rainbow
+                           colors for acceptance sets, (R) color acceptance
+                           sets by Inf/Fin, (s) with SCCs, (t) force
+                           transition-based acceptance, (v) vertical layout,
+                           (y) split universal edges by color, (+INT) add INT
+                           to all set numbers, (&lt;INT) display at most INT
+                           states, (#) show internal edge numbers
+-H, --hoaf[=1.1|i|k|l|m|s|t|v]   Output the automaton in HOA format
+                           (default).  Add letters to select (1.1) version
+                           1.1 of the format, (i) use implicit labels for
+                           complete deterministic automata, (s) prefer
+                           state-based acceptance when possible [default],
+                           (t) force transition-based acceptance, (m) mix
+                           state and transition-based acceptance, (k) use
+                           state labels when possible, (l) single-line
+                           output, (v) verbose properties
+    --lbtt[=t]             LBTT's format (add =t to force transition-based
+                           acceptance even on Büchi automata)
+    --name=FORMAT          set the name of the output automaton
+-o, --output=FORMAT        send output to a file named FORMAT instead of
+                           standard output.  The first automaton sent to a
+                           file truncates it unless FORMAT starts with '&gt;&gt;'.
+-q, --quiet                suppress all normal output
+-s, --spin[=6|c]           Spin neverclaim (implies --ba).  Add letters to
+                           select (6) Spin's 6.2.4 style, (c) comments on
+                           states
+    --stats=FORMAT, --format=FORMAT
+                           output statistics about the automaton
+</pre>
+
+<p>
+Option <code>-8</code> can be used to improve the readability of the output
+if your system can display UTF-8 correctly.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="dotex2ba8">ltl2tgba -B8 <span class="org-string">"GFa &amp; GFb"</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="dotex2ba8.svg" alt="dotex2ba8.svg" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Spin output</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Using the <code>--spin</code> or <code>-s</code> option, <code>ltl2tgba</code> will produce a Büchi automaton
+(the <code>-B</code> option is implied) as a never claim that can be fed to Spin.
+<code>ltl2tgba -s</code> is therefore a drop-in replacement for <code>spin -f</code>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba -s <span class="org-string">'GFa &amp; GFb'</span>
+</pre>
+</div>
+<pre class="example">
+never { /* G(Fa &amp; Fb) */
+accept_init:
+  if
+  :: ((a) &amp;&amp; (b)) -&gt; goto accept_init
+  :: (!(b)) -&gt; goto T0_S1
+  :: ((!(a)) &amp;&amp; (b)) -&gt; goto T0_S2
+  fi;
+T0_S1:
+  if
+  :: ((a) &amp;&amp; (b)) -&gt; goto accept_init
+  :: (!(b)) -&gt; goto T0_S1
+  :: ((!(a)) &amp;&amp; (b)) -&gt; goto T0_S2
+  fi;
+T0_S2:
+  if
+  :: (a) -&gt; goto accept_init
+  :: (!(a)) -&gt; goto T0_S2
+  fi;
+}
+</pre>
+
+<p>
+Since Spin 6 extended its syntax to support arbitrary atomic
+propositions, you may also need put the parser in <code>--lenient</code> mode to
+support these:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba -s --lenient <span class="org-string">'(a &lt; b) U (process[2]@ok)'</span>
+</pre>
+</div>
+<pre class="example">
+never { /* "a &lt; b" U "process[2]@ok" */
+T0_init:
+  if
+  :: (process[2]@ok) -&gt; goto accept_all
+  :: ((a &lt; b) &amp;&amp; (!(process[2]@ok))) -&gt; goto T0_init
+  fi;
+accept_all:
+  skip
+}
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Do you favor deterministic or small automata?</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+The translation procedure can be controled by a few switches.  A first
+set of options specifies the goal of the simplification routines:
+whenever possible, would you prefer a small automaton (<code>--small</code>) or a
+deterministic (<code>--deterministic</code>) automaton?
+</p>
+
+<pre class="example">
+-a, --any                  no preference, do not bother making it small or
+                           deterministic
+-D, --deterministic        prefer deterministic automata (combine with
+                           --generic to be sure to obtain a deterministic
+                           automaton)
+    --small                prefer small automata (default)
+</pre>
+
+<p>
+The <code>--any</code> option tells the translator that it should attempt to
+reduce or produce a deterministic result result: any automaton
+denoting the given formula is OK.  This effectively disables
+post-processings and speeds up the translation.
+</p>
+
+<p>
+With the <code>-D</code> or <code>--deterministic</code> option, the translator will
+<i>attempt</i> to produce a deterministic automaton, even if this requires
+a lot of states.  <code>ltl2tgba</code> knows how to produce the minimal
+deterministic Büchi automaton for any obligation property (this
+includes safety properties).
+</p>
+
+<p>
+With the <code>--small</code> option (the default), the translator will not
+produce a deterministic automaton when it knows how to build smaller
+automaton.
+</p>
+
+<p>
+Note that options <code>--deterministic</code> and <code>--small</code> express
+<i>preferences</i>.  They certainly do <i>not</i> guarantee that the output will
+be deterministic, or will be the smallest automaton possible.
+</p>
+
+<p>
+In particular, for properties more complex than obligations, it is
+possible that no deterministic TGBA exist, and even if it exists,
+<code>ltl2tgba</code> might not find it: so a non-deterministic automaton can be
+returned in this case.  If you absolutely want a deterministic
+automaton, <a href="#generic">read on about the <code>--generic</code> option below</a>.
+</p>
+
+
+<p>
+An example formula where the difference between <code>-D</code> and <code>--small</code> is
+flagrant is <code>Ga|Gb|Gc</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="gagbgc1">ltl2tgba <span class="org-string">'Ga|Gb|Gc'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="gagbgc1.svg" alt="gagbgc1.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="gagbgc2">ltl2tgba -D <span class="org-string">'Ga|Gb|Gc'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="gagbgc2.svg" alt="gagbgc2.svg" />
+</p>
+</div>
+
+<p>
+You can augment the number of terms in the disjunction to magnify the
+difference.  For N terms, the <code>--small</code> automaton has N+1 states,
+while the <code>--deterministic</code> automaton needs 2<sup>N</sup>-1 states.
+</p>
+
+<p>
+Add the <code>-C</code> or <code>--complete</code> option if you want to obtain a complete
+automaton, with a sink state capturing that rejected words that would
+not otherwise have a run in the output automaton.
+</p>
+
+<p>
+Add the <code>-U</code> or <code>--unambiguous</code> option if you want unambiguous
+automata to be produced.  An automaton is unambiguous if any word is
+recognized by at most one accepting run of the automaton (however a
+word can be rejected by multiple runs, so unambiguous automata can be
+non-deterministic).
+</p>
+
+<p>
+The following example is an ambiguous Büchi automaton, because the are
+two ways to accept a run that repeats continuously the configuration
+\(\bar ab\).
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ambig1">ltl2tgba -B <span class="org-string">'GFa -&gt; GFb'</span> -d
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="ambig1.svg" alt="ambig1.svg" />
+</p>
+</div>
+
+<p>
+Here is an unambiguous automaton for the same formula, in which there
+is only one run that recognizes this example word:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ambig2">ltl2tgba -B -U <span class="org-string">'GFa -&gt; GFb'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ambig2.svg" alt="ambig2.svg" />
+</p>
+</div>
+
+
+<p>
+Unlike <code>--small</code> and <code>--deterministic</code> that express preferences,
+options <code>--complete</code> and <code>--unambiguous</code> do guarantee that the output
+will be complete and unambiguous.
+</p>
+
+
+<p>
+A last parameter that can be used to tune the translation is the amount
+of pre- and post-processing performed.  These two steps can be adjusted
+via a common set of switches:
+</p>
+<pre class="example">
+--high                 all available optimizations (slow, default)
+--low                  minimal optimizations (fast)
+--medium               moderate optimizations
+</pre>
+
+<p>
+Pre-processings are rewritings done on the LTL formulas, usually to
+reduce its size, but mainly to put it in a form that will help the
+translator (for instance <code>F(a|b)</code> is easier to translate than
+<code>F(a)|F(b)</code>).  At <code>--low</code> level, only simple syntactic rewritings are
+performed.  At <code>--medium</code> level, additional simplifications based on
+syntactic implications are performed.  At <code>--high</code> level, language
+containment is used instead of syntactic implications.
+</p>
+
+<p>
+Post-processings are cleanups and simplifications of the automaton
+produced by the core translator.  The algorithms used during
+post-processing are
+</p>
+<ul class="org-ul">
+<li>SCC filtering: removing useless strongly connected components,
+and useless acceptance sets.
+</li>
+<li>direct simulation: merge states based on suffix inclusion.
+</li>
+<li>iterated simulations: merge states based on suffix inclusion,
+or prefix inclusion, in a loop.
+</li>
+<li>WDBA minimization: determinize and minimize automata representing
+obligation properties.
+</li>
+<li>degeneralization: convert a TGBA into a BA
+</li>
+<li>BA simulation (again direct or iterated)
+</li>
+</ul>
+
+<p>
+The chaining of these various algorithms depends on the selected
+combination of optimization level (<code>--low</code>, <code>--medium</code>, <code>--high</code>),
+translation intent (<code>--small</code>, <code>--deterministic</code>) and type of
+automaton desired (<code>--tgba</code>, <code>--ba</code>).
+</p>
+
+<p>
+A notable configuration is <code>--any --low</code>, which will produce a TGBA as
+fast as possible.  In this case, post-processing is disabled, and only
+syntactic rewritings are performed.  This can be used for
+satisfiability checking, although in this context even building an
+automaton is overkill (you only need an accepted run).
+</p>
+
+<p>
+Finally, it should be noted that the default optimization options
+(<code>--small --high</code>) are usually overkill.  <code>--low</code> will produce good
+automata most of the time.  Most of pattern formulas of <a href="genltl.html"><code>genltl</code></a> will
+be efficiently translated in this configuration (meaning that <code>--small
+--high</code> will not produce a better automaton).  If you are planning to
+generate automata for large family of pattern formulas, it makes sense
+to experiment with the different settings on a small version of the
+pattern, and select the lowest setting that satisfies your
+expectations.
+</p>
+</div>
+</div>
+
+<div id="outline-container-generic" class="outline-2">
+<h2 id="generic"><a id="sec-4" name="sec-4"></a>Deterministic automata with <code>--generic --deterministic</code></h2>
+<div class="outline-text-2" id="text-generic">
+
+<p>
+The <code>--generic</code> (or <code>-G</code>) option allows <code>ltl2tgba</code> to use more
+complex acceptance.  Combined with <code>--deterministic</code> (or <code>-D</code>) this
+allows the use of a determinization algorithm that produces
+automata with parity acceptance.
+</p>
+
+<p>
+For instance <code>FGa</code> is the typical formula for which not
+deterministic TGBA exists.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-fga">ltl2tgba <span class="org-string">"FGa"</span> -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-fga.svg" alt="ltl2tgba-fga.svg" />
+</p>
+</div>
+
+<p>
+But with <code>--generic</code>, <code>ltl2tgba</code> will output the following Rabin automaton:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-fga-D">ltl2tgba <span class="org-string">"FGa"</span> -G -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-fga-D.svg" alt="ltl2tgba-fga-D.svg" />
+</p>
+</div>
+
+<p>
+Note that determinization algorithm implemented actually outputs
+parity acceptance, but <code>Fin(0)&amp;Inf(1)</code> can be interpreted either as
+<code>Rabin 1</code> or <code>parity min odd 2</code>.
+</p>
+
+
+<p>
+The <a href="./man/spot-x.7.html"><code>spot-x</code></a>(7) man page lists a few <code>-x</code> options (<code>det-scc</code>,
+<code>det-simul</code>, <code>det-stutter</code>) of the determinization algorithm that are
+enabled by default, but that you may want to disable for experimental
+purpose.
+</p>
+
+<p>
+For instance the following deterministic automaton
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-det1">ltl2tgba <span class="org-string">"F(a W FGb)"</span> -G -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-det1.svg" alt="ltl2tgba-det1.svg" />
+</p>
+</div>
+
+<p>
+would be larger if SCC-based optimizations were disabled:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-det2">ltl2tgba <span class="org-string">"F(a W FGb)"</span> -x <span class="org-string">'!det-scc'</span> -G -D -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-det2.svg" alt="ltl2tgba-det2.svg" />
+</p>
+</div>
+
+<p>
+While the <code>--generic</code> option currently only builds automata with
+generalized-Büchi or parity acceptance, this is very likely to change
+in the future.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5">Deterministic automata with <code>--parity --deterministic</code></h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Using the <code>--parity</code> (or upper-case <code>-P</code>) option will force the
+acceptance condition to be of a parity type.  This has to be
+understood in the sense of the HOA format, where:
+</p>
+<ul class="org-ul">
+<li>multiple parity types are defined (<code>min odd n</code>, <code>min even n</code>, <code>max
+  odd n</code>, and <code>max even n</code> where <code>n</code> is the number of acceptance
+sets), and
+</li>
+<li>the parity acceptance is only a type of acceptance condition, i.e.,
+a formula expressed in terms of acceptance sets, and does not have
+additional constraints on these sets.  In particular it is not
+necessary the case that each transition or state belongs to exactly
+one acceptance set (this is the "colored" property, see below).
+</li>
+</ul>
+
+<p>
+Under these assumptions, Büchi acceptance is just one kind of parity
+(in HOA <code>Buchi</code> is equivalent to <code>parity max even 1</code> or <code>parity min
+even 1</code>), Rabin with one pair is also a parity acceptance (<code>Rabin 1</code>
+is equivalent to <code>parity min odd 2</code>), and Streett with one pair as
+well (<code>Streett 1</code> is equivalent to <code>parity max odd 2</code>).
+</p>
+
+<p>
+In the current implementation, using <code>ltl2tgba --parity</code> (without
+<code>--deterministic</code>) will always produce a Büchi automaton, and when
+<code>--deterministic</code> (or <code>-D</code>) is added, it will produce an deterministic
+automaton with Büchi acceptance (<code>parity min even 1</code>) or with <code>parity
+min odd n</code> acceptance, because the latter is the type of parity
+acceptance that our determinization procedure outputs.
+</p>
+
+<p>
+For instance, <code>FGa</code> gets translated into an automaton with <code>Rabin 1</code>
+acceptance (another name for <code>parity min odd 2</code>):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp1">ltl2tgba <span class="org-string">"FGa"</span> -D -P -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp1.svg" alt="ltl2tgba-dp1.svg" />
+</p>
+</div>
+
+<p>
+And <code>GFa &amp; GFb</code> gets translated into a <code>Büchi</code> automaton (another name
+for <code>parity min even 1</code>):
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp2">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -D -P -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp2.svg" alt="ltl2tgba-dp2.svg" />
+</p>
+</div>
+
+<p>
+If we really want to use the same style of parity acceptance for all outputs,
+we can specify it as an argument to the <code>--parity</code> option.  For instance
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp3">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -D -P<span class="org-string">'min odd'</span> -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp3.svg" alt="ltl2tgba-dp3.svg" />
+</p>
+</div>
+
+
+<p>
+The <code>--colored-parity</code> (or lower-case <code>-p</code>) option works similarly to
+<code>--parity</code>, but additionally requests that the automaton be colored.
+I.e., each transition (or state if state-based acceptance is
+requested) should belong to exactly one acceptance set.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp4">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -D -p -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp4.svg" alt="ltl2tgba-dp4.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp5">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -D -p<span class="org-string">'min odd'</span> -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp5.svg" alt="ltl2tgba-dp5.svg" />
+</p>
+</div>
+
+<p>
+Note that all these options can be combined with state-based
+acceptance if needed:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="ltl2tgba-dp6">ltl2tgba <span class="org-string">"GFa &amp; GFb"</span> -D -S -p<span class="org-string">'max even'</span> -d.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="ltl2tgba-dp6.svg" alt="ltl2tgba-dp6.svg" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6">Translating multiple formulas for statistics</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+If multiple formulas are given to <code>ltl2tgba</code>, the corresponding
+automata will be output one after the other.  The default output
+format HOA is designed to allow streaming automata this way to build
+processing pipelines, but Spot's automaton parser can also read a
+stream of automata in other formats.
+</p>
+
+<p>
+Another situation where passing many formulas to <code>ltl2tgba</code> is useful
+is in combination with the <code>--stats=FORMAT</code> option.  This option will
+output statistics about the translated automata instead of the
+automata themselves.  The <code>FORMAT</code> string should indicate which
+statistics should be output, and how they should be output using the
+following sequence of characters (other characters are output as-is):
+</p>
+
+<pre class="example">
+%&lt;                         the part of the line before the formula if it
+%&gt;                         the part of the line after the formula if it comes
+%%                         a single %
+%a                         number of acceptance sets
+%c, %[LETTERS]c            number of SCCs; you may filter the SCCs to count
+%d                         1 if the output is deterministic, 0 otherwise
+%e                         number of reachable edges
+%f                         the formula, in Spot's syntax
+%F                         name of the input file
+%g, %[LETTERS]g            acceptance condition (in HOA syntax); add brackets
+%h                         the automaton in HOA format on a single line (use
+                           %[opt]h to specify additional options as in
+%L                         location in the input file
+%m                         name of the automaton
+%n                         number of nondeterministic states in output
+%p                         1 if the output is complete, 0 otherwise
+%r                         wall-clock time elapsed in seconds (excluding
+%R, %[LETTERS]R            CPU time (excluding parsing), in seconds; Add
+%s                         number of reachable states
+%t                         number of reachable transitions
+%w                         one word accepted by the output automaton
+%x, %[LETTERS]x            number of atomic propositions declared in the
+</pre>
+
+<p>
+For instance we can study the size of the automata generated for the
+right-nested <code>U</code> formulas as follows:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">genltl --u-right=1..8 | ltl2tgba --stats <span class="org-string">'%s states and %e edges for "%f"'</span>
+</pre>
+</div>
+<pre class="example">
+2 states and 2 edges for "p1"
+2 states and 3 edges for "p1 U p2"
+3 states and 6 edges for "p1 U (p2 U p3)"
+4 states and 10 edges for "p1 U (p2 U (p3 U p4))"
+5 states and 15 edges for "p1 U (p2 U (p3 U (p4 U p5)))"
+6 states and 21 edges for "p1 U (p2 U (p3 U (p4 U (p5 U p6))))"
+7 states and 28 edges for "p1 U (p2 U (p3 U (p4 U (p5 U (p6 U p7)))))"
+8 states and 36 edges for "p1 U (p2 U (p3 U (p4 U (p5 U (p6 U (p7 U p8))))))"
+</pre>
+
+<p>
+Note that because no formula have been passed as argument to
+<code>ltl2tgba</code>, it defaulted to reading them from standard input.  Such a
+behaviour can be requested explicitly with <code>-F -</code> if needed (e.g., to
+read from standard input in addition to processing other formula
+supplied with <code>-f</code>).
+</p>
+
+<p>
+When computing the size of an automaton, we distinguish <i>transitions</i>
+and <i>edges</i>.  An edge between two states is labeled by a Boolean
+formula and may in fact represent several transitions labeled by
+compatible Boolean assignment.
+</p>
+
+<p>
+For instance if the atomic propositions are <code>x</code> and <code>y</code>, an edge
+labeled by the formula <code>!x</code> actually represents two transitions
+labeled respectively with <code>!x&amp;y</code> and <code>!x&amp;!y</code>.
+</p>
+
+<p>
+Two automata with the same structures (states and edges) but differing
+labels, may have a different count of transitions, e.g., if one has
+more restricted labels.
+</p>
+
+<p>
+<a href="csv.html">More examples of how to use <code>--stats</code> to create CSV
+files are on a separate page</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-monitors" class="outline-2">
+<h2 id="monitors"><a id="sec-7" name="sec-7"></a>Building Monitors</h2>
+<div class="outline-text-2" id="text-monitors">
+
+<p>
+In addition to TGBA and BA, <code>ltl2tgba</code> can output <i>monitor</i> using the
+<code>-M</code> option.  These are finite automata that accept all prefixes of a
+formula.  The idea is that you can use these automata to monitor a
+system as it is running, and report a violation as soon as no
+compatible outgoing transition exist.
+</p>
+
+<p>
+<code>ltl2tgba -M</code> may output non-deterministic monitors while <code>ltl2tgba
+-MD</code> (short for <code>--monitor --deterministic</code>) will output the minimal
+deterministic monitor for the given formula.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="monitor1">ltl2tgba -M <span class="org-string">'(Xa &amp; Fb) | Gc'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="monitor1.svg" alt="monitor1.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="monitor2">ltl2tgba -MD <span class="org-string">'(Xa &amp; Fb) | Gc'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="monitor2.svg" alt="monitor2.svg" />
+</p>
+</div>
+
+<p>
+Because they accept all finite executions that could be extended to
+match the formula, monitor cannot be used to check for eventualities
+such as <code>F(a)</code>: indeed, any finite execution can be extended to match
+<code>F(a)</code>.
+</p>
+
+<p>
+For more discussion and examples about monitor, see also our <a href="tut11.html">separate
+page showing how to build them in Python and C++</a>.
+</p>
+
+<p>
+Because Monitors accept every recognized run (in other words, they
+only reject words that are not recognized), it makes little sense to
+use option <code>-C</code> to request <i>complete</i> monitors.  If uou combine <code>-C</code>
+with <code>-M</code>, the result will output as a Büchi automaton if (and only
+if) a sink state had to be added.  For instance, here is the
+"complete" version of the previous monitor.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="monitor3">ltl2tgba -C -M -D <span class="org-string">'(Xa &amp; Fb) | Gc'</span> -d
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="monitor3.svg" alt="monitor3.svg" />
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

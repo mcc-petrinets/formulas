@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Translating an LTL formula into a never claim</title>
+<!-- 2018-01-20 Sat 14:20 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Code example for translating formulas in Spot"
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="tut.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Translating an LTL formula into a never claim</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Shell</a></li>
+<li><a href="#sec-2">Python</a></li>
+<li><a href="#sec-3">C++</a></li>
+<li><a href="#sec-4">Additional comments</a></li>
+</ul>
+</div>
+</div>
+<p>
+Here is how to translate an LTL (or PSL) formula into a never claim.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Shell</h2>
+<div class="outline-text-2" id="text-1">
+<div class="org-src-container">
+
+<pre class="src src-sh">ltl2tgba --spin <span class="org-string">'GFa -&gt; GFb'</span>
+</pre>
+</div>
+
+<pre class="example">
+never { /* F(GFb | G!a) */
+T0_init:
+  if
+  :: (true) -&gt; goto T0_init
+  :: (b) -&gt; goto accept_S1
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+accept_S1:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+accept_S2:
+  if
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+T0_S3:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+}
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Python</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The <code>formula</code> function returns a formula object (or raises a
+parse-error exception).  Formula objects have a <code>translate()</code> method
+that returns an automaton, and the automata objects have a <code>to_str</code>
+method that can output in one of the supported syntaxes.
+</p>
+
+<p>
+So the translation is actually a one-liner in Python:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span class="org-keyword">import</span> spot
+<span class="org-keyword">print</span>(spot.formula(<span class="org-string">'GFa -&gt; GFb'</span>).translate(<span class="org-string">'BA'</span>).to_str(<span class="org-string">'spin'</span>))
+</pre>
+</div>
+
+<pre class="example">
+never {
+T0_init:
+  if
+  :: (true) -&gt; goto T0_init
+  :: (b) -&gt; goto accept_S1
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+accept_S1:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+accept_S2:
+  if
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+T0_S3:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+}
+</pre>
+
+<p>
+The above line can actually be made a bit shorter, because
+<code>translate()</code> can also be used as a function (as opposed to a method)
+that takes a formula (possibly as a string) as first argument:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span class="org-keyword">import</span> spot
+<span class="org-keyword">print</span>(spot.translate(<span class="org-string">'GFa -&gt; GFb'</span>, <span class="org-string">'BA'</span>).to_str(<span class="org-string">'spin'</span>))
+</pre>
+</div>
+
+<pre class="example">
+never {
+T0_init:
+  if
+  :: (true) -&gt; goto T0_init
+  :: (b) -&gt; goto accept_S1
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+accept_S1:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+accept_S2:
+  if
+  :: (!(a)) -&gt; goto accept_S2
+  fi;
+T0_S3:
+  if
+  :: (b) -&gt; goto accept_S1
+  :: (!(b)) -&gt; goto T0_S3
+  fi;
+}
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">C++</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+All the translation pipeline (this include simplifying the formula,
+translating the simplified formula into an automaton, and simplifying
+the resulting automaton) is handled by the <code>spot::translator</code> class.
+An instance of this class can configured by calling <code>set_type()</code> to
+chose the type of automaton to output, <code>set_level()</code> to set the level
+of optimization (it's high by default), and <code>set_pref()</code> to set
+various preferences (like small or deterministic) or characteristic
+(complete, unambiguous) for the resulting automaton. Finally, the
+output as a never claim is done via the <code>print_never_claim</code> function.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-C++"><span class="org-preprocessor">#include</span> <span class="org-string">&lt;iostream&gt;</span>
+<span class="org-preprocessor">#include</span> <span class="org-string">&lt;spot/tl/parse.hh&gt;</span>
+<span class="org-preprocessor">#include</span> <span class="org-string">&lt;spot/twaalgos/translate.hh&gt;</span>
+<span class="org-preprocessor">#include</span> <span class="org-string">&lt;spot/twaalgos/neverclaim.hh&gt;</span>
+
+<span class="org-type">int</span> <span class="org-function-name">main</span>()
+{
+  <span class="org-constant">spot</span>::<span class="org-type">parsed_formula</span> <span class="org-variable-name">pf</span> = <span class="org-constant">spot</span>::parse_infix_psl(<span class="org-string">"[]&lt;&gt;p0 || &lt;&gt;[]p1"</span>);
+  <span class="org-keyword">if</span> (pf.format_errors(<span class="org-constant">std</span>::cerr))
+    <span class="org-keyword">return</span> 1;
+  <span class="org-constant">spot</span>::<span class="org-type">translator</span> <span class="org-variable-name">trans</span>;
+  trans.set_type(<span class="org-constant">spot</span>::<span class="org-constant">postprocessor</span>::BA);
+  <span class="org-constant">spot</span>::<span class="org-type">twa_graph_ptr</span> <span class="org-variable-name">aut</span> = trans.run(pf.f);
+  print_never_claim(<span class="org-constant">std</span>::cout, aut) &lt;&lt; <span class="org-string">'\n'</span>;
+  <span class="org-keyword">return</span> 0;
+}
+</pre>
+</div>
+
+<pre class="example">
+never {
+T0_init:
+  if
+  :: (true) -&gt; goto T0_init
+  :: (p0) -&gt; goto accept_S1
+  :: (p1) -&gt; goto accept_S2
+  fi;
+accept_S1:
+  if
+  :: (p0) -&gt; goto accept_S1
+  :: (!(p0)) -&gt; goto T0_S3
+  fi;
+accept_S2:
+  if
+  :: (p1) -&gt; goto accept_S2
+  fi;
+T0_S3:
+  if
+  :: (p0) -&gt; goto accept_S1
+  :: (!(p0)) -&gt; goto T0_S3
+  fi;
+}
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">Additional comments</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+The Python version of <code>translate()</code> is documented as follows:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span class="org-keyword">import</span> spot
+<span class="org-builtin">help</span>(spot.translate)
+</pre>
+</div>
+
+<pre class="example">
+Help on function translate in module spot:
+
+translate(formula, *args, dict=&lt;spot.impl.bdd_dict; proxy of &lt;Swig Object of type 'std::shared_ptr&lt; spot::bdd_dict &gt; *' at 0x7f8e2f65ed20&gt; &gt;)
+    Translate a formula into an automaton.
+    
+    Keep in mind that 'Deterministic' expresses just a preference that
+    may not be satisfied.
+    
+    The optional arguments should be strings among the following:
+    - at most one in 'TGBA', 'BA', or 'Monitor', 'generic',
+      'parity', 'parity min odd', 'parity min even',
+      'parity max odd', 'parity max even' (type of automaton to
+      build), 'coBuchi'
+    - at most one in 'Small', 'Deterministic', 'Any'
+      (preferred characteristics of the produced automaton)
+    - at most one in 'Low', 'Medium', 'High'
+      (optimization level)
+    - any combination of 'Complete', 'Unambiguous',
+      'StateBasedAcceptance' (or 'SBAcc' for short), and
+      'Colored' (only for parity acceptance)
+    
+    The default corresponds to 'tgba', 'small' and 'high'.
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Testing the equivalence of two formulas</title>
+<!-- 2018-01-20 Sat 14:20 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Code example for testing the equivalence of two LTL or PSL formulas"
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="tut.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Testing the equivalence of two formulas</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Shell</a></li>
+<li><a href="#sec-2">Python</a></li>
+<li><a href="#sec-3">C++</a></li>
+</ul>
+</div>
+</div>
+<p>
+This page shows how to test whether two LTL/PSL formulas are
+equivalent, i.e., if they denote the same languages.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Shell</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Using a <code>ltlfilt</code> you can use <code>--equivalent-to=f</code> to filter a list of
+LTL formula and retain only those equivalent to <code>f</code>.  So this gives an easy
+way to test the equivalence of two formulas:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -f <span class="org-string">'(a U b) U a'</span> --equivalent-to <span class="org-string">'b U a'</span>
+</pre>
+</div>
+<pre class="example">
+(a U b) U a
+</pre>
+
+<p>
+Since the input formula was output, it means it is equivalent to <code>b U
+a</code>.  You may want to add <code>-c</code> to count the number of formula output if
+you prefer a 1/0 answer:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">ltlfilt -c -f <span class="org-string">'(a U b) U a'</span> --equivalent-to <span class="org-string">'b U a'</span>
+</pre>
+</div>
+<pre class="example">
+1
+</pre>
+
+<p>
+Or use <code>-q</code> if you only care about the exit status of <code>ltlfilt</code>: the
+exist status is <code>0</code> if some formula matched, and <code>1</code> if no formula
+matched.  (The effect of these <code>-c</code> and <code>-q</code> options should be
+familiar to <code>grep</code> users.)
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Python</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+In Python, we can test this via a <code>language_containment_checker</code>
+object:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span class="org-keyword">import</span> spot
+<span class="org-variable-name">f</span> = spot.formula(<span class="org-string">"(a U b) U a"</span>)
+<span class="org-variable-name">g</span> = spot.formula(<span class="org-string">"b U a"</span>)
+<span class="org-variable-name">c</span> = spot.language_containment_checker()
+<span class="org-keyword">print</span>(<span class="org-string">"Equivalent"</span> <span class="org-keyword">if</span> c.equal(f, g) <span class="org-keyword">else</span> <span class="org-string">"Not equivalent"</span>)
+</pre>
+</div>
+<pre class="example">
+Equivalent
+</pre>
+
+<p>
+The equivalence check is done by converting the formulas \(f\) and \(g\)
+and their negation into four automata \(A_f\), \(A_{\lnot f}\), \(A_g\), and
+\(A_{\lnot g}\), and then making sure that \(A_f\otimes A_{\lnot g}\) and
+\(A_g\otimes A_{\lnot f}\) are empty.
+</p>
+
+<p>
+We could also write this check by doing <a href="tut10.html">the translation</a> and emptiness
+check ourselves.  For instance:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python"><span class="org-keyword">import</span> spot
+
+<span class="org-keyword">def</span> <span class="org-function-name">implies</span>(f, g):
+    <span class="org-variable-name">a_f</span> = f.translate()
+    <span class="org-variable-name">a_ng</span> = spot.formula_Not(g).translate()
+    <span class="org-keyword">return</span> spot.product(a_f, a_ng).is_empty()
+
+<span class="org-keyword">def</span> <span class="org-function-name">equiv</span>(f, g):
+    <span class="org-keyword">return</span> implies(f, g) <span class="org-keyword">and</span> implies(g, f)
+
+<span class="org-variable-name">f</span> = spot.formula(<span class="org-string">"(a U b) U a"</span>)
+<span class="org-variable-name">g</span> = spot.formula(<span class="org-string">"b U a"</span>)
+<span class="org-keyword">print</span>(<span class="org-string">"Equivalent"</span> <span class="org-keyword">if</span> equiv(f, g) <span class="org-keyword">else</span> <span class="org-string">"Not equivalent"</span>)
+</pre>
+</div>
+<pre class="example">
+Equivalent
+</pre>
+
+<p>
+The <code>language_containment_checker</code> object essentially performs the
+same work, but it also implements a cache to avoid translating the
+same formulas multiple times when it is used to test multiple
+equivalences.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">C++</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+Here is a C++ translation of the first Python example.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-C++"><span class="org-preprocessor">#include</span> <span class="org-string">&lt;iostream&gt;</span>
+<span class="org-preprocessor">#include</span> <span class="org-string">&lt;spot/tl/parse.hh&gt;</span>
+<span class="org-preprocessor">#include</span> <span class="org-string">&lt;spot/tl/contain.hh&gt;</span>
+
+<span class="org-type">int</span> <span class="org-function-name">main</span>()
+{
+  <span class="org-constant">spot</span>::<span class="org-type">formula</span> <span class="org-variable-name">f</span> = <span class="org-constant">spot</span>::parse_formula(<span class="org-string">"(a U b) U a"</span>);
+  <span class="org-constant">spot</span>::<span class="org-type">formula</span> <span class="org-variable-name">g</span> = <span class="org-constant">spot</span>::parse_formula(<span class="org-string">"b U a"</span>);
+  <span class="org-constant">spot</span>::<span class="org-type">language_containment_checker</span> <span class="org-variable-name">c</span>;
+  <span class="org-constant">std</span>::cout &lt;&lt; (c.equal(f, g) ? <span class="org-string">"Equivalent\n"</span> : <span class="org-string">"Not equivalent\n"</span>);
+}
+</pre>
+</div>
+
+<pre class="example">
+Equivalent
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

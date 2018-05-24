@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Spot: a platform for LTL and ω-automata manipulation</title>
+<!-- 2018-01-20 Sat 14:20 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Spot is a library and tool suite for LTL and ω-automata"
+ />
+<meta  name="keywords" content="Spot,C++14,library,platform,framework,tool-suite,LTL,PSL,omega-automata" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<style>#org-div-home-and-up { display: none; }</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href=""> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Spot: a platform for LTL and ω-automata manipulation</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Latest version</a></li>
+<li><a href="#sec-2">Documentation</a></li>
+<li><a href="#sec-3">Try Spot On-line</a></li>
+<li><a href="#sec-4">License</a></li>
+<li><a href="#sec-5">Staying in touch</a></li>
+<li><a href="#sec-6">Citing</a></li>
+</ul>
+</div>
+</div>
+<p>
+Spot is a C++14 library for LTL, ω-automata manipulation and model
+checking.  It has the following notable features:
+</p>
+
+<ul class="org-ul">
+<li>Support for <a href="concepts.html#ltl">LTL</a> (several syntaxes supported) and
+<a href="concepts.html#psl">the linear fragment of PSL</a>.
+</li>
+<li>Support for ω-automata with <a href="concepts.html#acceptance-condition">arbitrary acceptance condition</a>.
+</li>
+<li>Support for <a href="concepts.html#trans-acc">transition-based acceptance</a> (state-based acceptance is
+supported by a reduction to transition-based acceptance).
+</li>
+<li>The automaton parser can read a stream of automata written in any of
+four syntaxes (<a href="hoa.html">HOA</a>, <a href="http://spinroot.com/spin/Man/never.html">never claims</a>, <a href="http://www.tcs.hut.fi/Software/lbtt/doc/html/Format-for-automata.html">LBTT</a>, <a href="http://www.ltl2dstar.de/docs/ltl2dstar.html">DSTAR</a>).
+</li>
+<li>Several algorithms for formula manipulation including: simplifying
+formulas, testing implication or equivalence, testing
+stutter-invariance, removing some operators by rewriting, translation
+to automata, testing membership to the <a href="hierarchy.html">temporal hierarchy of Manna &amp; Pnueli</a>&#x2026;
+</li>
+<li>Several algorithms for automata manipulation including: product,
+emptiness checks, simulation-based reductions, minimization of
+weak-DBA, removal of useless SCCs, acceptance-condition
+transformations, determinization, <a href="satmin.html">SAT-based minimization of
+deterministic automata</a>, etc.
+</li>
+<li>In addition to the C++ interface, most of its algorithms are usable
+via <a href="tools.html">command-line tools</a>, and via <a href="tut.html">Python bindings</a>.
+</li>
+<li>One command-line tool, called <a href="ltlcross.html"><code>ltlcross</code></a>, is a rewrite of <a href="http://www.tcs.hut.fi/Software/lbtt/">LBTT</a>, but
+with support for PSL and automata with arbitrary acceptance
+conditions.  It can be used to test tools that translate LTL into
+ω-automata, or benchmark them.
+</li>
+</ul>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Latest version</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The latest version is <b>2.5</b> and was released on
+<b>2018-01-20</b>.  Please see the <a href="install.html">download and installation instructions</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Documentation</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li><a href="concepts.html">Basic concepts</a>.
+</li>
+<li><a href="tools.html">Command-line tools</a>.
+</li>
+<li><a href="tut.html">Code examples</a>.
+</li>
+<li><a href="http://spot.lrde.epita.fr/doxygen/">Doxygen documentation</a>, generated automatically from the source code.
+</li>
+<li><a href="https://spot.lrde.epita.fr/tl.pdf">Definition of the temporal operators supported by Spot</a>.
+</li>
+<li><a href="upgrade2.html">Help for upgrading existing code written for Spot 1.2.x to Spot 2</a>.
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Try Spot On-line</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><a href="http://spot.lrde.epita.fr/trans.html">Our on-line translator</a> provides a convenient way to translate LTL or
+PSL formulas into automata.
+</li>
+<li><a href="http://spot-sandbox.lrde.epita.fr/">spot-sandbox</a> is a Jupyter notebook with a complete installation of
+Spot that allows you to try the <a href="tools.html">command-line tools</a> (using a shell
+interface) as well as the Python bindings (in an IPython notebook).
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">License</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+Spot is distributed under a <a href="http://www.gnu.org/licenses/gpl-3.0.html">GNU GPL v3 license</a>.
+</p>
+
+<p>
+A consequence is that if you distribute a tool built using Spot, you
+<b>must</b> make the source code of that tool available as well, under a
+compatible license.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5">Staying in touch</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+<code>spot-announce@lrde.epita.fr</code> is an extremely low-traffic and
+read-only mailing list for release announcements.  If you want to stay
+informed about future releases of Spot, we invite you to <a href="https://lists.lrde.epita.fr/listinfo/spot-announce">subscribe</a>.
+</p>
+
+<p>
+<a href="mailto:spot@lrde.epita.fr"><code>spot@lrde.epita.fr</code></a> is a list for general discussions and questions
+about Spot. <a href="https://lists.lrde.epita.fr/listinfo/spot">Subscribe here</a> if you want to join, but feel free to send
+in any question (in English) or bug report without subscribing.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6">Citing</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+Our <a href="citing.html">citing page</a> has a list of papers you could cite if you need to
+reference Spot in an academic publication.
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

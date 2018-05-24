@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title><code>randaut</code></title>
+<!-- 2018-01-20 Sat 14:21 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Spot command-line tool for generating random ω-automata."
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+<script type="text/javascript" src="http://orgmode.org/mathjax/MathJax.js"></script>
+<script type="text/javascript">
+<!--/*--><![CDATA[/*><!--*/
+    MathJax.Hub.Config({
+        // Only one of the two following lines, depending on user settings
+        // First allows browser-native MathML display, second forces HTML/CSS
+        //  config: ["MMLorHTML.js"], jax: ["input/TeX"],
+            jax: ["input/TeX", "output/HTML-CSS"],
+        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js",
+                     "TeX/noUndefined.js"],
+        tex2jax: {
+            inlineMath: [ ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"], ["\\begin{displaymath}","\\end{displaymath}"] ],
+            skipTags: ["script","noscript","style","textarea","pre","code"],
+            ignoreClass: "tex2jax_ignore",
+            processEscapes: false,
+            processEnvironments: true,
+            preview: "TeX"
+        },
+        showProcessingMessages: true,
+        displayAlign: "center",
+        displayIndent: "2em",
+
+        "HTML-CSS": {
+             scale: 100,
+             availableFonts: ["STIX","TeX"],
+             preferredFont: "TeX",
+             webFont: "TeX",
+             imageFont: "TeX",
+             showMathMenu: true,
+        },
+        MMLorHTML: {
+             prefer: {
+                 MSIE:    "MML",
+                 Firefox: "MML",
+                 Opera:   "HTML",
+                 other:   "HTML"
+             }
+        }
+    });
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="tools.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title"><code>randaut</code></h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">States and density</a></li>
+<li><a href="#sec-2">Acceptance condition</a></li>
+<li><a href="#sec-3">Determinism</a></li>
+<li><a href="#sec-4">Output formats</a></li>
+<li><a href="#sec-5">Generating a stream of automata</a></li>
+</ul>
+</div>
+</div>
+<p>
+The <code>randaut</code> tool generates random (connected) automata.
+</p>
+
+<p>
+By default, it will generate a random automaton with 10 states, no
+acceptance sets, and using a set of atomic propositions you have to
+supply.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut1">randaut a b --dot
+</pre>
+</div>
+
+<div class="figure">
+<p><img src="randaut1.svg" alt="randaut1.svg" />
+</p>
+</div>
+
+<p>
+As for <a href="randltl.html"><code>randltl</code></a>, you can supply a number of atomic propositions
+instead of giving a list of atomic propositions.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">States and density</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+The numbers of states can be controlled using the <code>-Q</code> option.  This
+option will accept a range as argument, so for instance <code>-Q3..6</code> will
+generate an automaton with 3 to 6 states.
+</p>
+
+<p>
+The number of edges can be controlled using the <code>-e</code> (or
+<code>--density</code>) option.  The argument should be a number between 0 and 1.
+In an automaton with \(Q\) states and density \(e\), the degree of each
+state will follow a normal distribution with mean \(1+(Q-1)d\) and
+variance \((Q-1)e(1-e)\).
+</p>
+
+<p>
+In particular <code>-e0</code> will cause all states to have 1 successors, and
+<code>-e1</code> will cause all states to be interconnected.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut2">randaut -Q3 -e0 2 --dot
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut2.svg" alt="randaut2.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut3">randaut -Q3 -e1 2 --dot
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut3.svg" alt="randaut3.svg" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Acceptance condition</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+The generation of the acceptance sets abn is controlled with the following four parameters:
+</p>
+
+<ul class="org-ul">
+<li><code>-A ACCEPTANCE</code> (or <code>--acceptance=ACCEPTANCE</code>) controls both the acceptance condition,
+and the number of associated acceptance sets.  The <code>ACCEPTANCE</code> argument is documented
+in <code>--help</code> as follows:
+</li>
+</ul>
+<pre class="example">
+RANGE may have one of the following forms: 'INT', 'INT..INT', or '..INT'.
+In the latter case, the missing number is assumed to be 1.
+
+ACCEPTANCE may be either a RANGE (in which case generalized Büchi is
+assumed), or an arbitrary acceptance formula such as 'Fin(0)|Inf(1)&amp;Fin(2)' in
+the same syntax as in the HOA format, or one of the following patterns:
+  none
+  all
+  Buchi
+  co-Buchi
+  generalized-Buchi RANGE
+  generalized-co-Buchi RANGE
+  Rabin RANGE
+  Streett RANGE
+  generalized-Rabin INT RANGE RANGE ... RANGE
+  parity (min|max|rand) (odd|even|rand) RANGE
+  random RANGE
+  random RANGE PROBABILITY
+The random acceptance condition uses each set only once, unless a probability
+(to reuse the set again every time it is used) is given.
+</pre>
+
+<p>
+When a range of the form \(i..j\) is used, the actual value is taken as randomly
+between \(i\) and \(j\) (included).
+</p>
+
+<ul class="org-ul">
+<li><code>-a</code> (or <code>--acc-probability</code>) controls the probability that any
+transition belong to a given acceptance set.
+</li>
+<li><code>-S</code> (or <code>--state-based-acceptance</code>) requests that the automaton
+use state-based acceptance.  In this case, <code>-a</code> is the probability
+that a <i>state</i> belong to the acceptance set.  (Because Spot only
+deals with transition-based acceptance internally, this options
+force all transitions leaving a state to belong to the same
+acceptance sets.  But if the output format allows state-based
+acceptance, it will be used.)
+</li>
+<li><code>--colored</code> requests that each transition (of state if combined with <code>-S</code>)
+in the generated automaton should belong to exactly one set (in that
+case <code>-a</code> is ignored, and <code>-A</code> must be used to specify an acceptance
+condition with at least one set).
+</li>
+</ul>
+
+<p>
+In addition, <code>-B</code> (or <code>--ba</code>) is a shorthand for <code>-A1 -S</code>,
+ans <code>-s</code> (or <code>--spin</code>) implies <code>-B</code>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut4">randaut -Q3 -e0.5 -A3 -a0.5 2 --dot
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut4.svg" alt="randaut4.svg" />
+</p>
+</div>
+
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut5">randaut -Q3 -e0.4 -B -a0.7 2 --dot
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut5.svg" alt="randaut5.svg" />
+</p>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut5b">randaut -Q6 -e0.4 -S -a.2 -A <span class="org-string">'Streett 1..3'</span> 2 --dot=.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut5b.svg" alt="randaut5b.svg" />
+</p>
+</div>
+
+<p>
+For generating random parity automata you should use the option
+<code>--colored</code> to make sure each transition (or state in the following
+example) belong to exactly one acceptance set.  Note that you can
+specify a precise parity acceptance such as <code>parity min even 3</code>, or
+give <code>randaut</code> some freedom, as in this example.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut5c">randaut -Q10 -S --colored -A <span class="org-string">'parity rand rand 3..4'</span> 2 --dot=.a
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut5c.svg" alt="randaut5c.svg" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Determinism</h2>
+<div class="outline-text-2" id="text-3">
+<p>
+The output can only contain a single edge between two given states.
+By default, the label of this edge is a random assignment of all
+atomic propositions.  Two edges leaving the same state may therefore
+have the same label.
+</p>
+
+<p>
+If the <code>-D</code> (or <code>--deterministic</code>) option is supplied, the labels
+are generated differently: once the degree \(m\) of a state has been
+decided, the algorithm will compute a set of \(m\) disjoint
+Boolean formulas over the given atomic propositions, such that the
+sum of all these formulas is \(\top\).  The resulting automaton is
+therefore deterministic and complete.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut6">randaut -D -Q3 -e0.6 -A2 -a0.5 2 --dot
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut6.svg" alt="randaut6.svg" />
+</p>
+</div>
+
+
+<p>
+Note that in a deterministic automaton with \(a\) atomic propositions,
+it is not possible to have states with more than \(2^a\) successors.  If
+the combination of <code>-e</code> and <code>-Q</code> allows the situation where a state
+can have more than \(2^a\) successors, the degree will be clipped to
+\(2^a\).  When working with random deterministic automata over \(a\)
+atomic propositions, we suggest you always request more than \(2^a\)
+states.
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">Output formats</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+The output format can be controlled using <a href="oaut.html">the common output options</a>
+like <code>--hoaf</code>, <code>--dot=</code>, <code>--lbtt</code>, and <code>--spin</code>.  Note that <code>--spin</code>
+automatically implies <code>--ba</code>.
+</p>
+
+<p>
+Automata are send to standard output by default, by you can use <code>-o</code>
+to give a filename, or even a pattern for filenames.  For instance the
+following generates 20 automatas, but store them in different files
+according to the acceptance condition.  The format <code>%g</code> represent the
+formula for the acceptance condition and would not make a nice
+filename, but <code>%[s]g</code> is a short name for that acceptance condition
+(its is replaced by "other" if Spot does not know better).
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh">randaut -n20 -Q10 -A <span class="org-string">'random 3'</span> 2 -o <span class="org-string">'randaut-%[s]g.hoa'</span>
+wc -l randaut-*.hoa
+</pre>
+</div>
+
+<pre class="example">
+ 53 randaut-Fin-less.hoa
+222 randaut-Rabin-like.hoa
+380 randaut-Streett-like.hoa
+100 randaut-generalized-Buchi.hoa
+196 randaut-other.hoa
+951 total
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5">Generating a stream of automata</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Use option <code>-n</code> to specify a number of automata to build.  A negative
+value will cause an infinite number of automata to be produced.  This
+generation of multiple automata is useful when piped to another tool
+that can process automata in batches.
+</p>
+
+<p>
+Here is an example were we use <a href="autfilt.html"><code>autfilt</code></a> to scan an infinite stream
+(<code>-n -1</code>) of random parity automata for the first automaton (<code>-n 1</code>)
+that have exactly 5 SCCs of particular natures: we want 1 trivial SCC
+(i.e. an SCC with no cycle), 1 rejecting SCC (an SCC without any
+accepting SCCs), 2 inherently weak SCCs (SCCs contains only rejecting
+cycles) among which one should be weak (all transitions should belong
+to the same sets).  This leaves us with one extra SCC that should
+necessarily mix accepting and rejecting cycles.
+</p>
+
+<p>
+(Note: the '<code>.</code>' argument passed to <code>--dot</code> below hides default
+options discussed <a href="oaut.html#default-dot">on another page</a>, while '<code>a</code>' causes the acceptance
+condition to be displayed and'<code>s</code>' shows SCCs.)
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-sh" id="randaut7">randaut -n -1 --colored -A<span class="org-string">'parity min odd 4'</span> a b |
+autfilt --sccs=5 --trivial-sccs=1 --rejecting-sccs=1 <span class="org-sh-escaped-newline">\</span>
+        --inherently-weak-sccs=2 --weak-sccs=1 -n 1 --dot=.as
+</pre>
+</div>
+
+
+<div class="figure">
+<p><img src="randaut7.svg" alt="randaut7.svg" />
+</p>
+</div>
+
+<p>
+You should be able to find each of the expected type of SCCs in the above picture.
+The green rectangles mark the three SCCs that contain some accepting cycles.
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

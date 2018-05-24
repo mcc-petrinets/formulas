@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Code Examples</title>
+<!-- 2018-01-20 Sat 14:21 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="root" />
+<meta  name="description" content="Directory of code examples for using Spot in C++14, Python, and shell."
+ />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="spot.css" />
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="org-div-home-and-up">
+ <a accesskey="h" href="index.html"> UP </a>
+ |
+ <a accesskey="H" href="index.html"> HOME </a>
+</div><div id="content">
+<h1 class="title">Code Examples</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">Examples with Shell, Python, and C++</a></li>
+<li><a href="#sec-2">Examples in Python and C++</a></li>
+<li><a href="#sec-3">Examples in C++ only</a></li>
+<li><a href="#sec-4">Examples in Python only</a></li>
+</ul>
+</div>
+</div>
+<p>
+This section contains code examples for using Spot.  This is a work in
+progress.  Feel free to <a href="mailto:spot@lrde.epita.fr">send</a> suggestions of small tasks you would like
+to see illustrated here.
+</p>
+
+<p>
+If you have difficulties compiling the C++ examples, check out <a href="compile.html">these
+instructions</a>.
+</p>
+
+<p>
+Reading the <a href="concepts.html">concepts page</a> might help if you are not familiar with some
+of the objects manipulated here.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">Examples with Shell, Python, and C++</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+All the following pages show how to perform the same task using the
+three interfaces supported by Spot: shell commands, Python, or C++.
+</p>
+
+<ul class="org-ul">
+<li><a href="tut01.html">Parsing and Printing LTL Formulas</a>
+</li>
+<li><a href="tut02.html">Relabeling Formulas</a>
+</li>
+<li><a href="tut04.html">Testing the equivalence of two LTL formulas</a>
+</li>
+<li><a href="tut10.html">Translating an LTL formula into a never claim</a>
+</li>
+<li><a href="tut11.html">Translating an LTL formula into a monitor</a>
+</li>
+<li><a href="tut20.html">Converting a never claim into HOA</a>
+</li>
+<li><a href="tut30.html">Converting Rabin (or Other) to Büchi, and simplifying it</a>
+</li>
+<li><a href="tut31.html">Removing alternation</a>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2">Examples in Python and C++</h2>
+<div class="outline-text-2" id="text-2">
+<ul class="org-ul">
+<li><a href="tut03.html">Constructing and transforming formulas</a>
+</li>
+<li><a href="tut21.html">Custom print of an automaton</a>
+</li>
+<li><a href="tut22.html">Creating an automaton by adding states and transitions</a>
+</li>
+<li><a href="tut23.html">Creating an alternating automaton by adding states and transitions</a>
+</li>
+<li><a href="tut24.html">Iterating over alternating automata</a>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3">Examples in C++ only</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li><a href="tut50.html">Explicit vs. on-the-fly: two interfaces for exploring automata</a>
+</li>
+<li><a href="tut51.html">Implementing an on-the-fly Kripke structure</a>
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4">Examples in Python only</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+In directory <code>python/tests</code>, the <a href="install.html">Spot tarball</a> contains a small
+collection of IPython notebooks.  As the name of the directory implies,
+these are part of the test suite for the Python bindings, however they
+can be interesting to look at if you want to see more code examples.
+</p>
+
+<p>
+For convenience, the following links offer static HTML renderings of
+these notebooks, but we strongly suggest interactively evaluating the
+real notebooks instead.
+</p>
+
+<ul class="org-ul">
+<li><a href="https://spot.lrde.epita.fr/ipynb/formulas.html"><code>formulas.ipynb</code></a> covers the basics of LTL/PSL formula parsing and
+printing, with some light operations
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/automata.html"><code>automata.ipynb</code></a> covers translation from formulas to automata,
+automata printing, and some lights transformations
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/automata-io.html"><code>automata-io.ipynb</code></a> shows how to save and read automata from files
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/randaut.html"><code>randaut.ipynb</code></a> shows a simple case where the <a href="randaut.html"><code>randaut</code></a> commands
+generated random automata, which are displayed in a table before and
+after acceptance simplification
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/accparse.html"><code>accparse.ipynb</code></a> exercises the acceptance condition parser
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/acc_cond.html"><code>acc_cond.ipynb</code></a> documents the interface for manipulating acceptance
+conditions
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/parity.html"><code>parity.ipynb</code></a> documents algorithms for manipulating parity automata
+in Python
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/product.html"><code>product.ipynb</code></a> shows how to re-implement the product of two automata
+in Python
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/randltl.html"><code>randltl.ipynb</code></a> demonstrates a Python-version of <a href="randltl.html"><code>randltl</code></a>
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/gen.html"><code>gen.ipynb</code></a> show how to generate families of LTL formulas (as done in <a href="genltl.html"><code>genltl</code></a>) or automata (<a href="genaut.html"><code>genaut</code></a>)
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/decompose.html"><code>decompose.ipynb</code></a> illustrates the <code>decompose_strength()</code>, <code>decompose_acc_scc()</code> and <code>decompose_scc()</code> functions
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/testingaut.html"><code>testingaut.ipynb</code></a> shows the steps necessary to build a testing
+automaton
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/ltsmin-dve.html"><code>ltsmin-dve.ipynb</code></a> loading a DiVinE model using the LTSmin interface.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/ltsmin-pml.html"><code>ltsmin-pml.ipynb</code></a> loading a Promela model using the LTSmin interface.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/word.html"><code>word.ipynb</code></a> example for the <code>twa_run</code> and <code>twa_word</code> classes.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/highlighting.html"><code>highlighting.ipynb</code></a> shows how to highlight states or edges in
+automata.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/atva16-fig2a.html"><code>atva16-fig2a.ipynb</code></a> first example from our <a href="https://www.lrde.epita.fr/~adl/dl/adl/duret.16.atva2.pdf">ATVA'16 tool paper</a>.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/atva16-fig2b.html"><code>atva16-fig2b.ipynb</code></a> second example from our <a href="https://www.lrde.epita.fr/~adl/dl/adl/duret.16.atva2.pdf">ATVA'16 tool paper</a>.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/alternation.html"><code>alternation.ipynb</code></a> examples of alternating automata.
+</li>
+<li><a href="https://spot.lrde.epita.fr/ipynb/stutter-inv.html"><code>stutter-inv.ipynb</code></a> working with stutter-invariant formulas properties.
+</li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>
