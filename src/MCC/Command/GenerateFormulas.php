@@ -257,7 +257,6 @@ EOT;
       $cat[$numcat]++;
       return true;
     }
-    echo "raté....................\n";
     return false;
   }
 
@@ -300,12 +299,9 @@ EOT;
 			while (!$inserted)
 			{
               $formula = $grammar->generate ($this->max_depth);
-      	 	  echo "Il faut travailler là !!!!!!!!!!!!!!!!!!! Max = $maxcat reste = $reste\n";
       	 	  $versionSPOT=$this->build_spot_encoding($formula);
       	 	  $command="ltlfilt --format='%h' -f '".$versionSPOT."'";
-      	 	  echo "Commande : ".$command."\n";
       	 	  $answer=exec($command);
-      	 	  echo "Réponse de SPOT : ".$answer."\n";
       	 	  switch ($answer)
       	 	  {
 //      	   	  case "T": $cat[0]++; break;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MAX=2000
-ROOT=inputs-$MAXstates
+ROOT=inputs-${MAX}states
 
 CATS="ReachabilityDeadlock
 ReachabilityFireability
@@ -36,5 +36,5 @@ function main ()
 	date
 }
 
-main > output-$MAXstates.txt 2>&1
+main > output-${MAX}states.txt 2>&1
 
