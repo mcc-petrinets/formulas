@@ -776,8 +776,16 @@ class Net :
         par.ParseFile (f)
         if len (self.__pnmlitm) == 0 :
             raise Exception, 'missplaced "%s" entity' % tag
-        self.__pnmlq.append (self.__pnmlitm)
 
+        #Patch EPA
+        if 'weight' in self.__pnmlitm :
+            __index__ = self.__pnmlitm['weight'].find('\n')
+            if __index__ != -1 :
+                self.__pnmlitm['weight'] = self.__pnmlitm['weight'][0:__index__]
+                print 'Nouvelle version : ' + self.__pnmlitm['weight']
+        #Fin patch EPA
+            
+        self.__pnmlq.append (self.__pnmlitm)
         idx = {}
         for d in self.__pnmlq :
             if 'id' not in d : d['id'] = 'xxx'
