@@ -781,6 +781,10 @@ class Net :
         if 'weight' in self.__pnmlitm :
             __index__ = self.__pnmlitm['weight'].find('\n')
             if __index__ != -1 :
+                if __index__ == 0 :
+                    self.__pnmlitm['weight'] = self.__pnmlitm['weight'][1:len(self.__pnmlitm['weight'])]
+                    __index__ = self.__pnmlitm['weight'].find('\n')
+                    print 'Version intermediaire : ' + self.__pnmlitm['weight']
                 self.__pnmlitm['weight'] = self.__pnmlitm['weight'][0:__index__]
                 print 'Nouvelle version : ' + self.__pnmlitm['weight']
         #Fin patch EPA
