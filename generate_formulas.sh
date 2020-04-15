@@ -3,8 +3,7 @@
 MAX=2000
 ROOT=inputs-${MAX}states
 
-CATS="ReachabilityDeadlock
-ReachabilityFireability
+CATS="ReachabilityFireability
 ReachabilityCardinality
 UpperBounds
 LTLFireability
