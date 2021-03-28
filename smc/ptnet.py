@@ -777,17 +777,30 @@ class Net :
         if len (self.__pnmlitm) == 0 :
             raise Exception, 'missplaced "%s" entity' % tag
 
-        #Patch EPA
+        #EPA : Nouvelle version de l'extraction du weight
         if 'weight' in self.__pnmlitm :
-            __index__ = self.__pnmlitm['weight'].find('\n')
-            if __index__ != -1 :
-                if __index__ == 0 :
-                    self.__pnmlitm['weight'] = self.__pnmlitm['weight'][1:len(self.__pnmlitm['weight'])]
-                    __index__ = self.__pnmlitm['weight'].find('\n')
-                    print 'Version intermediaire : ' + self.__pnmlitm['weight']
-                self.__pnmlitm['weight'] = self.__pnmlitm['weight'][0:__index__]
-                print 'Nouvelle version : ' + self.__pnmlitm['weight']
-        #Fin patch EPA
+            print self.__pnmlitm['weight']
+            __indexD__ = -1
+            __indexE__ = -1
+            __cpt__ = 0
+            
+            for __letter__ in self.__pnmlitm['weight'] :
+                if __letter__ >= '0' and __letter__ <= '9' and __indexD__ == -1 :
+                    __indexD__ = __cpt__
+                if (__letter__ < '0' or __letter__ > '9') and __indexD__ != -1 and __indexE__ == -1 :
+                    __indexE__ = __cpt__
+                __cpt__ += 1
+            
+            if __indexD__ == -1 :
+                raise Exception, 'no digit found in weight'
+            if __indexE__ == -1 :
+                __indexE__ = len(self.__pnmlitm['weight'])
+            
+            print __indexD__
+            print __indexE__
+            self.__pnmlitm['weight'] = self.__pnmlitm['weight'][__indexD__:__indexE__]
+            print 'Nouvelle version : ' + self.__pnmlitm['weight']
+        #Fin EPA
             
         self.__pnmlq.append (self.__pnmlitm)
         idx = {}
